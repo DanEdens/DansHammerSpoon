@@ -36,6 +36,7 @@ end)
 
 
 
+dofile(hs.configdir .. "/test_balena_handler.lua")
 
 hs.alert.show("Config loaded")
 

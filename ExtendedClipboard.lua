@@ -130,3 +130,51 @@ hs.hotkey.bind({"alt", "ctrl"}, "0", function()
     hs.pasteboard.setContents(_G.clip0)
 end)
 
+function saveClipboard()
+    -- Write Clipboard to cliplog file
+    local clipboardContent = hs.pasteboard.getContents()
+    local cliplog = io.open(os.getenv("HOME") .. "/cliplog.txt", "a")
+    -- add log entry
+    cliplog:write(os.date("%Y-%m-%d %H:%M:%S") .. " - " .. clipboardContent .. "\n")
+    cliplog:write(clipboardContent .. "\n")
+    cliplog:close()
+end
+
+function cleanCliplog()
+    -- Clean cliplog file
+    local cliplog = io.open(os.getenv("HOME") .. "/cliplog.txt", "r")
+    local lines = {}
+    
+    -- Read each line and remove duplicates
+    for line in cliplog:lines() do
+        if not lines[line] then
+            lines[line] = true
+        end
+    end
+    
+    cliplog:close()
+    
+    -- Write cleaned contents back to the file
+    cliplog = io.open(os.getenv("HOME") .. "/cliplog.txt", "w")
+    for line, _ in pairs(lines) do
+        cliplog:write(line .. "\n")
+    end
+    
+    cliplog:close()
+end
+
+hs.hotkey.bind({"alt"}, "V", function()
+    spoon.ClipboardTool:toggleClipboard()
+end)
+
+hs.hotkey.bind({"alt"}, "C", function()
+    saveClipboard()
+end)
+
+hs.hotkey.bind({"ctrl","alt"}, "C", function()
+    hs.execute("open -a 'Visual Studio Code' " .. os.getenv("HOME") .. "/cliplog.txt")
+end)
+
+hs.hotkey.bind({"ctrl","alt","cmd"}, "C", function()
+    cleanCliplog()
+end)

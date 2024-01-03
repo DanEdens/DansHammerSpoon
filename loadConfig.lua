@@ -10,6 +10,7 @@ if not hspoon_list then
         -- "HSKeybindings",
         -- "SpoonInstall",
         "ClipShow",
+        "ClipboardTool",
         -- "CountDown",
         -- "HCalendar",
         -- "HSaria2",
@@ -20,7 +21,25 @@ if not hspoon_list then
     }
 end
 
--- Load those Spoons
+-- Load Spoons
 for _, v in pairs(hspoon_list) do
     hs.loadSpoon(v)
+end
+
+-- Function to check if a value exists in a list
+local function isInList(value, list)
+    for _, v in ipairs(list) do
+        if v == value then
+            return true
+        end
+    end
+    return false
+end
+
+-- Check if ClipboardTool is in the hspoon_list and start it
+if isInList("ClipboardTool", hspoon_list) then
+    spoon.ClipboardTool:start()
+    hs.alert.show("ClipboardTool loaded")
+else
+    hs.alert.show("ClipboardTool not loaded")
 end

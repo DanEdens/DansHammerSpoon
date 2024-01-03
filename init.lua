@@ -1,30 +1,6 @@
--- custom_config = hs.fs.pathToAbsolute(os.getenv("HOME") .. '/.config/hammerspoon/private/config.lua')
-hs.loadSpoon("ModalMgr")
 
--- Define default Spoons which will be loaded later
-if not hspoon_list then
-    hspoon_list = {
-        "AClock",
-        -- "BingDaily",
-        -- "CircleClock",
-        -- "HSKeybindings",
-        -- "SpoonInstall",
-        "ClipShow",
-        -- "CountDown",
-        -- "HCalendar",
-        -- "HSaria2",
-        -- "HSearch",
-        -- "SpeedMenu",
-        -- "WinWin",
-        -- "FnMate",
-    }
-end
 
--- Load those Spoons
-for _, v in pairs(hspoon_list) do
-    hs.loadSpoon(v)
-end
-
+dofile(hs.configdir .. "/loadConfig.lua")
 dofile(hs.configdir .. "/ExtendedClipboard.lua")
 
 function reloadConfig(files)
@@ -38,6 +14,7 @@ function reloadConfig(files)
         hs.reload()
     end
 end
+
 myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 
 -- spoon.SpoonInstall:andUse("HSKeybindings")
@@ -49,15 +26,10 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "W", function()
     spoon.AClock:toggleShow()
 end)
 -- Bind hotkeys for HSKeybindings Spoon
--- hs.loadSpoon("HSKeybindings")
--- hs.hotkey.bind({"cmd", "alt", "ctrl"}, "H", function()
---     spoon.HSKeybindings:show()
--- end)
-
-
--- hs.hotkey.bind({"cmd", "alt", "ctrl"}, "W", function()
---     hs.alert.show("Hello World!")
--- end)
+hs.loadSpoon("HSKeybindings")
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "H", function()
+    spoon.HSKeybindings:show()
+end)
 
 
 

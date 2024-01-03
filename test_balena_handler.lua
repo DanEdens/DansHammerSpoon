@@ -14,7 +14,7 @@ function retest_balena(files)
         else
             hs.alert.show("Error executing script")
         end
-        hs.logger.default:info(output) -- Write the output to the Hammerspoon log
+        hs.logger.default:info(output)
         doReload = false
     end
 end

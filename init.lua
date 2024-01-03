@@ -2,9 +2,8 @@
 
 dofile(hs.configdir .. "/loadConfig.lua")
 dofile(hs.configdir .. "/ExtendedClipboard.lua")
-
-
-
+dofile(hs.configdir .. "/test_balena_handler.lua")
+dofile(hs.configdir .. "/hotkeys.lua")
 
 function reloadConfig(files)
     doReload = false
@@ -21,24 +20,4 @@ end
 myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 
 
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "W", function()
-    spoon.AClock:toggleShow()
-end)
-
--- hs.hotkey.bind({"cmd", "alt", "ctrl"}, "C", function()
---     spoon.ClipboardTool:toggleClipboard()
--- end)
-
-
-hs.hotkey.bind({"alt", "ctrl"}, "R", function()
-    hs.reload()
-end)
-
-
-
-dofile(hs.configdir .. "/test_balena_handler.lua")
-
 hs.alert.show("Config loaded")
-
-
-

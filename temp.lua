@@ -43,3 +43,12 @@
 
 -- hs.notify.new({title="Clipboard", informativeText="Resetting Clipboard"}):send()
 -- hs.timer.doAfter(1, fixClipboard)
+
+
+-- hswhints_keys = hswhints_keys or {"alt", "tab"}
+-- if string.len(hswhints_keys[2]) > 0 then
+--     spoon.ModalMgr.supervisor:bind(hswhints_keys[1], hswhints_keys[2], 'Show Window Hints', function()
+--         spoon.ModalMgr:deactivateAll()
+--         hs.hints.windowHints()
+--     end)
+-- end

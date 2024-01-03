@@ -4,6 +4,8 @@ dofile(hs.configdir .. "/loadConfig.lua")
 dofile(hs.configdir .. "/ExtendedClipboard.lua")
 dofile(hs.configdir .. "/test_balena_handler.lua")
 dofile(hs.configdir .. "/hotkeys.lua")
+-- dofile(hs.configdir .. "/temp.lua")
+
 
 function reloadConfig(files)
     doReload = false

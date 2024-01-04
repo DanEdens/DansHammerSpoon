@@ -2,7 +2,7 @@
 
 dofile(hs.configdir .. "/loadConfig.lua")
 dofile(hs.configdir .. "/ExtendedClipboard.lua")
-dofile(hs.configdir .. "/test_balena_handler.lua")
+-- dofile(hs.configdir .. "/test_balena_handler.lua")
 dofile(hs.configdir .. "/hotkeys.lua")
 -- dofile(hs.configdir .. "/temp.lua")
 
@@ -23,3 +23,5 @@ myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConf
 
 
 hs.alert.show("Config loaded")
+
+

@@ -15,6 +15,7 @@ if not hspoon_list then
         -- "HCalendar",
         -- "HSaria2",
         -- "HSearch",
+        "Layouts",
         -- "SpeedMenu",
         -- "WinWin",
         -- "FnMate",

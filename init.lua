@@ -47,9 +47,13 @@ hs.timer.doAt("10:45", "1d", function()
     hs.execute("open -a 'Google Chrome' https://meet.google.com/xjk-uzpk-oit?authuser=1")
 end)
 
--- ctrl + cmd + alt + shift + ` to switch to vs code
+-- ctrl + cmd + alt + ` to switch to vs code
 hs.hotkey.bind({"ctrl", "cmd", "alt"}, "`", function()
     hs.application.launchOrFocus("Visual Studio Code")
+end)
+-- ctrl + cmd + alt + shift + ` to switch to pycharm
+hs.hotkey.bind({"ctrl", "cmd", "alt", "shift"}, "`", function()
+    hs.application.launchOrFocus("PyCharm")
 end)
 
 

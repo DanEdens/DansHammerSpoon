@@ -24,3 +24,12 @@ hs.hotkey.bind(hammer, "Space", function()
 end)
 
 
+-- ctrl + cmd + alt + ` to switch to vs code
+hs.hotkey.bind({"ctrl", "cmd", "alt"}, "`", function()
+    hs.application.launchOrFocus("Visual Studio Code")
+end)
+
+-- -- ctrl + cmd + alt + shift + P
+hs.hotkey.bind(hammer, "1", function()
+    hs.execute("code ~/lab/regressiontestkit")
+end)

@@ -41,20 +41,12 @@ usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
 usbWatcher:start()
 
 -- everyday at 10:45 am
-hs.timer.doAt("10:45", "1d", function() 
-    hs.alert.show("Time to stand up!")
-    -- open chrome to a specific page
-    hs.execute("open -a 'Google Chrome' https://meet.google.com/xjk-uzpk-oit?authuser=1")
-end)
+-- hs.timer.doAt("10:45", "1d", function() 
+--     hs.alert.show("Time to stand up!")
+--     -- open chrome to a specific page
+--     hs.execute("open -a 'Google Chrome' https://meet.google.com/xjk-uzpk-oit?authuser=1")
+-- end)
 
--- ctrl + cmd + alt + ` to switch to vs code
-hs.hotkey.bind({"ctrl", "cmd", "alt"}, "`", function()
-    hs.application.launchOrFocus("Visual Studio Code")
-end)
--- ctrl + cmd + alt + shift + ` to switch to pycharm
-hs.hotkey.bind({"ctrl", "cmd", "alt", "shift"}, "`", function()
-    hs.application.launchOrFocus("PyCharm")
-end)
 
 
 

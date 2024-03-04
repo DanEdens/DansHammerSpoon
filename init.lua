@@ -29,6 +29,18 @@ hs.alert.show("Config loaded")
 usbWatcher = nil
 function usbDeviceCallback(data)
     print(data["productName"])
+    -- SAMSUNG_Android
+    if (data["productName"] == "SAMSUNG_Android") then
+        -- execute scrcpy to mirror android screen
+        hs.alert.show("Android plugged in")
+        hs.execute("/usr/local/bin/scrcpy")
+        -- if (data["eventType"] == "added") then
+        --     hs.alert.show("Android plugged in")
+        -- elseif (data["eventType"] == "removed") then
+        --     hs.alert.show("Android unplugged")
+        -- end
+    end
+    
     if (data["productName"] == "USB Keyboard") then
         if (data["eventType"] == "added") then
             hs.alert.show("USB Keyboard plugged in")
@@ -59,3 +71,12 @@ end)
 
 
 
+
+-- hs.loadSpoon('ExtendedClipboard')
+
+
+-- # set brightness to max 
+-- hs.execute("brightness 1")
+
+-- set brightness to half
+--hs.execute("brightness 0.5")

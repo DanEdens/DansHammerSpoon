@@ -1,3 +1,19 @@
+--- === ExtendedClipboard ===
+---
+--- This adds additional Clipboard capablities like 1-10 register, history, and mqtt based device sharing
+---
+--- Download:
+local obj = {}
+obj.__index = obj
+
+-- Metadata
+obj.name = "ExtendedClipboard"
+obj.version = "0.1.0"
+obj.author = "<d.edens@email>"
+obj.homepage = ""
+obj.license = "MIT - https://opensource.org/licenses/MIT"
+
+--- ExtendedClipboard:helloWorld()
 
 -- hs.hotkey.bind({"alt"}, "1", function()
 --     --  Get Clipboard contents.
@@ -183,3 +199,8 @@
 --     hs.execute("open -a 'Visual Studio Code' " .. os.getenv("HOME") .. "/cliplog.txt")
 --     cleanCliplog()
 -- end)
+-- function obj:helloWorld(name)
+--   print(string.format('Hello %s from %s', name, self.name))
+-- end
+
+-- return obj

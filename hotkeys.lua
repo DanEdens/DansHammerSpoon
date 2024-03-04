@@ -5,17 +5,16 @@ hyper = {"cmd","shift","ctrl","alt"}
 
 -- Initialize counter
 local counter = 0
-local rows = 10 
+
+-- Gap between windows
+local gap = 10
+local cols = 5
 
 -- Function to calculate position based on counter
-local function calculatePosition(counter, max)
-    local rows = 2
-    local cols = 5
-    local gap = 10
-
+local function calculatePosition(counter, max, rows)
     local row = math.floor(counter / cols)
     local col = counter % cols
-
+    
     local x = max.x + (col * (max.w / cols + gap))
     local y = max.y + (row * (max.h / rows + gap))
 
@@ -26,24 +25,63 @@ end
 spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()
 
 
+-- 0 make tiny for storage 
+hs.hotkey.bind(hammer, "0", function()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    local screen = win:screen()
+    local max = screen:frame()
+
+    -- Number of rows
+    local rows = 2  -- Change this value to adjust the number of rows
+
+    -- Calculate position based on counter and number of rows
+    local x, y = calculatePosition(counter, max, rows)
+
+    -- Update frame
+    f.x = x
+    f.y = y
+    f.w = max.w / 5 - 2 * gap
+    f.h = max.h / rows - 2 * gap
+    win:setFrame(f)
+
+    -- Increment counter (and wrap around)
+    counter = (counter + 1) % (rows * cols)
+end)
+
+
 -- Aclock Show
-hs.hotkey.bind(hammer, "W", function()
+hs.hotkey.bind(hyper, "W", function()
     spoon.AClock:toggleShow()
 end)
 
 -- Reload HammerSpoon
-hs.hotkey.bind(hammer, "R", function()
+hs.hotkey.bind(hammer, "F5", function()
     hs.reload()
 end)
 
 -- Toggle HammerSpoon Console
-hs.hotkey.bind(hammer, "Space", function()
+hs.hotkey.bind(hammer, "F1", function()
     hs.toggleConsole()
 end)
 
 -- ctrl + cmd + alt + ` to switch to vs code
-hs.hotkey.bind({"ctrl", "cmd", "alt"}, "`", function()
+hs.hotkey.bind(hammer, "`", function()
     hs.application.launchOrFocus("Visual Studio Code")
+end)
+
+-- hammer P for pycharm
+hs.hotkey.bind(hammer, "p", function()
+    hs.application.launchOrFocus("PyCharm Community Edition")
+end)
+
+-- l for Logi Options+
+hs.hotkey.bind(hammer, "l", function()
+    hs.application.launchOrFocus("Logi Options")
+end)
+
+hs.hotkey.bind({"alt", "ctrl"}, "Tab", function()
+    hs.application.launchOrFocus("Mission Control.app")
 end)
 
 -- Hammer 1 - left half
@@ -60,6 +98,20 @@ hs.hotkey.bind(hammer, "1", function()
     win:setFrame(f)
 end)
 
+-- hyper 1 - left corner
+hs.hotkey.bind(hyper, "1", function()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    local screen = win:screen()
+    local max = screen:frame()
+
+    f.x = max.x
+    f.y = max.y
+    f.w = max.w / 2
+    f.h = max.h / 2
+    win:setFrame(f)
+end)
+
 -- Hammer 2 - right half
 hs.hotkey.bind(hammer, "2", function()
     local win = hs.window.focusedWindow()
@@ -71,6 +123,20 @@ hs.hotkey.bind(hammer, "2", function()
     f.y = max.y
     f.w = max.w / 2
     f.h = max.h
+    win:setFrame(f)
+end)
+
+-- hyper 2 - right corner
+hs.hotkey.bind(hyper, "2", function()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    local screen = win:screen()
+    local max = screen:frame()
+
+    f.x = max.x + (max.w / 2)
+    f.y = max.y
+    f.w = max.w / 2
+    f.h = max.h / 2
     win:setFrame(f)
 end)
 
@@ -169,29 +235,6 @@ hs.hotkey.bind(hammer, "9", function()
     f.y = mouse.y - (f.h / 2)
     win:setFrame(f)
 end)
-
--- 0 make tiny for storage 
-hs.hotkey.bind(hammer, "0", function()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-
-    -- Calculate position based on counter
-    local x, y = calculatePosition(counter, max)
-
-    -- Update frame
-    f.x = x
-    f.y = y
-    f.w = max.w / 5 - 2 * 10
-    f.h = max.h / 2 - 2 * 10
-    win:setFrame(f)
-
-    -- Increment counter (and wrap around)
-    counter = (counter + 1) % 10
-end)
-
-
 
 
 

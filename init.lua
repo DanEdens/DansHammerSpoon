@@ -25,6 +25,23 @@ myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConf
 
 hs.alert.show("Config loaded")
 
+-- hs.eventtap.new(hs.eventtap.event.types.middleMouseUp, function(event)
+
+--     button = event:getProperty(hs.eventtap.event.properties.mouseEventButtonNumber)
+
+--     current_app = hs.application.frontmostApplication()
+--     google_chrome = hs.application.find("Google Chrome")
+
+--     if (current_app == google_chrome) then
+--         if (button == 3) then
+--             hs.eventtap.keyStroke({"cmd"}, "[")
+--         end
+
+--         if (button == 4) then
+--             hs.eventtap.keyStroke({"cmd"}, "]")
+--         end
+--     end
+-- end):start()
 
 usbWatcher = nil
 function usbDeviceCallback(data)

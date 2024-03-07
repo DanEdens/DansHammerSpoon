@@ -204,9 +204,9 @@ hs.hotkey.bind(hammer, "4", function()                                          
     local f = win:frame()
     local screen = win:screen()
     local max = screen:frame()
-    f.x = max.x + (max.w * 0.025)
+    f.x = max.x + 30
     f.y = max.y + (max.h * 0.025)
-    f.w = max.w * 0.72
+    f.w = max.w * 0.72 - 30
     f.h = max.h * 0.95
     win:setFrame(f)
 end)
@@ -215,9 +215,9 @@ hs.hotkey.bind(_hyper, "4", function()                                          
     local f = win:frame()
     local screen = win:screen()
     local max = screen:frame()
-    f.x = max.x + (max.w * 0.75)
+    f.x = max.x + (max.w * 0.73)
     f.y = max.y + (max.h * 0.025)
-    f.w = max.w * 0.25
+    f.w = max.w * 0.27
     f.h = max.h * 0.95
     win:setFrame(f)
 end)

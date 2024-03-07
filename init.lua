@@ -50,7 +50,7 @@ function usbDeviceCallback(data)
     if (data["productName"] == "SAMSUNG_Android") then
         -- execute scrcpy to mirror android screen
         hs.alert.show("Android plugged in")
-        hs.execute("/usr/local/bin/scrcpy")
+        hs.execute("scrcpy") --max-size 800 --window-title 'Samsung S22' --turn-screen-off --stay-awake --always-on-top --window-borderless --window-x 0 --window-y 0 --window-width 800 --window-height 1600 --max-fps 30 --no-control --force-adb-forward --forward-all-clicks --prefer-text --window-borderless --window-title 'Samsung S22'")
         -- if (data["eventType"] == "added") then
         --     hs.alert.show("Android plugged in")
         -- elseif (data["eventType"] == "removed") then

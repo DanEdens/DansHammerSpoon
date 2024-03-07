@@ -79,8 +79,8 @@ usbWatcher:start()
 
 
 
---everyday at 10:45 am
-hs.timer.doAt("10:44", "1d", function() 
+--everyday at 9:45 am
+hs.timer.doAt("9:44", "1d", function() 
     hs.alert.show("Time to stand up!")
     -- open chrome to a specific page
     hs.execute("open -a 'Google Chrome' https://meet.google.com/xjk-uzpk-oit?authuser=1")

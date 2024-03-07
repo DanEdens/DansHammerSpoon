@@ -1,6 +1,7 @@
 
 
 hammer = {"cmd","ctrl","alt"}
+-- hammer = "fn"
 _hyper = {"cmd","shift","ctrl","alt"}
 -- local editor = "Visual Studio Code"
 -- local editor = "PyCharm Community Edition"
@@ -91,35 +92,35 @@ end
 
 
 
-spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()                                                    -- Layouts Menu
-hs.hotkey.bind(_hyper, "W", function() spoon.AClock:toggleShow() end)                                            -- Aclock Show
-hs.hotkey.bind(hammer, "F5", function() hs.reload() end)                                                         -- Reload HammerSpoon
-hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)                           -- shift + f13 open screenshots folder
-hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)                                                  -- Toggle HammerSpoon Console
-hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)                             -- hyper open console.app
+hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)                           -- shift f13 -- Open screenshots folder
+spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()                                                    -- hammer B  -- Layouts Menu
+hs.hotkey.bind(_hyper, "W", function() spoon.AClock:toggleShow() end)                                            -- _hyper W  -- Aclock Show
+hs.hotkey.bind(hammer, "F5", function() hs.reload() end)                                                         -- hammer F5 -- Reload HammerSpoon
+hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)                                                  -- hammer F1 -- Toggle HammerSpoon Console
+hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)                             -- _hyper F2 -- Open console.app
 hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Finder") end)                              -- hammer F2 for finder
 hs.hotkey.bind(hammer, "`", function() hs.application.launchOrFocus("Visual Studio Code") end)                   -- hammer ` for vscode
 hs.hotkey.bind(hammer, "p", function() hs.application.launchOrFocus("PyCharm Community Edition") end)            -- hammer P for pycharm
 hs.hotkey.bind(hammer, "b", function() hs.application.launchOrFocus("Arc") end)                                  -- hammer B for arc
-hs.hotkey.bind(_hyper, "b", function() hs.application.launchOrFocus("Google Chrome") end)                        -- hyper B for chrome
+hs.hotkey.bind(_hyper, "b", function() hs.application.launchOrFocus("Google Chrome") end)                        -- _hyper B for chrome
 hs.hotkey.bind(hammer, "l", function() hs.application.launchOrFocus("logioptionsplus") end)                      -- l for Logi Options+
-hs.hotkey.bind(_hyper, "l", function() hs.application.launchOrFocus("System Preferences") end)                   -- hyper l for system settings
+hs.hotkey.bind(_hyper, "l", function() hs.application.launchOrFocus("System Preferences") end)                   -- _hyper l for system settings
 hs.hotkey.bind(hammer, "f", function() hs.application.launchOrFocus("Fleet") end)                                -- f for fleet
-hs.hotkey.bind(_hyper, "f", function() hs.execute("open ~/lab") end)                                             -- hyper f for open ~/lab
+hs.hotkey.bind(_hyper, "f", function() hs.execute("open ~/lab") end)                                             -- _hyper f for open ~/lab
 hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY', true):post() end)             -- hammer m for play/pause 
-hs.hotkey.bind(_hyper, "m", function() hs.application.launchOrFocus("Music") end)                                -- hyper m for music
+hs.hotkey.bind(_hyper, "m", function() hs.application.launchOrFocus("Music") end)                                -- _hyper m for music
 hs.hotkey.bind(hammer, "s", function() hs.application.launchOrFocus("Slack") end)                                -- hammer s for slack
 hs.hotkey.bind(hammer, "g", function() hs.application.launchOrFocus("GitHub Desktop") end)                       -- hammer g for github desktop
 hs.hotkey.bind(hammer, "Tab", function() hs.application.launchOrFocus("Mission Control.app") end)                -- hammer tab for mission control
-hs.hotkey.bind(_hyper, "Tab", function() hs.application.launchOrFocus("Launchpad") end)                          -- hyper tab for launchpad
+hs.hotkey.bind(_hyper, "Tab", function() hs.application.launchOrFocus("Launchpad") end)                          -- _hyper tab for launchpad
 hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotkeys.lua") end)  -- hammer e for edit hotkeys.lua
-hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- hyper e for edit zshenv
+hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- _hyper e for edit zshenv
 hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)             -- hammer z for edit bash_aliases
-hs.hotkey.bind(_hyper, "z", function()    hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                 -- hyper z for edit zshrc
+hs.hotkey.bind(_hyper, "z", function()    hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                 -- _hyper z for edit zshrc
 hs.hotkey.bind(hammer, "F9", nil, function() moveWindowOneSpace("left",true) end)                                -- hammer f9 move window one space left
-hs.hotkey.bind(hammer, "F10", nil, function() moveWindowOneSpace("right",true) end)                              -- hyper f10 move window one space right
-hs.hotkey.bind(_hyper, "F9", nil, function() moveWindowOneSpace("left",false) end)                               -- hyper f9 move window one space left
-hs.hotkey.bind(_hyper, "F10", nil, function() moveWindowOneSpace("right",false) end)                             -- hyper f10 move window one space right
+hs.hotkey.bind(hammer, "F10", nil, function() moveWindowOneSpace("right",true) end)                              -- _hyper f10 move window one space right
+hs.hotkey.bind(_hyper, "F9", nil, function() moveWindowOneSpace("left",false) end)                               -- _hyper f9 move window one space left
+hs.hotkey.bind(_hyper, "F10", nil, function() moveWindowOneSpace("right",false) end)                             -- _hyper f10 move window one space right
 hs.hotkey.bind(hammer, "F11", nil, function() flashScreen(window.focusedWindow():screen()) end)                  -- hammer f11 flashScreen.
 hs.hotkey.bind(hammer, "0", function()                                                                           -- 0 make tiny for storage 
     local win = hs.window.focusedWindow()
@@ -177,7 +178,7 @@ hs.hotkey.bind(hammer, "1", function()                                          
     f.h = max.h / 2
     win:setFrame(f)
 end)
-hs.hotkey.bind(_hyper, "1", function()                                                                           -- hyper 1 -- Move window Bottom-Left corner
+hs.hotkey.bind(_hyper, "1", function()                                                                           -- _hyper 1 -- Move window Bottom-Left corner
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()
@@ -201,7 +202,7 @@ hs.hotkey.bind(hammer, "2", function()                                          
     f.h = max.h / 2
     win:setFrame(f)
 end) 
-hs.hotkey.bind(_hyper, "2", function()                                                                           -- hyper 2 -- Move window Bottom-Right corner
+hs.hotkey.bind(_hyper, "2", function()                                                                           -- _hyper 2 -- Move window Bottom-Right corner
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()
@@ -225,7 +226,7 @@ hs.hotkey.bind(hammer, "3", function()                                          
     f.h = max.h
     win:setFrame(f)
 end) 
-hs.hotkey.bind(_hyper, "3", function()                                                                           -- hyper 3 -- 80% full screen centered
+hs.hotkey.bind(_hyper, "3", function()                                                                           -- _hyper 3 -- 80% full screen centered
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()
@@ -249,7 +250,7 @@ hs.hotkey.bind(hammer, "4", function()                                          
     f.h = max.h * 0.95
     win:setFrame(f)
 end)
-hs.hotkey.bind(_hyper, "4", function()                                                                           -- hyper 4 -- Move window to 95 by 30 from right side
+hs.hotkey.bind(_hyper, "4", function()                                                                           -- _hyper 4 -- Move window to 95 by 30 from right side
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()
@@ -261,7 +262,7 @@ hs.hotkey.bind(_hyper, "4", function()                                          
     f.h = max.h * 0.95
     win:setFrame(f)
 end)
-hs.hotkey.bind(hammer, "6", function()                                                                           -- 6 smaller left side
+hs.hotkey.bind(hammer, "6", function()                                                                           -- hammer 6 smaller left side
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()
@@ -273,7 +274,7 @@ hs.hotkey.bind(hammer, "6", function()                                          
     f.h = max.h * 0.8
     win:setFrame(f)
 end)
-hs.hotkey.bind(_hyper, "6", function()                                                                           -- hyper 6 - left half
+hs.hotkey.bind(_hyper, "6", function()                                                                           -- _hyper 6 - left half
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()
@@ -343,7 +344,7 @@ hs.hotkey.bind(hammer, "left", function()                                       
     win:setFrame(f)
     win:moveToScreen(nextScreen)
 end) 
-hs.hotkey.bind(_hyper, "left", function()                                                                        -- hyper right arrow
+hs.hotkey.bind(_hyper, "left", function()                                                                        -- _hyper right arrow
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()
@@ -370,7 +371,7 @@ hs.hotkey.bind(hammer, "right", function()                                      
     win:setFrame(f)
     win:moveToScreen(nextScreen)
 end)
-hs.hotkey.bind(_hyper, "right", function()                                                                       -- hyper left arrow
+hs.hotkey.bind(_hyper, "right", function()                                                                       -- _hyper left arrow
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()

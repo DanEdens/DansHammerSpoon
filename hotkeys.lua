@@ -205,9 +205,9 @@ hs.hotkey.bind(hammer, "4", function()                                          
     local screen = win:screen()
     local max = screen:frame()
     f.x = max.x + 30
-    f.y = max.y + (max.h * 0.025)
+    f.y = max.y + (max.h * 0.01)
     f.w = max.w * 0.72 - 30
-    f.h = max.h * 0.95
+    f.h = max.h * 0.98
     win:setFrame(f)
 end)
 hs.hotkey.bind(_hyper, "4", function()                                                                           -- _hyper 4     -- Move window to 95 by 30 from right side
@@ -216,9 +216,9 @@ hs.hotkey.bind(_hyper, "4", function()                                          
     local screen = win:screen()
     local max = screen:frame()
     f.x = max.x + (max.w * 0.73)
-    f.y = max.y + (max.h * 0.025)
+    f.y = max.y + (max.h * 0.01)
     f.w = max.w * 0.27
-    f.h = max.h * 0.95
+    f.h = max.h * 0.98
     win:setFrame(f)
 end)
 hs.hotkey.bind(hammer, "6", function()                                                                           -- hammer 6     -- smaller left side

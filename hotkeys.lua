@@ -1,42 +1,31 @@
+local window = require "hs.window"
+local spaces = require "hs.spaces"
 
-
-hammer = {"cmd","ctrl","alt"}
 -- hammer = "fn"
+hammer = {"cmd","ctrl","alt"}
 _hyper = {"cmd","shift","ctrl","alt"}
+
 -- local editor = "Visual Studio Code"
 -- local editor = "PyCharm Community Edition"
 local editor = "Fleet"
 
--- Initialize counter
-local counter = 0
-
--- Gap between windows
 local gap = 5
 local cols = 4
+local counter = 0
 
--- Function to calculate position based on counter
 local function calculatePosition(counter, max, rows)
     local row = math.floor(counter / cols)
     local col = counter % cols
-    
     local x = max.x + (col * (max.w / cols + gap))
     local y = max.y + (row * (max.h / rows + gap))
-
     return x, y
 end
-
-
-local hotkey = require "hs.hotkey"
-local window = require "hs.window"
-local spaces = require "hs.spaces"
-
 function getGoodFocusedWindow(nofull)
    local win = window.focusedWindow()
    if not win or not win:isStandard() then return end
    if nofull and win:isFullScreen() then return end
    return win
 end 
-
 function flashScreen(screen)
    local flash=hs.canvas.new(screen:fullFrame()):appendElements({
 	 action = "fill",
@@ -45,13 +34,11 @@ function flashScreen(screen)
    flash:show()
    hs.timer.doAfter(.15,function () flash:delete() end)
 end 
-
 function switchSpace(skip,dir)
    for i=1,skip do
       hs.eventtap.keyStroke({"ctrl","cmd", "shift"}, dir, 0) -- "fn" is a bugfix!
    end 
 end
-
 function moveWindowOneSpace(dir,switch)
    local win = getGoodFocusedWindow(true)
    if not win then return end
@@ -88,10 +75,6 @@ function moveWindowOneSpace(dir,switch)
    end
    flashScreen(screen)   -- Shouldn't get here, so no space found
 end
-
-
-
-
 hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)                           -- shift f13    -- Screenshots folder
 spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()                                                    -- hammer 8     -- Layouts Menu
 hs.hotkey.bind(_hyper, "W", function() spoon.AClock:toggleShow() end)                                            -- _hyper W     -- Aclock Show

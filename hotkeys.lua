@@ -21,20 +21,20 @@ local strokeisEnabled = false
 
 function tempFunction()
     hs.alert.show("Hotkey not set")
-end
+end                                                  -- Function to flash alert if hotkey not set
 local function calculatePosition(counter, max, rows)
     local row = math.floor(counter / cols)
     local col = counter % cols
     local x = max.x + (col * (max.w / cols + gap))
     local y = max.y + (row * (max.h / rows + gap))
     return x, y
-end
+end                                                       -- Function for calculating window position
 function getGoodFocusedWindow(nofull)
    local win = window.focusedWindow()
    if not win or not win:isStandard() then return end
    if nofull and win:isFullScreen() then return end
    return win
-end
+end                                                                      -- Function for getting the focused window
 function flashScreen(screen)
    local flash=hs.canvas.new(screen:fullFrame()):appendElements({
 	 action = "fill",
@@ -42,7 +42,7 @@ function flashScreen(screen)
 	 type = "rectangle"})
    flash:show()
    hs.timer.doAfter(.15,function () flash:delete() end)
-end
+end                                                                               -- Function for flashing the screen
 function switchSpace(dir, switch)
     local win = getGoodFocusedWindow(true)
     if not win then return end
@@ -78,7 +78,7 @@ function switchSpace(dir, switch)
        end
     end
     flashScreen(screen)   -- Shouldn't get here, so no space found
-end
+end                                                                          -- Function for moving window one space left or right
 function moveWindowOneSpace(dir,switch)
    local win = getGoodFocusedWindow(true)
    if not win then return end
@@ -114,7 +114,7 @@ function moveWindowOneSpace(dir,switch)
       end
    end
    flashScreen(screen)   -- Shouldn't get here, so no space found
-end
+end                                                                    -- Function for moving window one space left or right
 function logKeyStroke(event)
     local keyCode = event:getKeyCode()
     local flags = event:getFlags()
@@ -136,7 +136,7 @@ local function toggleKeyLogging()
         strokeisEnabled = true
         hs.alert.show(logKeyStroke:isEnabled())
     end
-end                                                                          -- Function for enabling keylogging
+end                                                                          -- Function for enabling key-logging
 function halfShuffle()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -448,7 +448,7 @@ hs.hotkey.bind(hammer, "F2", function() hs.execute("open ~/lab") end)           
 hs.hotkey.bind(_hyper, "F2", function() tempFunction() end)                                                      -- _hyper F2    -- None
 hs.hotkey.bind(hammer, "F3", function() tempFunction() end)                                                      -- hammer F3    -- None
 hs.hotkey.bind(_hyper, "F3", function() tempFunction() end)                                                      -- _hyper F3    -- None
-hs.hotkey.bind(hammer, "F4", function() toggleKeyLogging() end)                                                  -- hammer F4   -- to toggle key logging
+hs.hotkey.bind(hammer, "F4", function() toggleKeyLogging() end)                                                  -- hammer F4    -- to toggle key logging
 hs.hotkey.bind(_hyper, "F4", function() tempFunction() end)                                                      -- _hyper F4    -- None
 hs.hotkey.bind(hammer, "F5", function() hs.reload() end)                                                         -- hammer F5    -- Reload HammerSpoon
 hs.hotkey.bind(_hyper, "F5", function() tempFunction() end)                                                      -- _hyper F5    -- None
@@ -463,9 +463,9 @@ hs.hotkey.bind(_hyper, "F9", nil, function() moveWindowOneSpace("left",false) en
 hs.hotkey.bind(hammer, "F10", nil, function() moveWindowOneSpace("right",true) end)                  -- hammer F10   -- move window one space right
 hs.hotkey.bind(_hyper, "F10", nil, function() moveWindowOneSpace("right",false) end)                 -- _hyper F10   -- move window one space right
 hs.hotkey.bind(hammer, "F11", function() switchSpace("left", true) end)                              -- hammer f11   -- move to next space
-hs.hotkey.bind(_hyper, "F11", function() tempFunction() end)                                                     -- _hyper F11     -- None
+hs.hotkey.bind(_hyper, "F11", function() tempFunction() end)                                                     -- _hyper F11   -- None
 hs.hotkey.bind(hammer, "F12", function() switchSpace("right", true) end)                             -- hammer f12   -- move to previous space
-hs.hotkey.bind(_hyper, "F12", function() tempFunction() end)                                                     -- _hyper F12     -- None
+hs.hotkey.bind(_hyper, "F12", function() tempFunction() end)                                                     -- _hyper F12   -- None
 hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)                           -- shift f13    -- Screenshots folder
 hs.hotkey.bind(hammer, "0", function() halfShuffle() end)                                                        -- hammer 0     -- shuffle
 hs.hotkey.bind(_hyper, "0", function() fullShuffle() end)                                                        -- _hyper 0     -- 1/4th screen vertical

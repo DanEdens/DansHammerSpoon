@@ -18,7 +18,41 @@ local counter = 0
 -- Define a variable to keep track of the eventtap object
 local logKeyStroke = nil
 local strokeisEnabled = false
+local usbisEnabled = false
+local usbWatcher = nil
+function usbDeviceCallback(data)
+    print(data["productName"])
+    -- SAMSUNG_Android
+    if (data["productName"] == "SAMSUNG_Android") then
+        -- execute scrcpy to mirror android screen
+        hs.alert.show("Android plugged in")
+        hs.execute("scrcpy") --max-size 800 --window-title 'Samsung S22' --turn-screen-off --stay-awake --always-on-top --window-borderless --window-x 0 --window-y 0 --window-width 800 --window-height 1600 --max-fps 30 --no-control --force-adb-forward --forward-all-clicks --prefer-text --window-borderless --window-title 'Samsung S22'")
+        -- if (data["eventType"] == "added") then
+        --     hs.alert.show("Android plugged in")
+        -- elseif (data["eventType"] == "removed") then
+        --     hs.alert.show("Android unplugged")
+        -- end
+    end
 
+    if (data["productName"] == "USB Keyboard") then
+        if (data["eventType"] == "added") then
+            hs.alert.show("USB Keyboard plugged in")
+        elseif (data["eventType"] == "removed") then
+            hs.alert.show("USB Keyboard unplugged")
+        end
+    end
+end
+local function toggleUSBLogging()
+    if usbisEnabled then
+        usbWatcher:stop()
+        usbisEnabled = false
+    else
+        usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
+        usbWatcher:start()
+        usbisEnabled = true
+    end
+    print(usbisEnabled)
+end
 function tempFunction()
     hs.alert.show("Hotkey not set")
 end                                                  -- Function to flash alert if hotkey not set
@@ -446,7 +480,7 @@ hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)                 
 hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)                             -- _hyper F1    -- Open console.app
 hs.hotkey.bind(hammer, "F2", function() hs.execute("open ~/lab") end)                                            -- hammer F2    -- Open ~/lab
 hs.hotkey.bind(_hyper, "F2", function() tempFunction() end)                                                      -- _hyper F2    -- None
-hs.hotkey.bind(hammer, "F3", function() tempFunction() end)                                                      -- hammer F3    -- None
+hs.hotkey.bind(hammer, "F3", function() toggleUSBLogging() end)                                                      -- hammer F3    -- None
 hs.hotkey.bind(_hyper, "F3", function() tempFunction() end)                                                      -- _hyper F3    -- None
 hs.hotkey.bind(hammer, "F4", function() toggleKeyLogging() end)                                                  -- hammer F4    -- to toggle key logging
 hs.hotkey.bind(_hyper, "F4", function() tempFunction() end)                                                      -- _hyper F4    -- None

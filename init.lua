@@ -57,7 +57,7 @@ function usbDeviceCallback(data)
         --     hs.alert.show("Android unplugged")
         -- end
     end
-    
+
     if (data["productName"] == "USB Keyboard") then
         if (data["eventType"] == "added") then
             hs.alert.show("USB Keyboard plugged in")
@@ -70,7 +70,7 @@ usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
 usbWatcher:start()
 
 -- everyday at 10:45 am
--- hs.timer.doAt("10:45", "1d", function() 
+-- hs.timer.doAt("10:45", "1d", function()
 --     hs.alert.show("Time to stand up!")
 --     -- open chrome to a specific page
 --     hs.execute("open -a 'Google Chrome' https://meet.google.com/xjk-uzpk-oit?authuser=1")
@@ -80,7 +80,7 @@ usbWatcher:start()
 
 
 --everyday at 9:45 am
-hs.timer.doAt("9:44", "1d", function() 
+hs.timer.doAt("9:44", "1d", function()
     hs.alert.show("Time to stand up!")
     -- open chrome to a specific page
     hs.execute("open -a 'Google Chrome' https://meet.google.com/xjk-uzpk-oit?authuser=1")
@@ -92,44 +92,9 @@ end)
 -- hs.loadSpoon('ExtendedClipboard')
 
 
--- # set brightness to max 
+-- # set brightness to max
 -- hs.execute("brightness 1")
 
 -- set brightness to half
 --hs.execute("brightness 0.5")
 
-
--- -- -- function for console logging pressed hotkeys
--- Define a variable to keep track of the eventtap object
-local logKeyStroke = nil
-local strokeisEnabled = false
-
--- Function for console logging pressed hotkeys
-function logKeyStroke(event)
-    local keyCode = event:getKeyCode()
-    local flags = event:getFlags()
-    local key = hs.keycodes.map[keyCode]
-    local flagString = ""
-    for k, v in pairs(flags) do
-        if v then
-            flagString = flagString .. " " .. k
-        end
-    end
-    print("Key: " .. key .. " (" .. keyCode .. ") Flags: " .. flagString)
-end
-
-local function toggleKeyLogging()
-    if strokeisEnabled then
-        hs.reload()
-    else
-        -- Create a new eventtap object if it doesn't exist
-        logKeyStroke = hs.eventtap.new({hs.eventtap.event.types.keyDown}, logKeyStroke):start()
-        strokeisEnabled = true
-        hs.alert.show(logKeyStroke:isEnabled())
-    end
-end
-
--- Bind the hotkey to toggle key logging
-hs.hotkey.bind({"ctrl", "alt", "cmd"}, "F4", function()
-    toggleKeyLogging()
-end)

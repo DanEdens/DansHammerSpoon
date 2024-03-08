@@ -421,7 +421,7 @@ hs.hotkey.bind(_hyper, "Tab", function() hs.application.launchOrFocus("Launchpad
 hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotkeys.lua") end)  -- hammer e     -- edit hotkeys.lua
 hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- _hyper e     -- edit zshenv
 hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)             -- hammer z     -- edit bash_aliases
-hs.hotkey.bind(_hyper, "z", function()    hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                 -- _hyper z     -- edit zshrc
+hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper z     -- edit zshrc
 hs.hotkey.bind(hammer, "F9", nil, function() moveWindowOneSpace("left",true) end)                    -- hammer F9    -- move window one space left
 hs.hotkey.bind(_hyper, "F9", nil, function() moveWindowOneSpace("left",false) end)                   -- _hyper F9    -- move window one space left
 hs.hotkey.bind(hammer, "F10", nil, function() moveWindowOneSpace("right",true) end)                  -- hammer F10   -- move window one space right

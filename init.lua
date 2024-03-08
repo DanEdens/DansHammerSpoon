@@ -97,3 +97,39 @@ end)
 
 -- set brightness to half
 --hs.execute("brightness 0.5")
+
+
+-- -- -- function for console logging pressed hotkeys
+-- Define a variable to keep track of the eventtap object
+local logKeyStroke = nil
+local strokeisEnabled = false
+
+-- Function for console logging pressed hotkeys
+function logKeyStroke(event)
+    local keyCode = event:getKeyCode()
+    local flags = event:getFlags()
+    local key = hs.keycodes.map[keyCode]
+    local flagString = ""
+    for k, v in pairs(flags) do
+        if v then
+            flagString = flagString .. " " .. k
+        end
+    end
+    print("Key: " .. key .. " (" .. keyCode .. ") Flags: " .. flagString)
+end
+
+local function toggleKeyLogging()
+    if strokeisEnabled then
+        hs.reload()
+    else
+        -- Create a new eventtap object if it doesn't exist
+        logKeyStroke = hs.eventtap.new({hs.eventtap.event.types.keyDown}, logKeyStroke):start()
+        strokeisEnabled = true
+        hs.alert.show(logKeyStroke:isEnabled())
+    end
+end
+
+-- Bind the hotkey to toggle key logging
+hs.hotkey.bind({"ctrl", "alt", "cmd"}, "F4", function()
+    toggleKeyLogging()
+end)

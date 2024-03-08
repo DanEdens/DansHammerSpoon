@@ -4,6 +4,7 @@ local spaces = require "hs.spaces"
 -- hammer = "fn"
 hammer = {"cmd","ctrl","alt"}
 _hyper = {"cmd","shift","ctrl","alt"}
+_meta = {"cmd","shift","alt"}
 
 -- local editor = "Visual Studio Code"
 -- local editor = "PyCharm Community Edition"
@@ -34,11 +35,42 @@ function flashScreen(screen)
    flash:show()
    hs.timer.doAfter(.15,function () flash:delete() end)
 end 
-function switchSpace(skip,dir)
-   for i=1,skip do
-      hs.eventtap.keyStroke({"ctrl","cmd", "shift"}, dir, 0) -- "fn" is a bugfix!
-   end 
-end
+function switchSpace(dir, switch)
+    local win = getGoodFocusedWindow(true)
+    if not win then return end
+    local screen=win:screen()
+    local uuid=screen:getUUID()
+    local userSpaces=nil
+    for k,v in pairs(spaces.allSpaces()) do
+       userSpaces=v
+       if k==uuid then break end
+    end
+    if not userSpaces then return end
+    local thisSpace=spaces.windowSpaces(win) -- first space win appears on
+    if not thisSpace then return else thisSpace=thisSpace[1] end
+    local last=nil
+    local skipSpaces=0
+    for _, spc in ipairs(userSpaces) do
+       if spaces.spaceType(spc)~="user" then -- skippable space
+      skipSpaces=skipSpaces+1
+       else
+      if last and
+         ((dir=="left" and spc==thisSpace) or
+          (dir=="right" and last==thisSpace)) then
+            local newSpace=(dir=="left" and last or spc)
+            if switch then
+           spaces.gotoSpace(newSpace)  -- also possible, invokes MC
+         --   switchSpace(skipSpaces+1,dir)
+            end
+            -- spaces.moveWindowToSpace(win,newSpace)
+            return
+      end
+      last=spc	 -- Haven't found it yet...
+      skipSpaces=0
+       end
+    end
+    flashScreen(screen)   -- Shouldn't get here, so no space found
+ end
 function moveWindowOneSpace(dir,switch)
    local win = getGoodFocusedWindow(true)
    if not win then return end
@@ -81,7 +113,8 @@ hs.hotkey.bind(_hyper, "W", function() spoon.AClock:toggleShow() end)           
 hs.hotkey.bind(hammer, "F5", function() hs.reload() end)                                                         -- hammer F5    -- Reload HammerSpoon
 hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)                                                  -- hammer F1    -- Toggle HammerSpoon Console
 hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)                             -- _hyper F2    -- Open console.app
-hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Finder") end)                              -- hammer F2    -- Finder
+hs.hotkey.bind(hammer, "F2", function() hs.execute("open ~/lab") end)                                            -- hammer F2    -- Open ~/lab
+-- hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Finder") end)                              -- hammer F2    -- Finder
 hs.hotkey.bind(hammer, "`", function() hs.application.launchOrFocus("Visual Studio Code") end)                   -- hammer `     -- Vscode
 hs.hotkey.bind(hammer, "p", function() hs.application.launchOrFocus("PyCharm Community Edition") end)            -- hammer P     -- Pycharm
 hs.hotkey.bind(hammer, "b", function() hs.application.launchOrFocus("Arc") end)                                  -- hammer B     -- Arc
@@ -89,7 +122,6 @@ hs.hotkey.bind(_hyper, "b", function() hs.application.launchOrFocus("Google Chro
 hs.hotkey.bind(hammer, "l", function() hs.application.launchOrFocus("logioptionsplus") end)                      -- hammer l     -- Logi Options+
 hs.hotkey.bind(_hyper, "l", function() hs.application.launchOrFocus("System Preferences") end)                   -- _hyper l     -- System settings
 hs.hotkey.bind(hammer, "f", function() hs.application.launchOrFocus("Fleet") end)                                -- hammer f     -- Fleet
-hs.hotkey.bind(_hyper, "f", function() hs.execute("open ~/lab") end)                                             -- _hyper f     -- Open ~/lab
 hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY', true):post() end)             -- hammer m     -- Play/pause 
 hs.hotkey.bind(_hyper, "m", function() hs.application.launchOrFocus("Music") end)                                -- _hyper m     -- Music
 hs.hotkey.bind(hammer, "s", function() hs.application.launchOrFocus("Slack") end)                                -- hammer s     -- Slack
@@ -104,8 +136,10 @@ hs.hotkey.bind(hammer, "F9", nil, function() moveWindowOneSpace("left",true) end
 hs.hotkey.bind(_hyper, "F9", nil, function() moveWindowOneSpace("left",false) end)                               -- _hyper F9    -- move window one space left
 hs.hotkey.bind(hammer, "F10", nil, function() moveWindowOneSpace("right",true) end)                              -- hammer F10   -- move window one space right
 hs.hotkey.bind(_hyper, "F10", nil, function() moveWindowOneSpace("right",false) end)                             -- _hyper F10   -- move window one space right
-hs.hotkey.bind(hammer, "F11", nil, function() flashScreen(window.focusedWindow():screen()) end)                  -- hammer F11   -- flashScreen
 hs.hotkey.bind(hammer, "0", function()                                                                           -- hammer 0     -- shuffle 
+-- hammer f11 move to next space
+hs.hotkey.bind(hammer, "F11", function() switchSpace("left", true) end)                        -- hammer F11   -- flashScreen
+hs.hotkey.bind(hammer, "F12", function() switchSpace("right", true) end)                                                                           -- hammer 0     -- shuffle 
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()
@@ -346,7 +380,7 @@ hs.hotkey.bind(hammer, "-", function()                                          
     -- hammer `          -- Vscode                                                -- hammer P       -- Pycharm  \
     -- hammer B         -- Arc                                                         -- _hyper B         -- Chrome  \
     -- hammer l           -- Logi Options+                                    -- _hyper l          -- System settings  \
-    -- hammer f           -- Fleet                                                     -- _hyper f          -- Open ~/lab  \
+    -- hammer f           -- Fleet                                                     \
     -- hammer m         -- Play/pause                                         -- _hyper m        -- Music  \
     -- hammer s           -- Slack                                                   -- hammer g       -- Github desktop  \
     -- hammer Tab      -- mission control                                -- _hyper Tab      -- launchpad  \

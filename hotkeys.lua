@@ -23,25 +23,30 @@ local usbWatcher = nil
 function usbDeviceCallback(data)
     print(data["productName"])
     -- SAMSUNG_Android
-    if (data["productName"] == "SAMSUNG_Android") then
-        -- execute scrcpy to mirror android screen
+    if data["productName"] == "SAMSUNG_Android" then
+        -- Execute scrcpy to mirror android screen
         hs.alert.show("Android plugged in")
-        hs.execute("scrcpy") --max-size 800 --window-title 'Samsung S22' --turn-screen-off --stay-awake --always-on-top --window-borderless --window-x 0 --window-y 0 --window-width 800 --window-height 1600 --max-fps 30 --no-control --force-adb-forward --forward-all-clicks --prefer-text --window-borderless --window-title 'Samsung S22'")
-        -- if (data["eventType"] == "added") then
-        --     hs.alert.show("Android plugged in")
-        -- elseif (data["eventType"] == "removed") then
-        --     hs.alert.show("Android unplugged")
-        -- end
+        --hs.execute("scrcpy")
+        --hs.task.new(os.getenv("SHELL"), function(exitCode, stdOut, stdErr)
+        --    if exitCode == 0 then
+        --        -- Successfully executed
+        --        print("scrcpy executed successfully")
+        --    else
+        --        -- Handle error
+        --        print("Error executing scrcpy:", stdOut, stdErr)
+        --    end
+        --end, nil, "scrcpy"):start("--max-size", "800", "--window-title", "'Samsung S22'", "--turn-screen-off", "--stay-awake", "--always-on-top", "--window-borderless", "--window-x", "0", "--window-y", "0", "--window-width", "800", "--window-height", "1600", "--max-fps", "30", "--no-control", "--force-adb-forward", "--forward-all-clicks", "--prefer-text", "--window-borderless", "--window-title", "'Samsung S22'")
     end
 
-    if (data["productName"] == "USB Keyboard") then
-        if (data["eventType"] == "added") then
+    if data["productName"] == "USB Keyboard" then
+        if data["eventType"] == "added" then
             hs.alert.show("USB Keyboard plugged in")
-        elseif (data["eventType"] == "removed") then
+        elseif data["eventType"] == "removed" then
             hs.alert.show("USB Keyboard unplugged")
         end
     end
 end
+
 local function toggleUSBLogging()
     if usbisEnabled then
         usbWatcher:stop()
@@ -51,7 +56,7 @@ local function toggleUSBLogging()
         usbWatcher:start()
         usbisEnabled = true
     end
-    print(usbisEnabled)
+    print("USB is now " .. (usbisEnabled and "enabled" or "disabled"))
 end
 function tempFunction()
     hs.alert.show("Hotkey not set")

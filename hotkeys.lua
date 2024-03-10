@@ -518,7 +518,9 @@ function showavailableHotkey()                                                  
         hotkeybg=nil
     end
 end
-                                                                                  -- hammer -     -- flash list of hammer options
+
+
+-- @formatter:off
 hs.hotkey.bind(_hyper, "w", function() spoon.AClock:toggleShow() end)                                            -- _hyper W     -- Aclock Show
 hs.hotkey.bind(hammer, "p", function() hs.application.launchOrFocus("PyCharm Community Edition") end)            -- hammer P     -- Pycharm
 hs.hotkey.bind(hammer, "b", function() hs.application.launchOrFocus("Arc") end)                                  -- hammer B     -- Arc
@@ -590,4 +592,4 @@ hs.hotkey.bind(hammer, "Tab", function() hs.application.launchOrFocus("Mission C
 hs.hotkey.bind(_hyper, "Tab", function() hs.application.launchOrFocus("Launchpad") end)                          -- _hyper Tab   -- launchpad
 hs.hotkey.bind(hammer, "t", function() hs.execute("open -a 'Barrier'") end)                                      -- hammer t     -- Barrier
 hs.hotkey.bind(hammer, "H", function () showavailableHotkey() end)                                               -- hammer H     -- scrape and list setup hotkeys
-
+-- @formatter:on

@@ -535,3 +535,11 @@ hs.hotkey.bind(_hyper, "-", function() showHyperList() end)                     
 hs.hotkey.bind(hammer, "`", function() hs.application.launchOrFocus("Visual Studio Code") end)                   -- hammer `     -- Vscode
 hs.hotkey.bind(hammer, "Tab", function() hs.application.launchOrFocus("Mission Control.app") end)                -- hammer Tab   -- mission control
 hs.hotkey.bind(_hyper, "Tab", function() hs.application.launchOrFocus("Launchpad") end)                          -- _hyper Tab   -- launchpad
+
+
+-- open barrier hammer t
+hs.hotkey.bind(hammer, "t", function()
+    hs.execute("open -a 'Barrier'")
+end)
+
+-- 

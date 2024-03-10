@@ -7,15 +7,13 @@ _hyper = { "cmd", "shift", "ctrl", "alt" }
 _meta = { "cmd", "shift", "alt" }
 
 -- local editor = "Visual Studio Code"
--- local editor = "PyCharm Community Edition"
-local editor = "Fleet"
+--local editor = "Fleet"
+local editor = "PyCharm Community Edition"
 
 local gap = 5
 local cols = 4
 local counter = 0
 
--- -- -- function for console logging pressed hotkeys
--- Define a variable to keep track of the eventtap object
 local logKeyStroke = nil
 local strokeisEnabled = false
 local usbisEnabled = false
@@ -46,7 +44,6 @@ function usbDeviceCallback(data)
         end
     end
 end
-
 local function toggleUSBLogging()
     if usbisEnabled then
         usbWatcher:stop()

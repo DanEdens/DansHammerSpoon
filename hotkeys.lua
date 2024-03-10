@@ -2,9 +2,9 @@ local window = require "hs.window"
 local spaces = require "hs.spaces"
 
 -- hammer = "fn"
-hammer = {"cmd","ctrl","alt"}
-_hyper = {"cmd","shift","ctrl","alt"}
-_meta = {"cmd","shift","alt"}
+hammer = { "cmd", "ctrl", "alt" }
+_hyper = { "cmd", "shift", "ctrl", "alt" }
+_meta = { "cmd", "shift", "alt" }
 
 -- local editor = "Visual Studio Code"
 -- local editor = "PyCharm Community Edition"
@@ -69,90 +69,118 @@ local function calculatePosition(counter, max, rows)
     return x, y
 end                                                       -- Function for calculating window position
 function getGoodFocusedWindow(nofull)
-   local win = window.focusedWindow()
-   if not win or not win:isStandard() then return end
-   if nofull and win:isFullScreen() then return end
-   return win
+    local win = window.focusedWindow()
+    if not win or not win:isStandard() then
+        return
+    end
+    if nofull and win:isFullScreen() then
+        return
+    end
+    return win
 end                                                                      -- Function for getting the focused window
 function flashScreen(screen)
-   local flash=hs.canvas.new(screen:fullFrame()):appendElements({
-	 action = "fill",
-	 fillColor = { alpha = 0.25, red=1},
-	 type = "rectangle"})
-   flash:show()
-   hs.timer.doAfter(.15,function () flash:delete() end)
+    local flash = hs.canvas.new(screen:fullFrame()):appendElements({
+        action = "fill",
+        fillColor = { alpha = 0.25, red = 1 },
+        type = "rectangle" })
+    flash:show()
+    hs.timer.doAfter(.15, function()
+        flash:delete()
+    end)
 end                                                                               -- Function for flashing the screen
 function switchSpace(dir, switch)
     local win = getGoodFocusedWindow(true)
-    if not win then return end
-    local screen=win:screen()
-    local uuid=screen:getUUID()
-    local userSpaces=nil
-    for k,v in pairs(spaces.allSpaces()) do
-       userSpaces=v
-       if k==uuid then break end
+    if not win then
+        return
     end
-    if not userSpaces then return end
-    local thisSpace=spaces.windowSpaces(win) -- first space win appears on
-    if not thisSpace then return else thisSpace=thisSpace[1] end
-    local last=nil
-    local skipSpaces=0
+    local screen = win:screen()
+    local uuid = screen:getUUID()
+    local userSpaces = nil
+    for k, v in pairs(spaces.allSpaces()) do
+        userSpaces = v
+        if k == uuid then
+            break
+        end
+    end
+    if not userSpaces then
+        return
+    end
+    local thisSpace = spaces.windowSpaces(win) -- first space win appears on
+    if not thisSpace then
+        return
+    else
+        thisSpace = thisSpace[1]
+    end
+    local last = nil
+    local skipSpaces = 0
     for _, spc in ipairs(userSpaces) do
-       if spaces.spaceType(spc)~="user" then -- skippable space
-      skipSpaces=skipSpaces+1
-       else
-      if last and
-         ((dir=="left" and spc==thisSpace) or
-          (dir=="right" and last==thisSpace)) then
-            local newSpace=(dir=="left" and last or spc)
-            if switch then
-           spaces.gotoSpace(newSpace)  -- also possible, invokes MC
-         --   switchSpace(skipSpaces+1,dir)
+        if spaces.spaceType(spc) ~= "user" then
+            -- skippable space
+            skipSpaces = skipSpaces + 1
+        else
+            if last and
+                    ((dir == "left" and spc == thisSpace) or
+                            (dir == "right" and last == thisSpace)) then
+                local newSpace = (dir == "left" and last or spc)
+                if switch then
+                    spaces.gotoSpace(newSpace)  -- also possible, invokes MC
+                    --   switchSpace(skipSpaces+1,dir)
+                end
+                -- spaces.moveWindowToSpace(win,newSpace)
+                return
             end
-            -- spaces.moveWindowToSpace(win,newSpace)
-            return
-      end
-      last=spc	 -- Haven't found it yet...
-      skipSpaces=0
-       end
+            last = spc     -- Haven't found it yet...
+            skipSpaces = 0
+        end
     end
     flashScreen(screen)   -- Shouldn't get here, so no space found
 end                                                                          -- Function for moving window one space left or right
-function moveWindowOneSpace(dir,switch)
-   local win = getGoodFocusedWindow(true)
-   if not win then return end
-   local screen=win:screen()
-   local uuid=screen:getUUID()
-   local userSpaces=nil
-   for k,v in pairs(spaces.allSpaces()) do
-      userSpaces=v
-      if k==uuid then break end
-   end
-   if not userSpaces then return end
-   local thisSpace=spaces.windowSpaces(win) -- first space win appears on
-   if not thisSpace then return else thisSpace=thisSpace[1] end
-   local last=nil
-   local skipSpaces=0
-   for _, spc in ipairs(userSpaces) do
-      if spaces.spaceType(spc)~="user" then -- skippable space
-	 skipSpaces=skipSpaces+1
-      else
-	 if last and
-	    ((dir=="left" and spc==thisSpace) or
-	     (dir=="right" and last==thisSpace)) then
-	       local newSpace=(dir=="left" and last or spc)
-	       if switch then
-		  spaces.gotoSpace(newSpace)  -- also possible, invokes MC
-		--   switchSpace(skipSpaces+1,dir)
-	       end
-	       spaces.moveWindowToSpace(win,newSpace)
-	       return
-	 end
-	 last=spc	 -- Haven't found it yet...
-	 skipSpaces=0
-      end
-   end
-   flashScreen(screen)   -- Shouldn't get here, so no space found
+function moveWindowOneSpace(dir, switch)
+    local win = getGoodFocusedWindow(true)
+    if not win then
+        return
+    end
+    local screen = win:screen()
+    local uuid = screen:getUUID()
+    local userSpaces = nil
+    for k, v in pairs(spaces.allSpaces()) do
+        userSpaces = v
+        if k == uuid then
+            break
+        end
+    end
+    if not userSpaces then
+        return
+    end
+    local thisSpace = spaces.windowSpaces(win) -- first space win appears on
+    if not thisSpace then
+        return
+    else
+        thisSpace = thisSpace[1]
+    end
+    local last = nil
+    local skipSpaces = 0
+    for _, spc in ipairs(userSpaces) do
+        if spaces.spaceType(spc) ~= "user" then
+            -- skippable space
+            skipSpaces = skipSpaces + 1
+        else
+            if last and
+                    ((dir == "left" and spc == thisSpace) or
+                            (dir == "right" and last == thisSpace)) then
+                local newSpace = (dir == "left" and last or spc)
+                if switch then
+                    spaces.gotoSpace(newSpace)  -- also possible, invokes MC
+                    --   switchSpace(skipSpaces+1,dir)
+                end
+                spaces.moveWindowToSpace(win, newSpace)
+                return
+            end
+            last = spc     -- Haven't found it yet...
+            skipSpaces = 0
+        end
+    end
+    flashScreen(screen)   -- Shouldn't get here, so no space found
 end                                                                    -- Function for moving window one space left or right
 function logKeyStroke(event)
     local keyCode = event:getKeyCode()
@@ -466,56 +494,66 @@ function showHammerList()
     left   --  move to previous screen left \
     -      --  flash list of hammer options")
 end
-function showavailableHotkey()                                                      -- scrape and list setup hotkeys
+function showavailableHotkey()
+    -- scrape and list setup hotkeys
     if not hotkeytext then
-        local hotkey_list=hs.hotkey.getHotkeys()
+        local hotkey_list = hs.hotkey.getHotkeys()
         local mainScreen = hs.screen.mainScreen()
         local mainRes = mainScreen:fullFrame()
         local localMainRes = mainScreen:absoluteToLocal(mainRes)
-        local hkbgrect = hs.geometry.rect(mainScreen:localToAbsolute(localMainRes.w/5,localMainRes.h/5,localMainRes.w/5*3,localMainRes.h/5*3))
+        local hkbgrect = hs.geometry.rect(mainScreen:localToAbsolute(localMainRes.w / 5, localMainRes.h / 5, localMainRes.w / 5 * 3, localMainRes.h / 5 * 3))
         hotkeybg = hs.drawing.rectangle(hkbgrect)
         -- hotkeybg:setStroke(false)
-        if not hotkey_tips_bg then hotkey_tips_bg = "light" end
-        if hotkey_tips_bg == "light" then
-            hotkeybg:setFillColor({red=238/255,blue=238/255,green=238/255,alpha=0.95})
-        elseif hotkey_tips_bg == "dark" then
-            hotkeybg:setFillColor({red=0,blue=0,green=0,alpha=0.95})
+        if not hotkey_tips_bg then
+            hotkey_tips_bg = "light"
         end
-        hotkeybg:setRoundedRectRadii(10,10)
+        if hotkey_tips_bg == "light" then
+            hotkeybg:setFillColor({ red = 238 / 255, blue = 238 / 255, green = 238 / 255, alpha = 0.95 })
+        elseif hotkey_tips_bg == "dark" then
+            hotkeybg:setFillColor({ red = 0, blue = 0, green = 0, alpha = 0.95 })
+        end
+        hotkeybg:setRoundedRectRadii(10, 10)
         hotkeybg:setLevel(hs.drawing.windowLevels.modalPanel)
         hotkeybg:behavior(hs.drawing.windowBehaviors.stationary)
-        local hktextrect = hs.geometry.rect(hkbgrect.x+40,hkbgrect.y+30,hkbgrect.w-80,hkbgrect.h-60)
-        hotkeytext = hs.drawing.text(hktextrect,"")
+        local hktextrect = hs.geometry.rect(hkbgrect.x + 40, hkbgrect.y + 30, hkbgrect.w - 80, hkbgrect.h - 60)
+        hotkeytext = hs.drawing.text(hktextrect, "")
         hotkeytext:setLevel(hs.drawing.windowLevels.modalPanel)
         hotkeytext:behavior(hs.drawing.windowBehaviors.stationary)
-        hotkeytext:setClickCallback(nil,function() hotkeytext:delete() hotkeytext=nil hotkeybg:delete() hotkeybg=nil end)
+        hotkeytext:setClickCallback(nil, function()
+            hotkeytext:delete()
+            hotkeytext = nil
+            hotkeybg:delete()
+            hotkeybg = nil
+        end)
         hotkey_filtered = {}
-        for i=1,#hotkey_list do
+        for i = 1, #hotkey_list do
             if hotkey_list[i].idx ~= hotkey_list[i].msg then
-                table.insert(hotkey_filtered,hotkey_list[i])
+                table.insert(hotkey_filtered, hotkey_list[i])
             end
         end
         local availablelen = 70
         local hkstr = ''
-        for i=2,#hotkey_filtered,2 do
-            local tmpstr = hotkey_filtered[i-1].msg .. hotkey_filtered[i].msg
-            if string.len(tmpstr)<= availablelen then
-                local tofilllen = availablelen-string.len(hotkey_filtered[i-1].msg)
-                hkstr = hkstr .. hotkey_filtered[i-1].msg .. string.format('%'..tofilllen..'s',hotkey_filtered[i].msg) .. '\n'
+        for i = 2, #hotkey_filtered, 2 do
+            local tmpstr = hotkey_filtered[i - 1].msg .. hotkey_filtered[i].msg
+            if string.len(tmpstr) <= availablelen then
+                local tofilllen = availablelen - string.len(hotkey_filtered[i - 1].msg)
+                hkstr = hkstr .. hotkey_filtered[i - 1].msg .. string.format('%' .. tofilllen .. 's', hotkey_filtered[i].msg) .. '\n'
             else
-                hkstr = hkstr .. hotkey_filtered[i-1].msg .. '\n' .. hotkey_filtered[i].msg .. '\n'
+                hkstr = hkstr .. hotkey_filtered[i - 1].msg .. '\n' .. hotkey_filtered[i].msg .. '\n'
             end
         end
-        if math.fmod(#hotkey_filtered,2) == 1 then hkstr = hkstr .. hotkey_filtered[#hotkey_filtered].msg end
-        local hkstr_styled = hs.styledtext.new(hkstr, {font={name="Courier-Bold",size=16}, color=dodgerblue, paragraphStyle={lineSpacing=12.0,lineBreak='truncateMiddle'}, shadow={offset={h=0,w=0},blurRadius=0.5,color=darkblue}})
+        if math.fmod(#hotkey_filtered, 2) == 1 then
+            hkstr = hkstr .. hotkey_filtered[#hotkey_filtered].msg
+        end
+        local hkstr_styled = hs.styledtext.new(hkstr, { font = { name = "Courier-Bold", size = 16 }, color = dodgerblue, paragraphStyle = { lineSpacing = 12.0, lineBreak = 'truncateMiddle' }, shadow = { offset = { h = 0, w = 0 }, blurRadius = 0.5, color = darkblue } })
         hotkeytext:setStyledText(hkstr_styled)
         hotkeybg:show()
         hotkeytext:show()
     else
         hotkeytext:delete()
-        hotkeytext=nil
+        hotkeytext = nil
         hotkeybg:delete()
-        hotkeybg=nil
+        hotkeybg = nil
     end
 end
 

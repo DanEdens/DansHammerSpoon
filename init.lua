@@ -5,7 +5,7 @@ dofile(hs.configdir .. "/ExtendedClipboard.lua")
 
 -- dofile(hs.configdir .. "/workspace.lua")
 -- dofile(hs.configdir .. "/test_balena_handler.lua")
-dofile(hs.configdir .. "/hotkeys.lua")
+
 -- dofile(hs.configdir .. "/temp.lua")
 
 
@@ -20,6 +20,12 @@ function reloadConfig(files)
         hs.reload()
     end
 end
+
+ hs.loadSpoon("HSKeybindings")
+ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "H", function()
+     spoon.HSKeybindings:show()
+ end)
+
 
 myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 
@@ -57,8 +63,8 @@ hs.alert.show("Config loaded")
 --everyday at 9:45 am
 hs.timer.doAt("9:44", "1d", function()
     hs.alert.show("Time to stand up!")
-    -- open chrome to a specific page
-    hs.execute("open -a 'Google Chrome' https://meet.google.com/xjk-uzpk-oit?authuser=1")
+    -- open slack to a specific channel
+    hs.execute("open -a 'Slack' https://app.slack.com/client/T036VBQJD/C042B3Q7DQQ")
 end)
 
 
@@ -68,7 +74,7 @@ end)
 
 
 -- # set brightness to max
-hs.execute("brightness 1")
+hs.brightness.set(100)
 
 -- set brightness to half
 --hs.execute("brightness 0.5")
@@ -97,7 +103,7 @@ gray = {red=246/255,blue=246/255,green=246/255,alpha=0.3}
 
 
 
--- 
+--
 -- privatepath = hs.fs.pathToAbsolute(hs.configdir..'/private')
 -- if privatepath == nil then
 --     hs.fs.mkdir(hs.configdir..'/private')
@@ -464,3 +470,5 @@ gray = {red=246/255,blue=246/255,green=246/255,alpha=0.3}
 --         if cheatsheet_view then cheatsheet_view:delete() cheatsheet_view = nil end
 --     end
 -- end):start()
+
+dofile(hs.configdir .. "/hotkeys.lua")

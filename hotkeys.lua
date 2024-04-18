@@ -13,6 +13,17 @@ local editor = "PyCharm Community Edition"
 local gap = 5
 local cols = 4
 local counter = 0
+--    local f = win:frame()
+--    local g = win:frame()
+--    f.x = max.x + (max.w * 0.5)
+--    f.y = max.y + (max.h * 0.1)
+--    f.w = max.w * 0.35
+--    f.h = max.h * 0.8
+--    g.x = max.x + (max.w * 0.5)
+--    g.y = max.y + (max.h * 0.1)
+--    g.w = max.w * 0.45
+--    g.h = max.h * 0.8
+
 
 local logKeyStroke = nil
 local strokeisEnabled = false
@@ -169,8 +180,10 @@ function moveWindowOneSpace(dir, switch)
                 if switch then
                     spaces.gotoSpace(newSpace)  -- also possible, invokes MC
                     --   switchSpace(skipSpaces+1,dir)
+                else
+                    spaces.gotoSpace(newSpace)
+                    spaces.moveWindowToSpace(win, newSpace)
                 end
-                spaces.moveWindowToSpace(win, newSpace)
                 return
             end
             last = spc     -- Haven't found it yet...
@@ -201,6 +214,48 @@ local function toggleKeyLogging()
         hs.alert.show(logKeyStroke:isEnabled())
     end
 end                                                                          -- Function for enabling key-logging
+function miniShuffle()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    local g = win:frame()
+    local h = win:frame()
+    local screen = win:screen()
+    local max = screen:frame()
+
+    f.x = max.x + (max.w * 0.72)
+    f.y = max.y + (max.h * 0.01) + 25
+    f.w = max.w * 0.26
+    f.h = max.h * 0.97
+
+    g.x = max.x + (max.w * 0.76)
+    g.y = max.y + (max.h * 0.01) - 25
+    g.w = max.w * 0.24
+    g.h = max.h * 0.97
+
+    h.x = max.x + (max.w * 0.5)
+    h.y = max.y + (max.h * 0.01)
+    h.w = max.w * 0.5
+    h.h = max.h * 0.9
+
+    -- toggle counter
+    if counter == 0 then
+        win:setFrame(f)
+        counter = 1
+    elseif counter == 1 then
+        win:setFrame(h)
+        counter = 2
+    else
+        win:setFrame(g)
+        counter = 0
+    end
+    --if counter == 2 then
+    --    counter = 0
+    --    win:setFrame(h)
+    --end
+
+end                                                                                     -- hammer 0     -- shuffle
+
+
 function halfShuffle()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -490,7 +545,7 @@ function showHammerList()
     right  --  move to next screen left \
     left   --  move to previous screen left \
     -      --  flash list of hammer options")
-end
+end                                                                                  -- hammer -     -- flash list of hammer options
 function showavailableHotkey()
     -- scrape and list setup hotkeys
     if not hotkeytext then
@@ -552,10 +607,21 @@ function showavailableHotkey()
         hotkeybg:delete()
         hotkeybg = nil
     end
-end
+end                                                                             -- hammer -     -- flash list of hammer options
+function openMostRecentImage()
+    local desktopPath = hs.fs.pathToAbsolute(os.getenv("HOME") .. "/Desktop")
+    local filePath = hs.execute("ls -t " .. desktopPath .. "/*.png | head -n 1")
+    print("filePath: " .. filePath)
+    if filePath ~= "" then
+        hs.execute("open " .. filePath)
+    else
+        hs.alert.show("No recent image found on the desktop")
+    end
+end                                                                             -- hammer i     -- Open most recent image
 
 
 -- @formatter:off
+hs.hotkey.bind(hammer, "i", openMostRecentImage)
 hs.hotkey.bind(_hyper, "w", function() spoon.AClock:toggleShow() end)                                            -- _hyper W     -- Aclock Show
 hs.hotkey.bind(hammer, "p", function() hs.application.launchOrFocus("PyCharm Community Edition") end)            -- hammer P     -- Pycharm
 hs.hotkey.bind(hammer, "b", function() hs.application.launchOrFocus("Arc") end)                                  -- hammer B     -- Arc
@@ -567,8 +633,8 @@ hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY
 hs.hotkey.bind(_hyper, "m", function() hs.application.launchOrFocus("Music") end)                                -- _hyper m     -- Music
 hs.hotkey.bind(hammer, "s", function() hs.application.launchOrFocus("Slack") end)                                -- hammer s     -- Slack
 hs.hotkey.bind(hammer, "g", function() hs.application.launchOrFocus("GitHub Desktop") end)                       -- hammer g     -- Github desktop
-hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotkeys.lua") end)  -- hammer e     -- edit hotkeys.lua
-hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- _hyper e     -- edit zshenv
+hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- _hyper e     -- edit zshenv
+hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotkeys.lua") end)  -- hammer e     -- edit hotkeys.lua
 hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)             -- hammer z     -- edit bash_aliases
 hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper z     -- edit zshrc
 hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)                                                  -- hammer F1    -- Toggle HammerSpoon Console
@@ -587,14 +653,14 @@ hs.hotkey.bind(hammer, "F7", function() tempFunction() end)                     
 hs.hotkey.bind(_hyper, "F7", function() tempFunction() end)                                                      -- _hyper F7    -- None
 hs.hotkey.bind(hammer, "F8", function() tempFunction() end)                                                      -- hammer F8    -- None
 hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)                                                      -- _hyper F8    -- None
-hs.hotkey.bind(hammer, "F9", nil, function() moveWindowOneSpace("left",true) end)                    -- hammer F9    -- move window one space left
-hs.hotkey.bind(_hyper, "F9", nil, function() moveWindowOneSpace("left",false) end)                   -- _hyper F9    -- move window one space left
-hs.hotkey.bind(hammer, "F10", nil, function() moveWindowOneSpace("right",true) end)                  -- hammer F10   -- move window one space right
-hs.hotkey.bind(_hyper, "F10", nil, function() moveWindowOneSpace("right",false) end)                 -- _hyper F10   -- move window one space right
-hs.hotkey.bind(hammer, "F11", function() switchSpace("left", true) end)                              -- hammer f11   -- move to next space
-hs.hotkey.bind(_hyper, "F11", function() tempFunction() end)                                                     -- _hyper F11   -- None
-hs.hotkey.bind(hammer, "F12", function() switchSpace("right", true) end)                             -- hammer f12   -- move to previous space
-hs.hotkey.bind(_hyper, "F12", function() tempFunction() end)                                                     -- _hyper F12   -- None
+hs.hotkey.bind(_hyper, "F11", nil, function() moveWindowOneSpace("left", false) end)                                -- hammer F9    -- move window one space left
+--hs.hotkey.bind(_hyper, "F9", nil, function() moveWindowOneSpace("left",false) end)                               -- _hyper F9    -- move window one space left
+hs.hotkey.bind(_hyper, "F12", nil, function() moveWindowOneSpace("right", false) end)                              -- hammer F10   -- move window one space right
+--hs.hotkey.bind(_hyper, "F10", nil, function() moveWindowOneSpace("right",false) end)                             -- _hyper F10   -- move window one space right
+--hs.hotkey.bind(_hyper, "F11", function() switchSpace("left", true) end)                                          -- _hyper f11   -- move to next space
+--hs.hotkey.bind(hammer, "F11", function() tempFunction() end)                                                     -- hammer F11   -- None
+--hs.hotkey.bind(_hyper, "F12", function() switchSpace("right", true) end)                                         -- _hyper f12   -- move to previous space
+--hs.hotkey.bind(hammer, "F12", function() tempFunction() end)                                                     -- hammer F12   -- None
 hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)                           -- shift f13    -- Screenshots folder
 hs.hotkey.bind(hammer, "0", function() halfShuffle() end)                                                        -- hammer 0     -- shuffle
 hs.hotkey.bind(_hyper, "0", function() fullShuffle() end)                                                        -- _hyper 0     -- 1/4th screen vertical
@@ -605,7 +671,7 @@ hs.hotkey.bind(_hyper, "2", function() rightBottomCorner() end)                 
 hs.hotkey.bind(hammer, "3", function() fullScreen() end)                                                         -- hammer 3     -- full screen
 hs.hotkey.bind(_hyper, "3", function() nearlyFullScreen() end)                                                   -- _hyper 3     -- 80% full screen centered
 hs.hotkey.bind(hammer, "4", function() moveWindow95By72FromLeftSide() end)                                       -- hammer 4     -- Move window 95 by 72 from left side
-hs.hotkey.bind(_hyper, "4", function() moveWindow95By30FromRightSide() end)                                      -- _hyper 4     -- Move window to 95 by 30 from right side
+hs.hotkey.bind(_hyper, "4", function() miniShuffle() end)                                      -- _hyper 4     -- Move window to 95 by 30 from right sidemoveWindow95By30FromRightSide
 hs.hotkey.bind(hammer, "5", function() tempFunction() end)                                                       -- hammer 5     -- None
 hs.hotkey.bind(_hyper, "5", function() tempFunction() end)                                                       -- _hyper 5     -- None
 hs.hotkey.bind(hammer, "6", function() leftSideSmall() end)                                                      -- hammer 6     -- smaller left side
@@ -626,5 +692,6 @@ hs.hotkey.bind(hammer, "`", function() hs.application.launchOrFocus("Visual Stud
 hs.hotkey.bind(hammer, "Tab", function() hs.application.launchOrFocus("Mission Control.app") end)                -- hammer Tab   -- mission control
 hs.hotkey.bind(_hyper, "Tab", function() hs.application.launchOrFocus("Launchpad") end)                          -- _hyper Tab   -- launchpad
 hs.hotkey.bind(hammer, "t", function() hs.execute("open -a 'Barrier'") end)                                      -- hammer t     -- Barrier
-hs.hotkey.bind(hammer, "H", function () showavailableHotkey() end)                                               -- hammer H     -- scrape and list setup hotkeys
+--hs.hotkey.bind(hammer, "H", function () showavailableHotkey() end)                                               -- hammer H     -- scrape and list setup hotkeys
 -- @formatter:on
+

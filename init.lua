@@ -72,15 +72,9 @@ end)
 
 -- hs.loadSpoon('ExtendedClipboard')
 
-
+-- hammer_bright = os.getenv("HAMMER_BRIGHT")
 -- # set brightness to max
-hs.brightness.set(100)
-
--- set brightness to half
---hs.execute("brightness 0.5")
--- hotkey_tips_bg = "dark"
-hs.hotkey.alertDuration=2
-hs.hints.showTitleThresh = 0
+hs.brightness.set(10)
 hs.window.animationDuration = 0
 
 white = hs.drawing.color.white

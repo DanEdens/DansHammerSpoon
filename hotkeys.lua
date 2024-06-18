@@ -1,6 +1,6 @@
 local window = require "hs.window"
 local spaces = require "hs.spaces"
-
+--local countdown = require "hs.countdown"
 -- hammer = "fn"
 hammer = { "cmd", "ctrl", "alt" }
 _hyper = { "cmd", "shift", "ctrl", "alt" }
@@ -66,9 +66,11 @@ local function toggleUSBLogging()
     end
     print("USB is now " .. (usbisEnabled and "enabled" or "disabled"))
 end
+
 function tempFunction()
     hs.alert.show("Hotkey not set")
 end                                                  -- Function to flash alert if hotkey not set
+
 local function calculatePosition(counter, max, rows)
     local row = math.floor(counter / cols)
     local col = counter % cols
@@ -76,6 +78,7 @@ local function calculatePosition(counter, max, rows)
     local y = max.y + (row * (max.h / rows + gap))
     return x, y
 end                                                       -- Function for calculating window position
+
 function getGoodFocusedWindow(nofull)
     local win = window.focusedWindow()
     if not win or not win:isStandard() then
@@ -85,7 +88,8 @@ function getGoodFocusedWindow(nofull)
         return
     end
     return win
-end                                                                      -- Function for getting the focused window
+end-- Function for getting the focused window
+
 function flashScreen(screen)
     local flash = hs.canvas.new(screen:fullFrame()):appendElements({
         action = "fill",
@@ -96,6 +100,7 @@ function flashScreen(screen)
         flash:delete()
     end)
 end                                                                               -- Function for flashing the screen
+
 function switchSpace(dir, switch)
     local win = getGoodFocusedWindow(true)
     if not win then
@@ -143,6 +148,7 @@ function switchSpace(dir, switch)
     end
     flashScreen(screen)   -- Shouldn't get here, so no space found
 end                                                                          -- Function for moving window one space left or right
+
 function moveWindowOneSpace(dir, switch)
     local win = getGoodFocusedWindow(true)
     if not win then
@@ -192,6 +198,7 @@ function moveWindowOneSpace(dir, switch)
     end
     flashScreen(screen)   -- Shouldn't get here, so no space found
 end                                                                    -- Function for moving window one space left or right
+
 function logKeyStroke(event)
     local keyCode = event:getKeyCode()
     local flags = event:getFlags()
@@ -204,6 +211,7 @@ function logKeyStroke(event)
     end
     print("Key: " .. key .. " (" .. keyCode .. ") Flags: " .. flagString)
 end                                                                               -- Function for console logging pressed hotkeys
+
 local function toggleKeyLogging()
     if strokeisEnabled then
         hs.reload()
@@ -214,11 +222,13 @@ local function toggleKeyLogging()
         hs.alert.show(logKeyStroke:isEnabled())
     end
 end                                                                          -- Function for enabling key-logging
+
 function miniShuffle()
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local g = win:frame()
     local h = win:frame()
+    local i = win:frame()
     local screen = win:screen()
     local max = screen:frame()
 
@@ -232,27 +242,30 @@ function miniShuffle()
     g.w = max.w * 0.24
     g.h = max.h * 0.97
 
-    h.x = max.x + (max.w * 0.5)
-    h.y = max.y + (max.h * 0.01)
+    h.x = max.x + (max.w * 0.7)
+    h.y = max.y + (max.h * 0.01) - 30
     h.w = max.w * 0.5
     h.h = max.h * 0.9
+
+    i.x = max.x + (max.w * 0.5)
+    i.y = max.y + (max.h * 0.01)
+    i.w = max.w * 0.5
+    i.h = max.h * 0.9
 
     -- toggle counter
     if counter == 0 then
         win:setFrame(f)
         counter = 1
     elseif counter == 1 then
-        win:setFrame(h)
-        counter = 2
-    else
         win:setFrame(g)
+        counter = 2
+    elseif counter == 2 then
+       win:setFrame(h)
+       counter = 3
+    else
+        win:setFrame(i)
         counter = 0
     end
-    --if counter == 2 then
-    --    counter = 0
-    --    win:setFrame(h)
-    --end
-
 end                                                                                     -- hammer 0     -- shuffle
 
 
@@ -270,6 +283,7 @@ function halfShuffle()
     win:setFrame(f)
     counter = (counter + 1) % (rows * cols)
 end                                                                                     -- hammer 0     -- shuffle
+
 function fullShuffle()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -284,6 +298,7 @@ function fullShuffle()
     win:setFrame(f)
     counter = (counter + 1) % (rows * cols)
 end                                                                                     -- hammer 0     -- Full shuffle
+
 function leftTopCorner()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -295,6 +310,7 @@ function leftTopCorner()
     f.h = max.h / 2
     win:setFrame(f)
 end                                                                                   -- hammer 1     -- Move window Top Left corner
+
 function leftBottomCorner()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -306,6 +322,7 @@ function leftBottomCorner()
     f.h = max.h / 2
     win:setFrame(f)
 end                                                                                -- hammer 1     -- Move window Bottom Left corner
+
 function rightTopCorner()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -317,6 +334,7 @@ function rightTopCorner()
     f.h = max.h / 2
     win:setFrame(f)
 end                                                                                  -- hammer 2     -- Move window Top Right corner
+
 function rightBottomCorner()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -328,6 +346,7 @@ function rightBottomCorner()
     f.h = max.h / 2
     win:setFrame(f)
 end                                                                               -- hammer 2     -- Move window Bottom Right corner
+
 function fullScreen()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -339,6 +358,7 @@ function fullScreen()
     f.h = max.h
     win:setFrame(f)
 end                                                                                      -- hammer 3     -- full screen
+
 function nearlyFullScreen()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -350,6 +370,7 @@ function nearlyFullScreen()
     f.h = max.h * 0.8
     win:setFrame(f)
 end                                                                                -- _hyper 3     -- 80% full screen centered
+
 function moveWindow95By72FromLeftSide()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -361,6 +382,7 @@ function moveWindow95By72FromLeftSide()
     f.h = max.h * 0.98
     win:setFrame(f)
 end                                                                    -- hammer 4     -- Move window 95 by 72 left side
+
 function moveWindow95By30FromRightSide()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -372,6 +394,7 @@ function moveWindow95By30FromRightSide()
     f.h = max.h * 0.98
     win:setFrame(f)
 end                                                                   -- hammer 4     -- Move window 95 by 72 left side
+
 function leftSideSmall()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -383,6 +406,7 @@ function leftSideSmall()
     f.h = max.h * 0.8
     win:setFrame(f)
 end                                                                                   -- hammer 6     -- smaller left side
+
 function leftSide()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -394,6 +418,7 @@ function leftSide()
     f.h = max.h
     win:setFrame(f)
 end                                                                                        -- _hyper 6     -- left half
+
 function rightSideSmall()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -405,6 +430,7 @@ function rightSideSmall()
     f.h = max.h * 0.8
     win:setFrame(f)
 end                                                                                  -- hammer 7     -- smaller right side
+
 function rightSide()
     local win = hs.window.focusedWindow()
     local f = win:frame()
@@ -492,7 +518,7 @@ function showHyperList()
     F2    -- Open console.app  \
     B     -- Chrome  \
     l     -- System settings  \
-    m     -- Music  \
+    m     -- zshenv  \
     Tab   -- launchpad  \
     e     -- edit zshenv  \
     z     -- edit zshrc  \
@@ -626,11 +652,16 @@ hs.hotkey.bind(_hyper, "w", function() spoon.AClock:toggleShow() end)           
 hs.hotkey.bind(hammer, "p", function() hs.application.launchOrFocus("PyCharm Community Edition") end)            -- hammer P     -- Pycharm
 hs.hotkey.bind(hammer, "b", function() hs.application.launchOrFocus("Arc") end)                                  -- hammer B     -- Arc
 hs.hotkey.bind(_hyper, "b", function() hs.application.launchOrFocus("Google Chrome") end)                        -- _hyper B     -- Chrome
+hs.hotkey.bind(hammer, "d", function() hs.application.launchOrFocus("MongoDB Compass") end)                                  -- hammer B     -- Arc
+hs.hotkey.bind(_hyper, "d", function() hs.application.launchOrFocus("Raycast") end)                        -- _hyper B     -- Chrome
+hs.hotkey.bind(hammer, "y", function() CountDown:startFor(5) end)                                  -- hammer B     -- Arc
+--hs.hotkey.bind(_hyper, "y", function() hs.application.launchOrFocus("Raycast") end)                        -- _hyper B     -- Chrome
+
 hs.hotkey.bind(hammer, "l", function() hs.application.launchOrFocus("logioptionsplus") end)                      -- hammer l     -- Logi Options+
 hs.hotkey.bind(_hyper, "l", function() hs.application.launchOrFocus("System Preferences") end)                   -- _hyper l     -- System settings
-hs.hotkey.bind(hammer, "f", function() hs.application.launchOrFocus("Fleet") end)                                -- hammer f     -- Fleet
+hs.hotkey.bind(hammer, "f", function() hs.application.launchOrFocus("scrcpy") end)                                -- hammer f     -- Fleet
 hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY', true):post() end)             -- hammer m     -- Play/pause
-hs.hotkey.bind(_hyper, "m", function() hs.application.launchOrFocus("Music") end)                                -- _hyper m     -- Music
+hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper m     -- edit zshrc
 hs.hotkey.bind(hammer, "s", function() hs.application.launchOrFocus("Slack") end)                                -- hammer s     -- Slack
 hs.hotkey.bind(hammer, "g", function() hs.application.launchOrFocus("GitHub Desktop") end)                       -- hammer g     -- Github desktop
 hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- _hyper e     -- edit zshenv
@@ -639,8 +670,8 @@ hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/
 hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper z     -- edit zshrc
 hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)                                                  -- hammer F1    -- Toggle HammerSpoon Console
 hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)                             -- _hyper F1    -- Open console.app
-hs.hotkey.bind(hammer, "F2", function() hs.execute("open ~/lab") end)                                            -- hammer F2    -- Open ~/lab
-hs.hotkey.bind(_hyper, "F2", function() tempFunction() end)                                                      -- _hyper F2    -- None
+hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Marta") end)                                           -- hyper F2    -- Open new-window ~/lab
+hs.hotkey.bind(_hyper, "F2", function() hs.execute("marta ~/lab") end)                                            -- hammer F2    -- Open ~/lab
 hs.hotkey.bind(hammer, "F3", function() toggleUSBLogging() end)                                                      -- hammer F3    -- None
 hs.hotkey.bind(_hyper, "F3", function() tempFunction() end)                                                      -- _hyper F3    -- None
 hs.hotkey.bind(hammer, "F4", function() toggleKeyLogging() end)                                                  -- hammer F4    -- to toggle key logging
@@ -694,4 +725,3 @@ hs.hotkey.bind(_hyper, "Tab", function() hs.application.launchOrFocus("Launchpad
 hs.hotkey.bind(hammer, "t", function() hs.execute("open -a 'Barrier'") end)                                      -- hammer t     -- Barrier
 --hs.hotkey.bind(hammer, "H", function () showavailableHotkey() end)                                               -- hammer H     -- scrape and list setup hotkeys
 -- @formatter:on
-

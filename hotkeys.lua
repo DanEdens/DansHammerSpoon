@@ -659,7 +659,7 @@ hs.hotkey.bind(hammer, "y", function() CountDown:startFor(5) end)               
 
 hs.hotkey.bind(hammer, "l", function() hs.application.launchOrFocus("logioptionsplus") end)                      -- hammer l     -- Logi Options+
 hs.hotkey.bind(_hyper, "l", function() hs.application.launchOrFocus("System Preferences") end)                   -- _hyper l     -- System settings
-hs.hotkey.bind(hammer, "f", function() hs.application.launchOrFocus("scrcpy") end)                                -- hammer f     -- Fleet
+hs.hotkey.bind(hammer, "f", function() hs.execute("scrcpy ") end)                                -- hammer f     -- Fleet
 hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY', true):post() end)             -- hammer m     -- Play/pause
 hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper m     -- edit zshrc
 hs.hotkey.bind(hammer, "s", function() hs.application.launchOrFocus("Slack") end)                                -- hammer s     -- Slack

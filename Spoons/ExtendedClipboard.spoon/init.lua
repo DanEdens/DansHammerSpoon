@@ -8,7 +8,7 @@ obj.__index = obj
 
 -- Metadata
 obj.name = "ExtendedClipboard"
-obj.version = "0.1.0"
+obj.version = "0.1.1"
 obj.author = "<d.edens@email>"
 obj.homepage = ""
 obj.license = "MIT - https://opensource.org/licenses/MIT"

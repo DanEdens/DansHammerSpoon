@@ -670,7 +670,8 @@ hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/
 hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper z     -- edit zshrc
 hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)                                                  -- hammer F1    -- Toggle HammerSpoon Console
 hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)                             -- _hyper F1    -- Open console.app
-hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Marta") end)                                           -- hyper F2    -- Open new-window ~/lab
+hs.hotkey.bind(hammer, "F2", function() hs.execute("open -a 'post S22 var=:=Task nexus_cycle_character'") end)                                        -- hammer F2    -- Finder
+--hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Marta") end)                                           -- hyper F2    -- Open new-window ~/lab
 hs.hotkey.bind(_hyper, "F2", function() hs.execute("marta ~/lab") end)                                            -- hammer F2    -- Open ~/lab
 hs.hotkey.bind(hammer, "F3", function() toggleUSBLogging() end)                                                      -- hammer F3    -- None
 hs.hotkey.bind(_hyper, "F3", function() tempFunction() end)                                                      -- _hyper F3    -- None

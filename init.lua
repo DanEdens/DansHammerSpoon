@@ -74,7 +74,7 @@ end)
 
 -- hammer_bright = os.getenv("HAMMER_BRIGHT")
 -- # set brightness to max
-hs.brightness.set(10)
+hs.brightness.set(100)
 hs.window.animationDuration = 0
 
 white = hs.drawing.color.white

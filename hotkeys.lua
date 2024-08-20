@@ -664,70 +664,53 @@ function listWindows()
 
     end
 end
--- Keep a reference to the canvas
-local canvas = nil
+-- Function to toggle the display of the window list canvas
+local windowListCanvas
+local windowListVisible = false
 
--- Keep a reference to the canvas
-local canvas = nil
+function toggleWindowList()
+    if windowListVisible then
+        -- Hide the window list canvas
+        if windowListCanvas then
+            windowListCanvas:delete()
+            windowListCanvas = nil
+        end
+        windowListVisible = false
+    else
+        -- Create and show the window list canvas
+        local mousePos = hs.mouse.absolutePosition()
 
--- Function to display all window titles in a GUI canvas
-function showWindowTitles()
-    local wins = hs.window.allWindows()
-    local items = {}
-    local yOffset = 20
-
-    -- Get the current cursor position
-    local cursorPos = hs.mouse.getAbsolutePosition()
-
-    -- Define the dimensions of the canvas
-    local canvasWidth = 400
-    local canvasHeight = 300
-
-    -- Calculate the top-left corner of the canvas so that it’s centered around the cursor
-    local xPos = cursorPos.x - (canvasWidth / 2)
-    local yPos = cursorPos.y - (canvasHeight / 2)
-
-    -- Create a new canvas to display the window titles
-
-
-
-    -- Collect window titles for display
-    for i, win in ipairs(wins) do
-        table.insert(items, win:title())
-    end
-
-    -- Clear the existing canvas if it exists
-    if canvas then
-        canvas:delete()
-    end
-
-    -- Create a new canvas to display the window titles
-    canvas = hs.canvas.new({ x = xPos, y = yPos, w = canvasWidth, h = canvasHeight }):appendElements({
-        type = "rectangle",
-        action = "fill",
-        fillColor = { hex = "#000000", alpha = 0.8 },
-        frame = { x = 0, y = 0, w = canvasWidth, h = canvasHeight },
-    })
-
-    -- Add each window title to the canvas
-    for i, title in ipairs(items) do
-        canvas:appendElements({
-            type = "text",
-            text = title,
-            textSize = 16,
-            frame = { x = 10, y = yOffset, w = 380, h = 20 },
-            textColor = { hex = "#FFFFFF" },
+        windowListCanvas = hs.canvas.new(hs.geometry.rect(
+                mousePos.x - 200, mousePos.y - 200, 400, 400
+        ))
+        windowListCanvas:appendElements({
+            type = "rectangle",
+            frame = { x = 0, y = 0, w = 400, h = 400 },
+            fillColor = { white = 0, alpha = 0.8 },
         })
-        yOffset = yOffset + 25
-    end
 
-    -- Show the canvas
-    canvas:show()
+        local windows = hs.window.allWindows()
+        local yOffset = 10
+        for i, win in ipairs(windows) do
+            windowListCanvas:appendElements({
+                type = "text",
+                frame = { x = 10, y = yOffset, w = 380, h = 20 },
+                text = win:title(),
+                textColor = { white = 1 },
+                textSize = 14
+            })
+            yOffset = yOffset + 25
+        end
+
+        windowListCanvas:show()
+        windowListVisible = true
+    end
 end
 
 
+
 -- Bind the hotkey to display available windows in a GUI window
-hs.hotkey.bind(_hyper, "p", showWindowTitles)
+hs.hotkey.bind(_hyper, "p", toggleWindowList)
 
 
 -- @formatter:off

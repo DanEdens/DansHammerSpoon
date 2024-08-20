@@ -664,65 +664,48 @@ function listWindows()
 
     end
 end
--- Keep a reference to the canvas
-local canvas = nil
+-- Global variable to track canvas state
+local canvasVisible = false
+local windowCanvas
 
--- Keep a reference to the canvas
-local canvas = nil
-
--- Function to display all window titles in a GUI canvas
-function showWindowTitles()
-    local wins = hs.window.allWindows()
-    local items = {}
-    local yOffset = 20
-
-    -- Get the current cursor position
-    local cursorPos = hs.mouse.getAbsolutePosition()
-
-    -- Define the dimensions of the canvas
-    local canvasWidth = 400
-    local canvasHeight = 300
-
-    -- Calculate the top-left corner of the canvas so that it’s centered around the cursor
-    local xPos = cursorPos.x - (canvasWidth / 2)
-    local yPos = cursorPos.y - (canvasHeight / 2)
-
-    -- Create a new canvas to display the window titles
-
-
-
-    -- Collect window titles for display
-    for i, win in ipairs(wins) do
-        table.insert(items, win:title())
-    end
-
-    -- Clear the existing canvas if it exists
-    if canvas then
-        canvas:delete()
-    end
-
-    -- Create a new canvas to display the window titles
-    canvas = hs.canvas.new({ x = xPos, y = yPos, w = canvasWidth, h = canvasHeight }):appendElements({
-        type = "rectangle",
-        action = "fill",
-        fillColor = { hex = "#000000", alpha = 0.8 },
-        frame = { x = 0, y = 0, w = canvasWidth, h = canvasHeight },
-    })
-
-    -- Add each window title to the canvas
-    for i, title in ipairs(items) do
-        canvas:appendElements({
+function toggleWindowCanvas()
+    if not windowCanvas then
+        -- Create the canvas if it doesn't exist
+        windowCanvas = hs.canvas.new(hs.geometry.rect(0, 0, 300, 200)):appendElements({
+            type = "rectangle",
+            frame = { x = 0, y = 0, w = 300, h = 200 },
+            fillColor = { alpha = 0.8, white = 0.1 }
+        })               :appendElements({
             type = "text",
-            text = title,
-            textSize = 16,
-            frame = { x = 10, y = yOffset, w = 380, h = 20 },
-            textColor = { hex = "#FFFFFF" },
+            frame = { x = 10, y = 10, w = 280, h = 180 },
+            text = "",
+            textColor = { white = 1 },
+            textSize = 12
         })
-        yOffset = yOffset + 25
     end
 
-    -- Show the canvas
-    canvas:show()
+    if canvasVisible then
+        windowCanvas:delete()
+        canvasVisible = false
+    else
+        -- Update the canvas with window titles
+        local text = ""
+        local wins = hs.window.allWindows()
+        for i, win in ipairs(wins) do
+            text = text .. i .. ". " .. win:title() .. "\n"
+        end
+        windowCanvas:element(2):set("text", text)
+
+        -- Position the canvas centered around the cursor
+        local mouse = hs.mouse.getAbsolutePosition()
+        local canvasFrame = windowCanvas:frame()
+        canvasFrame.x = mouse.x - (canvasFrame.w / 2)
+        canvasFrame.y = mouse.y - (canvasFrame.h / 2)
+        windowCanvas:frame(canvasFrame)
+
+        windowCanvas:show()
+        canvasVisible = true
+    end
 end
 
 

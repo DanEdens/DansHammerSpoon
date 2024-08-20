@@ -645,11 +645,96 @@ function openMostRecentImage()
     end
 end                                                                             -- hammer i     -- Open most recent image
 
+-- function to set target to a specific window title 'RegressionTestKit'
+function setTargetWindow()
+    local win = hs.window.get("RegressionTestKit")
+    if win then
+        hs.alert.show("RegressionTestKit window found")
+        win:focus()
+    else
+        hs.alert.show("RegressionTestKit window not found")
+    end
+end
+-- function to list to console availble windows that could be targeted
+function listWindows()
+    local wins = hs.window.allWindows()
+    for i, win in ipairs(wins) do
+        print(i, win:title())
+        -- show in gui window
+
+    end
+end
+-- Keep a reference to the canvas
+local canvas = nil
+
+-- Keep a reference to the canvas
+local canvas = nil
+
+-- Function to display all window titles in a GUI canvas
+function showWindowTitles()
+    local wins = hs.window.allWindows()
+    local items = {}
+    local yOffset = 20
+
+    -- Get the current cursor position
+    local cursorPos = hs.mouse.getAbsolutePosition()
+
+    -- Define the dimensions of the canvas
+    local canvasWidth = 400
+    local canvasHeight = 300
+
+    -- Calculate the top-left corner of the canvas so that it’s centered around the cursor
+    local xPos = cursorPos.x - (canvasWidth / 2)
+    local yPos = cursorPos.y - (canvasHeight / 2)
+
+    -- Create a new canvas to display the window titles
+
+
+
+    -- Collect window titles for display
+    for i, win in ipairs(wins) do
+        table.insert(items, win:title())
+    end
+
+    -- Clear the existing canvas if it exists
+    if canvas then
+        canvas:delete()
+    end
+
+    -- Create a new canvas to display the window titles
+    canvas = hs.canvas.new({ x = xPos, y = yPos, w = canvasWidth, h = canvasHeight }):appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { hex = "#000000", alpha = 0.8 },
+        frame = { x = 0, y = 0, w = canvasWidth, h = canvasHeight },
+    })
+
+    -- Add each window title to the canvas
+    for i, title in ipairs(items) do
+        canvas:appendElements({
+            type = "text",
+            text = title,
+            textSize = 16,
+            frame = { x = 10, y = yOffset, w = 380, h = 20 },
+            textColor = { hex = "#FFFFFF" },
+        })
+        yOffset = yOffset + 25
+    end
+
+    -- Show the canvas
+    canvas:show()
+end
+
+
+-- Bind the hotkey to display available windows in a GUI window
+hs.hotkey.bind(_hyper, "p", showWindowTitles)
+
 
 -- @formatter:off
 hs.hotkey.bind(hammer, "i", openMostRecentImage)
 hs.hotkey.bind(_hyper, "w", function() spoon.AClock:toggleShow() end)                                            -- _hyper W     -- Aclock Show
 hs.hotkey.bind(hammer, "p", function() hs.application.launchOrFocus("PyCharm Community Edition") end)            -- hammer P     -- Pycharm
+--hs.hotkey.bind(hammer, "p", showWindowTitles)  -- setTargetWindow)                                                                      -- _hyper P     -- Set target window
 hs.hotkey.bind(hammer, "b", function() hs.application.launchOrFocus("Arc") end)                                  -- hammer B     -- Arc
 hs.hotkey.bind(_hyper, "b", function() hs.application.launchOrFocus("Google Chrome") end)                        -- _hyper B     -- Chrome
 hs.hotkey.bind(hammer, "d", function() hs.application.launchOrFocus("MongoDB Compass") end)                                  -- hammer B     -- Arc

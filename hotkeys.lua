@@ -512,6 +512,29 @@ function moveToPreviousScreenRight()
     win:setFrame(f)
     win:moveToScreen(nextScreen)
 end                                                                       -- _hyper left  -- move to previous screen right
+
+
+local lastWindowPosition = {}
+
+function saveWindowPosition()
+local win = hs.window.focusedWindow()
+if win then
+lastWindowPosition[win:id()] = win:frame()
+hs.alert.show("Window position saved")
+end
+end
+
+function restoreWindowPosition()
+local win = hs.window.focusedWindow()
+if win and lastWindowPosition[win:id()] then
+win:setFrame(lastWindowPosition[win:id()])
+hs.alert.show("Window position restored")
+end
+end
+
+
+
+
 function showHyperList()
     hs.alert.show("\
     W     -- Aclock Show  \
@@ -768,9 +791,9 @@ hs.hotkey.bind(hammer, "F4", function() toggleKeyLogging() end)                 
 hs.hotkey.bind(_hyper, "F4", function() tempFunction() end)                                                      -- _hyper F4    -- Temporary Function
 hs.hotkey.bind(hammer, "F5", function() hs.reload() end)                                                         -- hammer F5    -- Reload HammerSpoon
 hs.hotkey.bind(_hyper, "F5", function() tempFunction() end)                                                      -- _hyper F5    -- Temporary Function
-hs.hotkey.bind(hammer, "F6", function() tempFunction() end)                                                      -- hammer F6    -- Temporary Function
+hs.hotkey.bind(hammer, "F6", saveWindowPosition)                                                                 -- Save current window position
 hs.hotkey.bind(_hyper, "F6", function() tempFunction() end)                                                      -- _hyper F6    -- Temporary Function
-hs.hotkey.bind(hammer, "F7", function() tempFunction() end)                                                      -- hammer F7    -- Temporary Function
+hs.hotkey.bind(hammer, "F7", restoreWindowPosition)                                                              -- Restore last saved window position
 hs.hotkey.bind(_hyper, "F7", function() tempFunction() end)                                                      -- _hyper F7    -- Temporary Function
 hs.hotkey.bind(hammer, "F8", function() tempFunction() end)                                                      -- hammer F8    -- Temporary Function
 hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)                                                      -- _hyper F8    -- Temporary Function

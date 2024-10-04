@@ -532,6 +532,30 @@ hs.alert.show("Window position restored")
 end
 end
 
+local lastWindowPositions = {}
+
+-- Function to save the position of all windows
+function saveAllWindowPositions()
+    local wins = hs.window.allWindows()  -- Get all open windows
+    for _, win in ipairs(wins) do
+        lastWindowPositions[win:id()] = win:frame()  -- Save the window's frame (position and size)
+    end
+    hs.alert.show("All window positions saved")
+end
+
+-- Function to restore the position of all windows
+function restoreAllWindowPositions()
+    local wins = hs.window.allWindows()  -- Get all open windows
+    for _, win in ipairs(wins) do
+        local savedPosition = lastWindowPositions[win:id()]
+        if savedPosition then
+            win:setFrame(savedPosition)  -- Restore the window's frame (position and size)
+        end
+    end
+    hs.alert.show("All window positions restored")
+end
+
+
 
 
 
@@ -729,6 +753,54 @@ function toggleWindowList()
         windowListVisible = true
     end
 end
+local moveStep = 75  -- Amount to move window by in pixels
+
+function moveWindowLeft()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    f.x = f.x - moveStep
+    win:setFrame(f)
+end
+
+function moveWindowRight()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    f.x = f.x + moveStep
+    win:setFrame(f)
+end
+
+function moveWindowUp()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    f.y = f.y - moveStep
+    win:setFrame(f)
+end
+
+function moveWindowDown()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    f.y = f.y + moveStep
+    win:setFrame(f)
+end
+
+
+-- function arrangeWorkWindows()
+--    local slack = hs.application.find("Slack")
+--    local chrome = hs.application.find("Google Chrome")
+--
+--    if slack then
+--        local slackWin = slack:mainWindow()
+--        slackWin:setFrame(hs.screen.mainScreen():frame():toUnitRect():left(0.5):toAbsolute())
+--    end
+--
+--    if chrome then
+--        local chromeWin = chrome:mainWindow()
+--        chromeWin:setFrame(hs.screen.mainScreen():frame():toUnitRect():right(0.5):toAbsolute())
+--    end
+--end
+--
+--hs.hotkey.bind(hammer, "w", arrangeWorkWindows)  -- hammer w -- Arrange Slack and Chrome
+
 
 --local clipLogger
 --
@@ -791,10 +863,10 @@ hs.hotkey.bind(hammer, "F4", function() toggleKeyLogging() end)                 
 hs.hotkey.bind(_hyper, "F4", function() tempFunction() end)                                                      -- _hyper F4    -- Temporary Function
 hs.hotkey.bind(hammer, "F5", function() hs.reload() end)                                                         -- hammer F5    -- Reload HammerSpoon
 hs.hotkey.bind(_hyper, "F5", function() tempFunction() end)                                                      -- _hyper F5    -- Temporary Function
-hs.hotkey.bind(hammer, "F6", saveWindowPosition)                                                                 -- Save current window position
-hs.hotkey.bind(_hyper, "F6", function() tempFunction() end)                                                      -- _hyper F6    -- Temporary Function
-hs.hotkey.bind(hammer, "F7", restoreWindowPosition)                                                              -- Restore last saved window position
-hs.hotkey.bind(_hyper, "F7", function() tempFunction() end)                                                      -- _hyper F7    -- Temporary Function
+hs.hotkey.bind(hammer, "F6", saveWindowPosition)                                                                 -- hammer F6    -- Save current window position
+hs.hotkey.bind(_hyper, "F6", saveAllWindowPositions)                                                             -- Hyper F6     -- hyper + F6 to save the positions of all windows
+hs.hotkey.bind(hammer, "F7", restoreWindowPosition)                                                              -- hammer F7    -- Restore last saved window position
+hs.hotkey.bind(_hyper, "F7", restoreAllWindowPositions)                                                          -- hyper  F7    -- restore the positions of all windows
 hs.hotkey.bind(hammer, "F8", function() tempFunction() end)                                                      -- hammer F8    -- Temporary Function
 hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)                                                      -- _hyper F8    -- Temporary Function
 hs.hotkey.bind(_hyper, "F11", nil, function() moveWindowOneSpace("left", false) end)                             -- _hyper F11   -- Move window one space left
@@ -820,10 +892,16 @@ spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()                   
 hs.hotkey.bind(_hyper, "8", function() tempFunction() end)                                                       -- _hyper 8     -- Temporary Function
 hs.hotkey.bind(hammer, "9", function() moveWindowMouseCenter() end)                                              -- hammer 9     -- Move window to mouse as center
 hs.hotkey.bind(_hyper, "9", function() moveWindowMouseCorner() end)                                              -- _hyper 9     -- Move window to cursor as top-left corner
-hs.hotkey.bind(hammer, "left", function() moveToNextScreenLeft() end)                                            -- hammer Left  -- Move to next screen left
+
+hs.hotkey.bind(hammer, "left", moveWindowLeft)  -- Move window left
 hs.hotkey.bind(_hyper, "left", function() moveToNextScreenRight() end)                                           -- _hyper Left  -- Move to next screen right
-hs.hotkey.bind(hammer, "right", function() moveToPreviousScreenLeft() end)                                       -- hammer Right -- Move to previous screen left
+hs.hotkey.bind(hammer, "right", moveWindowRight)  -- Move window right
 hs.hotkey.bind(_hyper, "right", function() moveToPreviousScreenRight() end)                                      -- _hyper Right -- Move to previous screen right
+hs.hotkey.bind(hammer, "up", moveWindowUp)                                                                       -- hammer Up    -- Move window up
+hs.hotkey.bind(_hyper, "up", function() tempFunction() end)                                                      -- _hyper Up    -- Move to next screen up
+hs.hotkey.bind(hammer, "down", moveWindowDown)                                                                   -- hammer Down  -- Move window down
+hs.hotkey.bind(_hyper, "down", function() tempFunction() end)                                                    -- _hyper Down  -- Move to next screen down
+
 hs.hotkey.bind(hammer, "-", function() showHammerList() end)                                                     -- hammer -     -- Flash list of hammer options
 hs.hotkey.bind(_hyper, "-", function() showHyperList() end)                                                      -- _hyper -     -- Flash list of hyper options
 hs.hotkey.bind(hammer, "`", function() hs.application.launchOrFocus("Visual Studio Code") end)                   -- hammer `     -- Vscode

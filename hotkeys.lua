@@ -911,8 +911,8 @@ hs.hotkey.bind(hammer, "F6", saveWindowPosition)                                
 hs.hotkey.bind(_hyper, "F6", saveAllWindowPositions)                                                             -- Hyper F6     -- hyper + F6 to save the positions of all windows
 hs.hotkey.bind(hammer, "F7", restoreWindowPosition)                                                              -- hammer F7    -- Restore last saved window position
 hs.hotkey.bind(_hyper, "F7", restoreAllWindowPositions)                                                          -- hyper  F7    -- restore the positions of all windows
-hs.hotkey.bind(hammer, "F8", function() tempFunction() end)                                                      -- hammer F8    -- Temporary Function
-hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)                                                      -- _hyper F8    -- Temporary Function
+hs.hotkey.bind(hammer, "F8", function() setTargetWindow() end)                                                   -- hammer F8    -- Set target window
+hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)                                                  -- _hyper F8    -- Show window titles
 hs.hotkey.bind(_hyper, "F11", nil, function() moveWindowOneSpace("left", false) end)                             -- _hyper F11   -- Move window one space left
 hs.hotkey.bind(_hyper, "F12", nil, function() moveWindowOneSpace("right", false) end)                            -- _hyper F12   -- Move window one space right
 hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)                           -- shift F13    -- Open Screenshots folder

@@ -711,6 +711,7 @@ function listWindows()
 
     end
 end
+
 -- Function to toggle the display of the window list canvas
 local windowListCanvas
 local windowListVisible = false
@@ -753,7 +754,7 @@ function toggleWindowList()
         windowListVisible = true
     end
 end
-local moveStep = 75  -- Amount to move window by in pixels
+local moveStep = 150  -- Amount to move window by in pixels
 
 function moveWindowLeft()
     local win = hs.window.focusedWindow()
@@ -783,6 +784,49 @@ function moveWindowDown()
     win:setFrame(f)
 end
 
+-- Global variable to track canvas state
+local canvasVisible = false
+local windowCanvas
+
+function toggleWindowCanvas()
+    if not windowCanvas then
+        -- Create the canvas if it doesn't exist
+        windowCanvas = hs.canvas.new(hs.geometry.rect(0, 0, 300, 200)):appendElements({
+            type = "rectangle",
+            frame = { x = 0, y = 0, w = 300, h = 200 },
+            fillColor = { alpha = 0.8, white = 0.1 }
+        })               :appendElements({
+            type = "text",
+            frame = { x = 10, y = 10, w = 280, h = 180 },
+            text = "",
+            textColor = { white = 1 },
+            textSize = 12
+        })
+    end
+
+    if canvasVisible then
+        windowCanvas:delete()
+        canvasVisible = false
+    else
+        -- Update the canvas with window titles
+        local text = ""
+        local wins = hs.window.allWindows()
+        for i, win in ipairs(wins) do
+            text = text .. i .. ". " .. win:title() .. "\n"
+        end
+        windowCanvas:element(2):set("text", text)
+
+        -- Position the canvas centered around the cursor
+        local mouse = hs.mouse.getAbsolutePosition()
+        local canvasFrame = windowCanvas:frame()
+        canvasFrame.x = mouse.x - (canvasFrame.w / 2)
+        canvasFrame.y = mouse.y - (canvasFrame.h / 2)
+        windowCanvas:frame(canvasFrame)
+
+        windowCanvas:show()
+        canvasVisible = true
+    end
+end
 
 -- function arrangeWorkWindows()
 --    local slack = hs.application.find("Slack")

@@ -6,8 +6,9 @@ hammer = { "cmd", "ctrl", "alt" }
 _hyper = { "cmd", "shift", "ctrl", "alt" }
 _meta = { "cmd", "shift", "alt" }
 
--- local editor = "Visual Studio Code"
---local editor = "Fleet"
+
+ --local editor = "code"
+-- local editor = "nvim"
 local editor = "PyCharm Community Edition"
 
 local gap = 5
@@ -36,15 +37,16 @@ function usbDeviceCallback(data)
         -- Execute scrcpy to mirror android screen
         hs.alert.show("Android plugged in")
         hs.execute("adb tcpip 5555")
-        --hs.task.new(os.getenv("SHELL"), function(exitCode, stdOut, stdErr)
-        --    if exitCode == 0 then
-        --        -- Successfully executed
-        --        print("scrcpy executed successfully")
-        --    else
-        --        -- Handle error
-        --        print("Error executing scrcpy:", stdOut, stdErr)
-        --    end
-        --end, nil, "scrcpy"):start("--max-size", "800", "--window-title", "'Samsung S22'", "--turn-screen-off", "--stay-awake", "--always-on-top", "--window-borderless", "--window-x", "0", "--window-y", "0", "--window-width", "800", "--window-height", "1600", "--max-fps", "30", "--no-control", "--force-adb-forward", "--forward-all-clicks", "--prefer-text", "--window-borderless", "--window-title", "'Samsung S22'")
+        hs.task.new(os.getenv("SHELL"), function(exitCode, stdOut, stdErr)
+            if exitCode == 0 then
+                -- Successfully executed
+                print("scrcpy executed successfully")
+            else
+                -- Handle error
+                print("Error executing scrcpy:", stdOut, stdErr)
+            end
+        end, nil, "scrcpy"):start("--max-size", "800", "--window-title", "'Samsung S22'", "--turn-screen-off", "--stay-awake",
+                "--always-on-top", "--window-borderless", "--window-x", "0", "--window-y", "0", "--window-width", "800", "--window-height", "1600", "--max-fps", "30", "--no-control", "--force-adb-forward", "--forward-all-clicks", "--prefer-text", "--window-borderless", "--window-title", "'Samsung S22'")
     end
 
     if data["productName"] == "USB Keyboard" then
@@ -754,6 +756,8 @@ function toggleWindowList()
         windowListVisible = true
     end
 end
+
+
 local moveStep = 150  -- Amount to move window by in pixels
 
 function moveWindowLeft()
@@ -827,6 +831,34 @@ function toggleWindowCanvas()
         canvasVisible = true
     end
 end
+local layoutCounter = 0
+
+function shuffleLayouts()
+    local win = hs.window.focusedWindow()
+    local screen = win:screen()
+    local max = screen:frame()
+
+    if layoutCounter == 0 then
+        -- Full screen
+        win:setFrame(max)
+    elseif layoutCounter == 1 then
+        -- Left half
+        win:setFrame(hs.geometry.rect(max.x, max.y, max.w / 2, max.h))
+    elseif layoutCounter == 2 then
+        -- Right half
+        win:setFrame(hs.geometry.rect(max.x + (max.w / 2), max.y, max.w / 2, max.h))
+    elseif layoutCounter == 3 then
+        -- Top half
+        win:setFrame(hs.geometry.rect(max.x, max.y, max.w, max.h / 2))
+    elseif layoutCounter == 4 then
+        -- Bottom half
+        win:setFrame(hs.geometry.rect(max.x, max.y + (max.h / 2), max.w, max.h / 2))
+    end
+
+    layoutCounter = (layoutCounter + 1) % 5
+end
+
+
 
 -- function arrangeWorkWindows()
 --    local slack = hs.application.find("Slack")
@@ -894,7 +926,9 @@ hs.hotkey.bind(hammer, "s", function() hs.application.launchOrFocus("Slack") end
 hs.hotkey.bind(hammer, "g", function() hs.application.launchOrFocus("GitHub Desktop") end)                       -- hammer G     -- GitHub Desktop
 hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- hammer E     -- Edit zshenv
 hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotkeys.lua") end)  -- _hyper E     -- Edit hotkeys.lua
-hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)             -- hammer Z     -- Edit bash_aliases
+hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)
+-- hammer t open $Jobdir/tasks.py
+hs.hotkey.bind(hammer, "t", function() hs.execute("open -a '" .. editor .. "' ~/lab/tasks.py") end)
 hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper Z     -- Edit zshrc
 hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)                                                  -- hammer F1    -- Toggle HammerSpoon Console
 hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)                             -- _hyper F1    -- Open Console.app
@@ -902,7 +936,8 @@ hs.hotkey.bind(hammer, "F2", function() hs.execute("open -a 'post S22 var=:=Task
 --hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Marta") end)                              -- hammer F2    -- Open Marta
 hs.hotkey.bind(_hyper, "F2", function() hs.execute("marta ~/lab") end)                                           -- _hyper F2    -- Open ~/lab
 hs.hotkey.bind(hammer, "F3", function() toggleUSBLogging() end)                                                  -- hammer F3    -- Toggle USB Logging
-hs.hotkey.bind(_hyper, "F3", function() tempFunction() end)                                                      -- _hyper F3    -- Temporary Function
+hs.hotkey.bind(_hyper, "F3", shuffleLayouts)                                                                     -- hammer s -- Shuffle window layouts
+--hs.hotkey.bind(_hyper, "F3", function() tempFunction() end)                                                      -- _hyper F3    -- Temporary Function
 hs.hotkey.bind(hammer, "F4", function() toggleKeyLogging() end)                                                  -- hammer F4    -- Toggle Key Logging
 hs.hotkey.bind(_hyper, "F4", function() tempFunction() end)                                                      -- _hyper F4    -- Temporary Function
 hs.hotkey.bind(hammer, "F5", function() hs.reload() end)                                                         -- hammer F5    -- Reload HammerSpoon

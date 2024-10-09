@@ -7,9 +7,10 @@ _hyper = { "cmd", "shift", "ctrl", "alt" }
 _meta = { "cmd", "shift", "alt" }
 
 
- --local editor = "code"
+
+local editor = "cursor"
 -- local editor = "nvim"
-local editor = "PyCharm Community Edition"
+--local editor = "PyCharm Community Edition"
 
 local gap = 5
 local cols = 4
@@ -30,23 +31,39 @@ local logKeyStroke = nil
 local strokeisEnabled = false
 local usbisEnabled = false
 local usbWatcher = nil
+
 function usbDeviceCallback(data)
-    print(data["productName"])
-    -- SAMSUNG_Android
-    if data["productName"] == "SAMSUNG_Android" then
-        -- Execute scrcpy to mirror android screen
-        hs.alert.show("Android plugged in")
-        hs.execute("adb tcpip 5555")
-        hs.task.new(os.getenv("SHELL"), function(exitCode, stdOut, stdErr)
-            if exitCode == 0 then
-                -- Successfully executed
-                print("scrcpy executed successfully")
-            else
-                -- Handle error
-                print("Error executing scrcpy:", stdOut, stdErr)
+    -- Print all contents of the table 'data'
+    for key, value in pairs(data) do
+        print(key .. ": " .. tostring(value))
+    end
+
+    if data["eventType"] == "added" then
+
+        if data["vendorName"] == "SAMSUNG" and data["productName"] == "SAMSUNG_Android" then
+            if data["productID"] == 26720 then
+                hs.alert.show("Samsung Android plugged in (Device 988a1b30573456354d)")
+
+                local scrcpyPath = "/opt/homebrew/bin/scrcpy -s 988a1b30573456354d -S --stay-awake"
+
+                local success, output, errorOutput = hs.execute(scrcpyPath, false)
+                if success then
+                    print("scrcpy executed successfully")
+                else
+                    print("Error executing scrcpy:", output, errorOutput)
+                end
+            elseif data["productID"] == 26732 then
+                hs.alert.show("Samsung Android plugged in (Device R5CT602ZVTJ)")
+                local scrcpyPath = "/opt/homebrew/bin/scrcpy --stay-awake -S -s R5CT602ZVTJ &"
+
+                local success, output, errorOutput = hs.execute(scrcpyPath, false)
+                if success then
+                    print("scrcpy executed successfully")
+                else
+                    print("Error executing scrcpy:", output, errorOutput)
+                end
             end
-        end, nil, "scrcpy"):start("--max-size", "800", "--window-title", "'Samsung S22'", "--turn-screen-off", "--stay-awake",
-                "--always-on-top", "--window-borderless", "--window-x", "0", "--window-y", "0", "--window-width", "800", "--window-height", "1600", "--max-fps", "30", "--no-control", "--force-adb-forward", "--forward-all-clicks", "--prefer-text", "--window-borderless", "--window-title", "'Samsung S22'")
+        end
     end
 
     if data["productName"] == "USB Keyboard" then
@@ -56,13 +73,18 @@ function usbDeviceCallback(data)
             hs.alert.show("USB Keyboard unplugged")
         end
     end
+
+
 end
+
+-- Create a USB watcher and set the callback
+usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
+--usbWatcher:start()
 local function toggleUSBLogging()
     if usbisEnabled then
         usbWatcher:stop()
         usbisEnabled = false
     else
-        usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
         usbWatcher:start()
         usbisEnabled = true
     end
@@ -926,9 +948,8 @@ hs.hotkey.bind(hammer, "s", function() hs.application.launchOrFocus("Slack") end
 hs.hotkey.bind(hammer, "g", function() hs.application.launchOrFocus("GitHub Desktop") end)                       -- hammer G     -- GitHub Desktop
 hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- hammer E     -- Edit zshenv
 hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotkeys.lua") end)  -- _hyper E     -- Edit hotkeys.lua
-hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)
--- hammer t open $Jobdir/tasks.py
-hs.hotkey.bind(hammer, "t", function() hs.execute("open -a '" .. editor .. "' ~/lab/tasks.py") end)
+hs.hotkey.bind(hammer, "t", function() hs.execute("open -a '" .. editor .. "' ~/lab/tasks.py") end)              -- hammer z open $Jobdir/tasks.py
+hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)             -- hammer Z     -- Edit bash_aliases
 hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper Z     -- Edit zshrc
 hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)                                                  -- hammer F1    -- Toggle HammerSpoon Console
 hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)                             -- _hyper F1    -- Open Console.app
@@ -971,7 +992,6 @@ spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()                   
 hs.hotkey.bind(_hyper, "8", function() tempFunction() end)                                                       -- _hyper 8     -- Temporary Function
 hs.hotkey.bind(hammer, "9", function() moveWindowMouseCenter() end)                                              -- hammer 9     -- Move window to mouse as center
 hs.hotkey.bind(_hyper, "9", function() moveWindowMouseCorner() end)                                              -- _hyper 9     -- Move window to cursor as top-left corner
-
 hs.hotkey.bind(hammer, "left", moveWindowLeft)  -- Move window left
 hs.hotkey.bind(_hyper, "left", function() moveToNextScreenRight() end)                                           -- _hyper Left  -- Move to next screen right
 hs.hotkey.bind(hammer, "right", moveWindowRight)  -- Move window right
@@ -980,10 +1000,10 @@ hs.hotkey.bind(hammer, "up", moveWindowUp)                                      
 hs.hotkey.bind(_hyper, "up", function() tempFunction() end)                                                      -- _hyper Up    -- Move to next screen up
 hs.hotkey.bind(hammer, "down", moveWindowDown)                                                                   -- hammer Down  -- Move window down
 hs.hotkey.bind(_hyper, "down", function() tempFunction() end)                                                    -- _hyper Down  -- Move to next screen down
-
 hs.hotkey.bind(hammer, "-", function() showHammerList() end)                                                     -- hammer -     -- Flash list of hammer options
 hs.hotkey.bind(_hyper, "-", function() showHyperList() end)                                                      -- _hyper -     -- Flash list of hyper options
-hs.hotkey.bind(hammer, "`", function() hs.application.launchOrFocus("Visual Studio Code") end)                   -- hammer `     -- Vscode
+hs.hotkey.bind(hammer, "`", function() hs.application.launchOrFocus("cursor") end)                   -- hammer `     -- Vscode
+hs.hotkey.bind(_hyper, "`", function() hs.application.launchOrFocus("Visual Studio Code") end)                   -- hammer `     -- Vscode
 hs.hotkey.bind(hammer, "Tab", function() hs.application.launchOrFocus("Mission Control.app") end)                -- hammer Tab   -- Mission Control
 hs.hotkey.bind(_hyper, "Tab", function() hs.application.launchOrFocus("Launchpad") end)                          -- _hyper Tab   -- Launchpad
 hs.hotkey.bind(hammer, "t", function() hs.execute("open -a 'Barrier'") end)                                      -- hammer T     -- Barrier

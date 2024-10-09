@@ -7,7 +7,7 @@ _hyper = { "cmd", "shift", "ctrl", "alt" }
 _meta = { "cmd", "shift", "alt" }
 
 
-
+--Set default editor
 local editor = "cursor"
 -- local editor = "nvim"
 --local editor = "PyCharm Community Edition"
@@ -22,11 +22,6 @@ local fileList = {
     { name = "bash_aliases", path = "~/.bash_aliases"},
     { name = "tasks", path = "/Users/d.edens/lab/regressiontestkit/tasks.py"}
 
-}
-local fileList = {
-    { name = "init.lua", path = "~/.hammerspoon/init.lua" },
-    { name = "hotkeys.lua", path = "~/.hammerspoon/hotkeys.lua" },
-    { name = "config.lua", path = "~/.hammerspoon/config.lua" }
 }
 
 function showFileMenu()

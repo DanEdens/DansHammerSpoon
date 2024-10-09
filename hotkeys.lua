@@ -12,6 +12,72 @@ local editor = "cursor"
 -- local editor = "nvim"
 --local editor = "PyCharm Community Edition"
 
+-- Create a menu from a list of files to edit
+local fileList = {
+    { name = "init.lua", path = "~/.hammerspoon/init.lua" },
+    { name = "global hotkeys", path = "~/.hammerspoon/hotkeys.lua" },
+    { name = "hs config", path = "~/.hammerspoon/config.lua" },
+    { name = "zshenv", path = "~/.zshenv"},
+    { name = "zshrc", path = "~/.zshrc"},
+    { name = "bash_aliases", path = "~/.bash_aliases"},
+    { name = "tasks", path = "/Users/d.edens/lab/regressiontestkit/tasks.py"}
+
+}
+local fileList = {
+    { name = "init.lua", path = "~/.hammerspoon/init.lua" },
+    { name = "hotkeys.lua", path = "~/.hammerspoon/hotkeys.lua" },
+    { name = "config.lua", path = "~/.hammerspoon/config.lua" }
+}
+
+function showFileMenu()
+    local choices = {}
+    for _, file in ipairs(fileList) do
+        table.insert(choices, {
+            text = file.name,
+            subText = "Edit this file",
+            path = file.path
+        })
+    end
+
+    local chooser = hs.chooser.new(function(choice)
+        if choice then
+            hs.execute("open -a '" .. editor .. "' " .. choice.path)
+            chooser:hide()
+        end
+    end)
+    chooser:choices(choices)
+    chooser:show()
+end
+
+-- Create a menu to select the editor
+local editorList = {
+    { name = "Visual Studio Code", command = "Visual Studio Code" },
+    { name = "cursor", command = "cursor" },
+    { name = "nvim", command = "nvim" },
+    { name = "PyCharm Community Edition", command = "PyCharm Community Edition" }
+}
+
+function showEditorMenu()
+    local choices = {}
+    for _, editorOption in ipairs(editorList) do
+        table.insert(choices, {
+            text = editorOption.name,
+            subText = "Select this editor",
+            command = editorOption.command
+        })
+    end
+
+    local chooser = hs.chooser.new(function(choice)
+        if choice then
+            editor = choice.command
+            hs.alert.show("Editor set to: " .. editor)
+            chooser:hide()
+        end
+    end)
+    chooser:choices(choices)
+    chooser:show()
+end
+
 local gap = 5
 local cols = 4
 local counter = 0
@@ -946,8 +1012,10 @@ hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY
 hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper M     -- Edit zshrc
 hs.hotkey.bind(hammer, "s", function() hs.application.launchOrFocus("Slack") end)                                -- hammer S     -- Slack
 hs.hotkey.bind(hammer, "g", function() hs.application.launchOrFocus("GitHub Desktop") end)                       -- hammer G     -- GitHub Desktop
-hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- hammer E     -- Edit zshenv
-hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotkeys.lua") end)  -- _hyper E     -- Edit hotkeys.lua
+--hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- hammer E     -- Edit zshenv
+hs.hotkey.bind(hammer, "e", function() showFileMenu() end)                                                       -- hammer E     -- Edit file menu
+hs.hotkey.bind(_hyper, "e", function() showEditorMenu() end)                                                     -- _hyper E     -- editor menu
+--hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotkeys.lua") end)  -- _hyper E     -- Edit hotkeys.lua
 hs.hotkey.bind(hammer, "t", function() hs.execute("open -a '" .. editor .. "' ~/lab/tasks.py") end)              -- hammer z open $Jobdir/tasks.py
 hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)             -- hammer Z     -- Edit bash_aliases
 hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper Z     -- Edit zshrc

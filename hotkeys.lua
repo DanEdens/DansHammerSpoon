@@ -20,8 +20,10 @@ local fileList = {
     { name = "zshenv", path = "~/.zshenv"},
     { name = "zshrc", path = "~/.zshrc"},
     { name = "bash_aliases", path = "~/.bash_aliases"},
-    { name = "tasks", path = "/Users/d.edens/lab/regressiontestkit/tasks.py"}
-
+    { name = "tasks", path = "/Users/d.edens/lab/regressiontestkit/tasks.py"},
+    { name = "requirements.txt", path = "/Users/d.edens/lab/regressiontestkit/requirements.txt"},
+    { name = "ssh config", path = "/Users/d.edens/.ssh/config"},
+    { name = "RTK.cursorrules", path = "/Users/d.edens/lab/regressiontestkit/regressiontest/.cursorrules"}
 }
 
 function showFileMenu()

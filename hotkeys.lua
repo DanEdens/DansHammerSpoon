@@ -25,6 +25,10 @@ local fileList = {
     { name = "ssh config", path = "/Users/d.edens/.ssh/config"},
     { name = "RTK.cursorrules", path = "/Users/d.edens/lab/regressiontestkit/regressiontest/.cursorrules"}
 }
+local selectedFile = nil
+local fileChooser = nil
+
+function openSelectedFile()
     -- if selectedFile isnt null then
     if selectedFile ~= nil then
         hs.execute("open -a '" .. editor .. "' " .. selectedFile.path)

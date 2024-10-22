@@ -25,6 +25,13 @@ local fileList = {
     { name = "ssh config", path = "/Users/d.edens/.ssh/config"},
     { name = "RTK.cursorrules", path = "/Users/d.edens/lab/regressiontestkit/regressiontest/.cursorrules"}
 }
+    -- if selectedFile isnt null then
+    if selectedFile ~= nil then
+        hs.execute("open -a '" .. editor .. "' " .. selectedFile.path)
+    else
+        showFileMenu()
+    end
+end
 
 function showFileMenu()
     local choices = {}
@@ -36,14 +43,17 @@ function showFileMenu()
         })
     end
 
-    local chooser = hs.chooser.new(function(choice)
-        if choice then
-            hs.execute("open -a '" .. editor .. "' " .. choice.path)
-            chooser:hide()
-        end
-    end)
-    chooser:choices(choices)
-    chooser:show()
+    if not fileChooser then
+        fileChooser = hs.chooser.new(function(choice)
+            if choice then
+                selectedFile = choice
+                openSelectedFile()
+                fileChooser:hide()
+            end
+        end)
+    end
+    fileChooser:choices(choices)
+    fileChooser:show()
 end
 
 -- Create a menu to select the editor
@@ -999,7 +1009,7 @@ hs.hotkey.bind(hammer, "b", function() hs.application.launchOrFocus("Arc") end) 
 hs.hotkey.bind(_hyper, "b", function() hs.application.launchOrFocus("Google Chrome") end)                        -- _hyper B     -- Chrome
 hs.hotkey.bind(hammer, "d", function() hs.application.launchOrFocus("AnythingLLM") end)                          -- hammer D     -- AnythingLLM
 hs.hotkey.bind(_hyper, "d", function() hs.application.launchOrFocus("MongoDB Compass") end)                      -- _hyper D     -- MongoDB Compass
-hs.hotkey.bind(hammer, "y", function() CountDown:startFor(5) end)                                                -- hammer Y     -- Countdown Timer
+hs.hotkey.bind(hammer, "y", function() CountDown:startFor(3) end)                                                -- hammer Y     -- Countdown Timer
 --hs.hotkey.bind(_hyper, "y", function() hs.application.launchOrFocus("Raycast") end)                             -- _hyper Y     -- Raycast
 
 hs.hotkey.bind(hammer, "l", function() hs.application.launchOrFocus("logioptionsplus") end)                      -- hammer L     -- Logi Options+
@@ -1056,7 +1066,7 @@ hs.hotkey.bind(_hyper, "7", function() rightSide() end)                         
 spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()                                                    -- hammer 8     -- Layouts Menu
 hs.hotkey.bind(_hyper, "8", function() tempFunction() end)                                                       -- _hyper 8     -- Temporary Function
 hs.hotkey.bind(hammer, "9", function() moveWindowMouseCenter() end)                                              -- hammer 9     -- Move window to mouse as center
-hs.hotkey.bind(_hyper, "9", function() moveWindowMouseCorner() end)                                              -- _hyper 9     -- Move window to cursor as top-left corner
+hs.hotkey.bind(_hyper, "9", function() openSelectedFile() end)                                              -- _hyper 9     -- Move window to cursor as top-left corner
 hs.hotkey.bind(hammer, "left", moveWindowLeft)  -- Move window left
 hs.hotkey.bind(_hyper, "left", function() moveToNextScreenRight() end)                                           -- _hyper Left  -- Move to next screen right
 hs.hotkey.bind(hammer, "right", moveWindowRight)  -- Move window right

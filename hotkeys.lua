@@ -21,12 +21,19 @@ local fileList = {
     { name = "zshrc", path = "~/.zshrc"},
     { name = "bash_aliases", path = "~/.bash_aliases"},
     { name = "tasks", path = "/Users/d.edens/lab/regressiontestkit/tasks.py"},
-    { name = "requirements.txt", path = "/Users/d.edens/lab/regressiontestkit/requirements.txt"},
     { name = "ssh config", path = "/Users/d.edens/.ssh/config"},
-    { name = "RTK.cursorrules", path = "/Users/d.edens/lab/regressiontestkit/regressiontest/.cursorrules"}
+    { name = "RTK.cursorrules", path = "/Users/d.edens/lab/regressiontestkit/regressiontest/.cursorrules"},
+    { name = "cursor keybindings", path = "~/Library/Application Support/Cursor/User/keybindings.json"},
+    { name = "cursor settings", path = "~/Library/Application Support/Cursor/User/settings.json"},
+    { name = "pycharm keybindings", path = "/Users/d.edens/Library/Application Support/JetBrains/PyCharmCE2024.2/keymaps/JetSetStudio.xml"},
+    { name = "pycharm templates", path = "/Users/d.edens/Library/Application Support/JetBrains/PyCharmCE2024.2/templates/Python.xml"},
 }
 local selectedFile = nil
 local fileChooser = nil
+
+
+    -- { name = "pycharm settings", path = "/Users/d.edens/Library/Application Support/JetBrains/PyCharmCE2024.2/options/"},
+
 
 function openSelectedFile()
     -- if selectedFile isnt null then
@@ -1007,7 +1014,7 @@ end
 hs.hotkey.bind(hammer, "i", openMostRecentImage)
 hs.hotkey.bind(_hyper, "w", function() spoon.AClock:toggleShow() end)                                            -- _hyper W     -- Aclock Show
 hs.hotkey.bind(hammer, "p", function() hs.application.launchOrFocus("PyCharm Community Edition") end)            -- hammer P     -- Pycharm
-hs.hotkey.bind(_hyper, "p", function() hs.application.launchOrFocus("scrcpy") end)                               -- _hyper P     -- scrcpy
+hs.hotkey.bind(_hyper, "p", function() hs.application.launchOrFocus("cursor") end)                               -- _hyper P     -- scrcpy
 --hs.hotkey.bind(hammer, "p", showWindowTitles)  -- setTargetWindow)                                               -- _hyper P     -- Set target window
 hs.hotkey.bind(hammer, "b", function() hs.application.launchOrFocus("Arc") end)                                  -- hammer B     -- Arc
 hs.hotkey.bind(_hyper, "b", function() hs.application.launchOrFocus("Google Chrome") end)                        -- _hyper B     -- Chrome

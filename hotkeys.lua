@@ -31,6 +31,17 @@ local fileList = {
 local selectedFile = nil
 local fileChooser = nil
 
+local projects_list = {
+    { name = "lab", path = "~/lab" },
+    { name = "regressiontestkit", path = "/Users/d.edens/lab/regressiontestkit"},
+    { name = "init.lua", path = "~/.hammerspoon/init.lua" },
+    -- { name = "init.lua", path = "~/.hammerspoon/init.lua" },
+    -- { name = "init.lua", path = "~/.hammerspoon/init.lua" },
+    -- { name = "init.lua", path = "~/.hammerspoon/init.lua" },
+
+
+}
+
 
     -- { name = "pycharm settings", path = "/Users/d.edens/Library/Application Support/JetBrains/PyCharmCE2024.2/options/"},
 
@@ -802,12 +813,13 @@ end                                                                             
 
 -- function to set target to a specific window title 'RegressionTestKit'
 function setTargetWindow()
-    local win = hs.window.get("RegressionTestKit")
+    local win = hs.window.get("regressiontestkit")
     if win then
         hs.alert.show("RegressionTestKit window found")
         win:focus()
     else
-        hs.alert.show("RegressionTestKit window not found")
+        -- open testkit repo with cursor
+        -- TODO
     end
 end
 -- function to list to console availble windows that could be targeted
@@ -1022,6 +1034,7 @@ hs.hotkey.bind(hammer, "d", function() hs.application.launchOrFocus("AnythingLLM
 hs.hotkey.bind(_hyper, "d", function() hs.application.launchOrFocus("MongoDB Compass") end)                      -- _hyper D     -- MongoDB Compass
 hs.hotkey.bind(hammer, "y", function() CountDown:startFor(3) end)                                                -- hammer Y     -- Countdown Timer
 --hs.hotkey.bind(_hyper, "y", function() hs.application.launchOrFocus("Raycast") end)                             -- _hyper Y     -- Raycast
+-- hotkey to open slack
 
 hs.hotkey.bind(hammer, "l", function() hs.application.launchOrFocus("logioptionsplus") end)                      -- hammer L     -- Logi Options+
 hs.hotkey.bind(_hyper, "l", function() hs.application.launchOrFocus("System Preferences") end)                   -- _hyper L     -- System Preferences

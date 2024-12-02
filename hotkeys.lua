@@ -45,6 +45,21 @@ local projects_list = {
 
     -- { name = "pycharm settings", path = "/Users/d.edens/Library/Application Support/JetBrains/PyCharmCE2024.2/options/"},
 
+function populateJiraTickets()
+    -- retrieve currently active tickets
+
+end
+
+function selectJiraTicket()
+    -- select a ticket from the list to focus on
+    -- if var not set, run populateJiraTickets()
+    -- Once selected, sed the env var in zshrc and hs.
+end
+
+function S22command()
+    -- send command to my phone via join api call
+end
+
 
 function openSelectedFile()
     -- if selectedFile isnt null then

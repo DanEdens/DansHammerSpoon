@@ -125,6 +125,17 @@ end
 local gap = 5
 local cols = 4
 local counter = 0
+--    local f = win:frame()
+--    local g = win:frame()
+--    f.x = max.x + (max.w * 0.5)
+--    f.y = max.y + (max.h * 0.1)
+--    f.w = max.w * 0.35
+--    f.h = max.h * 0.8
+--    g.x = max.x + (max.w * 0.5)
+--    g.y = max.y + (max.h * 0.1)
+--    g.w = max.w * 0.45
+--    g.h = max.h * 0.8
+
 
 local logKeyStroke = nil
 local strokeisEnabled = false
@@ -153,7 +164,7 @@ function usbDeviceCallback(data)
                 end
             elseif data["productID"] == 26732 then
                 hs.alert.show("Samsung Android plugged in (Device R5CT602ZVTJ)")
-                local scrcpyPath = "/opt/homebrew/bin/scrcpy --stay-awake -S &"
+                local scrcpyPath = "/opt/homebrew/bin/scrcpy --stay-awake -S -s R5CT602ZVTJ &"
 
                 local success, output, errorOutput = hs.execute(scrcpyPath, false)
                 if success then
@@ -346,47 +357,51 @@ local function toggleKeyLogging()
     end
 end                                                                          -- Function for enabling key-logging
 
-function miniShuffle(isHorizontal, numSections)
-    -- Set defaults if not provided
-    isHorizontal = isHorizontal or false  -- default to vertical
-    numSections = numSections or 6        -- default to 6 sections
-
+function miniShuffle()
     local win = hs.window.focusedWindow()
     local f = win:frame()
+    local g = win:frame()
+    local h = win:frame()
+    local i = win:frame()
     local screen = win:screen()
     local max = screen:frame()
 
-    if isHorizontal then
-        -- Horizontal sections
-        local sectionWidth = max.w / numSections
-        local sectionHeight = max.h * 0.98  -- Using 98% of screen height
+    f.x = max.x + (max.w * 0.72)
+    f.y = max.y + (max.h * 0.01) + 25
+    f.w = max.w * 0.26
+    f.h = max.h * 0.97
 
-        local x = max.x + (counter * sectionWidth)
-        local y = max.y + (max.h * 0.01)  -- 1% gap from top
+    g.x = max.x + (max.w * 0.76)
+    g.y = max.y + (max.h * 0.01) - 25
+    g.w = max.w * 0.24
+    g.h = max.h * 0.97
 
-        f.x = x
-        f.y = y
-        f.w = sectionWidth
-        f.h = sectionHeight
+    h.x = max.x + (max.w * 0.7)
+    h.y = max.y + (max.h * 0.01) - 30
+    h.w = max.w * 0.5
+    h.h = max.h * 0.9
+
+    i.x = max.x + (max.w * 0.5)
+    i.y = max.y + (max.h * 0.01)
+    i.w = max.w * 0.5
+    i.h = max.h * 0.9
+
+    -- toggle counter
+    if counter == 0 then
+        win:setFrame(f)
+        counter = 1
+    elseif counter == 1 then
+        win:setFrame(g)
+        counter = 2
+    elseif counter == 2 then
+        win:setFrame(h)
+        counter = 3
     else
-        -- Vertical sections
-        local sectionWidth = max.w * 0.98  -- Using 98% of screen width
-        local sectionHeight = max.h / numSections
-
-        local x = max.x + (max.w * 0.01)  -- 1% gap from left
-        local y = max.y + (counter * sectionHeight)
-
-        f.x = x
-        f.y = y
-        f.w = sectionWidth
-        f.h = sectionHeight
+        win:setFrame(i)
+        counter = 0
     end
+end                                                                                     -- hammer 0     -- shuffle
 
-    win:setFrame(f)
-
-    -- Reset counter based on number of sections
-    counter = (counter + 1) % numSections
-end
 
 
 function halfShuffle()
@@ -1081,8 +1096,7 @@ hs.hotkey.bind(_hyper, "2", function() rightBottomCorner() end)                 
 hs.hotkey.bind(hammer, "3", function() fullScreen() end)                                                         -- hammer 3     -- Full Screen
 hs.hotkey.bind(_hyper, "3", function() nearlyFullScreen() end)                                                   -- _hyper 3     -- Nearly Full Screen (80% centered)
 hs.hotkey.bind(hammer, "4", function() moveWindow95By72FromLeftSide() end)                                       -- hammer 4     -- Move window 95 by 72 from left side
-hs.hotkey.bind(_hyper, "4", function() miniShuffle(true, 6) end)    -- _hyper 4  -- Mini Shuffle (6 horizontal sections)
-hs.hotkey.bind(hammer, "4", function() miniShuffle(false, 8) end)   -- hammer 4  -- Mini Shuffle (8 vertical sections)
+hs.hotkey.bind(_hyper, "4", function() miniShuffle() end)                                                        -- _hyper 4     -- Mini Shuffle (95 by 30 from right side)
 hs.hotkey.bind(hammer, "5", function() tempFunction() end)                                                       -- hammer 5     -- Temporary Function
 hs.hotkey.bind(_hyper, "5", function() tempFunction() end)                                                       -- _hyper 5     -- Temporary Function
 hs.hotkey.bind(hammer, "6", function() leftSideSmall() end)                                                      -- hammer 6     -- Smaller Left Side

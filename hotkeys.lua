@@ -1149,15 +1149,11 @@ hs.hotkey.bind(hammer, "i", openMostRecentImage)
 hs.hotkey.bind(_hyper, "w", function() spoon.AClock:toggleShow() end)                                            -- _hyper W     -- Aclock Show
 hs.hotkey.bind(hammer, "p", function() hs.application.launchOrFocus("PyCharm Community Edition") end)            -- hammer P     -- Pycharm
 hs.hotkey.bind(_hyper, "p", function() hs.application.launchOrFocus("cursor") end)                               -- _hyper P     -- scrcpy
---hs.hotkey.bind(hammer, "p", showWindowTitles)  -- setTargetWindow)                                               -- _hyper P     -- Set target window
 hs.hotkey.bind(hammer, "b", function() hs.application.launchOrFocus("Arc") end)                                  -- hammer B     -- Arc
 hs.hotkey.bind(_hyper, "b", function() hs.application.launchOrFocus("Google Chrome") end)                        -- _hyper B     -- Chrome
 hs.hotkey.bind(hammer, "d", function() hs.application.launchOrFocus("AnythingLLM") end)                          -- hammer D     -- AnythingLLM
 hs.hotkey.bind(_hyper, "d", function() hs.application.launchOrFocus("MongoDB Compass") end)                      -- _hyper D     -- MongoDB Compass
 hs.hotkey.bind(hammer, "y", function() CountDown:startFor(3) end)                                                -- hammer Y     -- Countdown Timer
---hs.hotkey.bind(_hyper, "y", function() hs.application.launchOrFocus("Raycast") end)                             -- _hyper Y     -- Raycast
--- hotkey to open slack
-
 hs.hotkey.bind(hammer, "l", function() hs.application.launchOrFocus("logioptionsplus") end)                      -- hammer L     -- Logi Options+
 hs.hotkey.bind(_hyper, "l", function() hs.application.launchOrFocus("System Preferences") end)                   -- _hyper L     -- System Preferences
 hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy -S'") end)                                                -- hammer F     -- scrcpy
@@ -1195,25 +1191,16 @@ hs.hotkey.bind(_hyper, "F12", nil, function() moveWindowOneSpace("right", false)
 hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)                           -- shift F13    -- Open Screenshots folder
 hs.hotkey.bind(hammer, "0", function() halfShuffle(true, 3) end)   -- hammer 4  -- Mini Shuffle (8 vertical sections)hs.hotkey.bind(hammer, "1", function() leftTopCorner() end)                                                      -- hammer 1     -- Move window to Left Top Corner
 hs.hotkey.bind(_hyper, "0", function() halfShuffle(false, 4) end)    -- _hyper 4  -- Mini Shuffle (6 horizontal sections)
--- hs.hotkey.bind(hammer, "1", function() leftTopCorner() end)                                                      -- hammer 1     -- Move window to Left Top Corner
--- hs.hotkey.bind(_hyper, "1", function() leftBottomCorner() end)                                                   -- _hyper 1     -- Move window to Bottom Left Corner
--- hs.hotkey.bind(hammer, "2", function() rightTopCorner() end)                                                     -- hammer 2     -- Move window to Right Top Corner
--- hs.hotkey.bind(_hyper, "2", function() rightBottomCorner() end)                                                  -- _hyper 2     -- Move window to Bottom Right Corner
 hs.hotkey.bind(hammer, "3", function() fullScreen() end)                                                         -- hammer 3     -- Full Screen
 hs.hotkey.bind(_hyper, "3", function() nearlyFullScreen() end)                                                   -- _hyper 3     -- Nearly Full Screen (80% centered)
 hs.hotkey.bind(hammer, "4", function() moveWindow95By72FromLeftSide() end)                                       -- hammer 4     -- Move window 95 by 72 from left side
 hs.hotkey.bind(_hyper, "4", function() miniShuffle() end)                                                        -- _hyper 4     -- Mini Shuffle (95 by 30 from right side)
 hs.hotkey.bind(hammer, "5", function() tempFunction() end)                                                       -- hammer 5     -- Temporary Function
 hs.hotkey.bind(_hyper, "5", function() tempFunction() end)                                                       -- _hyper 5     -- Temporary Function
-hs.hotkey.bind(hammer, "6", function() leftSideSmall() end)                                                      -- hammer 6     -- Smaller Left Side
-hs.hotkey.bind(_hyper, "6", function() leftSide() end)                                                           -- _hyper 6     -- Left Half
-hs.hotkey.bind(hammer, "7", function() rightSideSmall() end)                                                     -- hammer 7     -- Smaller Right Side
-hs.hotkey.bind(_hyper, "7", function() rightSide() end)                                                          -- _hyper 7     -- Right Half
 spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()                                                    -- hammer 8     -- Layouts Menu
 hs.hotkey.bind(_hyper, "8", function() tempFunction() end)                                                       -- _hyper 8     -- Temporary Function
 hs.hotkey.bind(hammer, "9", function() moveWindowMouseCenter() end)                                              -- hammer 9     -- Move window to mouse as center
 hs.hotkey.bind(_hyper, "9", function() openSelectedFile() end)                                              -- _hyper 9     -- Move window to cursor as top-left corner
-
 hs.hotkey.bind(hammer, "Space", function() showHammerList() end)                                                     -- hammer -     -- Flash list of hammer options
 hs.hotkey.bind(_hyper, "Space", function() showHyperList() end)                                                      -- _hyper -     -- Flash list of hyper options
 hs.hotkey.bind(hammer, "`", function() hs.application.launchOrFocus("cursor") end)                   -- hammer `     -- Vscode

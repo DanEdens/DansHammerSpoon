@@ -15,7 +15,17 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
 }
 
+# Set ADB environment variable explicitly
+export ADB="/opt/homebrew/bin/adb"
+log "Setting ADB path to: $ADB"
+
 log "Starting scrcpy for $DEVICE_TYPE device: $DEVICE_ID"
+
+# Change to homebrew bin directory where both scrcpy and adb live
+# cd /opt/homebrew/bin || {
+#     log "Failed to change to homebrew bin directory"
+#     exit 1
+# }
 
 case "$DEVICE_TYPE" in
     "samsung")

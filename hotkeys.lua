@@ -835,7 +835,6 @@ end
 
 function showHammerList()
     hs.alert.show("\
-    F8    -- Set Target Window  \
     P     -- PyCharm                                         B     -- Arc Browser  \
     D     -- AnythingLLM                                Y     -- Countdown Timer  \
     L     -- Logi Options+                                F     -- Scrcpy  \

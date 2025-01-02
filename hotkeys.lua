@@ -769,63 +769,70 @@ end
 function showHyperList()
     hs.alert.show("\
     W     -- Aclock Show  \
-    F2    -- Open console.app  \
+    P     -- Open Cursor  \
     B     -- Chrome  \
-    l     -- System settings  \
-    m     -- zshenv  \
-    Tab   -- launchpad  \
-    e     -- edit zshenv  \
-    z     -- edit zshrc  \
-    F9    -- move window one space left  \
-    F10   -- move window one space right  \
-    0     -- 1/4th screen vertical  \
-    1     -- Move window Bottom-Left corner  \
-    2     -- Move window Bottom-Right corner  \
-    3     -- 80% full screen centered  \
-    4     -- Move window to 95 by 30 from right side  \
-    6     -- left half  \
-    7     -- right half  \
-    9     -- move focused window to cursor as top left corner  \
-    right -- move to next screen right  \
-    left  -- move to previous screen right  \
-    -     -- flash list of hyper options  \
+    D     -- MongoDB Compass  \
+    F3    -- Shuffle Layouts  \
+    F6    -- Save All Window Positions  \
+    F7    -- Restore All Window Positions  \
+    F11   -- Move Window One Space Left  \
+    F12   -- Move Window One Space Right  \
+    0     -- Vertical Shuffle (4 sections)  \
+    1     -- Move Window Bottom-Left Corner  \
+    2     -- Move Window Bottom-Right Corner  \
+    3     -- 80% Full Screen Centered  \
+    4     -- Mini Shuffle  \
+    6     -- Full Left Half  \
+    7     -- Full Right Half  \
+    9     -- Open Selected File  \
+    Left  -- Move to Previous Screen  \
+    Right -- Move to Next Screen  \
+    -     -- Show This List  \
+    `     -- Visual Studio Code  \
+    Tab   -- Launchpad  \
     ")
-end                                                                                   -- _hyper -     -- flash list of hyper options
+end
+
 function showHammerList()
     hs.alert.show("\
-    8      --  Layouts Menu \
-    F4     --  enable keylogging \
-    F5     --  Reload HS \
-    F1     --  Toggle HS Console \
-    F2     --  Open ~/lab \
-    F2     --  Finder \
-    `      --  Vscode \
-    P      --  Pycharm \
-    B      --  Arc \
-    l      --  Logi Options+ \
-    f      --  Fleet \
-    m      --  Play/pause \
-    s      --  Slack \
-    g      --  Github desktop \
-    Tab    --  mission control \
-    e      --  edit hotkeys.lua \
-    z      --  edit bash_aliases \
-    F9     --  move window one space left \
-    F10    --  move window one space right \
-    f11    --  move to next space \
-    f12    --  move to previous space \
-    0      --  shuffle \
-    1      --  Move window Left corner \
-    2      --  Move window Right corner \
-    3      --  full screen \
-    4      --  Move window 95 by 72 from left side \
-    6      --  smaller left side \
-    7      --  smaller right side \
-    9      --  move focused window to mouse as center \
-    right  --  move to next screen left \
-    left   --  move to previous screen left \
-    -      --  flash list of hammer options")
-end                                                                                  -- hammer -     -- flash list of hammer options
+    P     -- PyCharm  \
+    B     -- Arc Browser  \
+    D     -- AnythingLLM  \
+    Y     -- Countdown Timer  \
+    L     -- Logi Options+  \
+    F     -- Scrcpy  \
+    M     -- Media Play/Pause  \
+    S     -- Slack  \
+    G     -- GitHub Desktop  \
+    E     -- Edit File Menu  \
+    T     -- Barrier  \
+    F1    -- Toggle HS Console  \
+    F2    -- Post S22  \
+    F3    -- Toggle USB Logging  \
+    F4    -- Toggle Key Logging  \
+    F5    -- Reload HS  \
+    F6    -- Save Window Position  \
+    F7    -- Restore Window Position  \
+    F8    -- Set Target Window  \
+    0     -- Horizontal Shuffle (3 sections)  \
+    1     -- Move Window Top-Left Corner  \
+    2     -- Move Window Top-Right Corner  \
+    3     -- Full Screen  \
+    4     -- Move Window 95/72 Left Side  \
+    6     -- Small Left Side  \
+    7     -- Small Right Side  \
+    8     -- Layouts Menu  \
+    9     -- Move Window to Mouse Center  \
+    Left  -- Move Window Left  \
+    Right -- Move Window Right  \
+    Up    -- Move Window Up  \
+    Down  -- Move Window Down  \
+    -     -- Show This List  \
+    `     -- Cursor  \
+    Tab   -- Mission Control  \
+    ")
+end
+
 function showavailableHotkey()
     -- scrape and list setup hotkeys
     if not hotkeytext then
@@ -887,7 +894,8 @@ function showavailableHotkey()
         hotkeybg:delete()
         hotkeybg = nil
     end
-end                                                                             -- hammer -     -- flash list of hammer options
+end
+
 function openMostRecentImage()
     local desktopPath = hs.fs.pathToAbsolute(os.getenv("HOME") .. "/Desktop")
     local filePath = hs.execute("ls -t " .. desktopPath .. "/*.png | head -n 1")
@@ -897,7 +905,7 @@ function openMostRecentImage()
     else
         hs.alert.show("No recent image found on the desktop")
     end
-end                                                                             -- hammer i     -- Open most recent image
+end
 
 -- function to set target to a specific window title 'RegressionTestKit'
 function setTargetWindow()

@@ -34,14 +34,10 @@ local fileChooser = nil
 local projects_list = {
     { name = "lab", path = "~/lab" },
     { name = "regressiontestkit", path = "/Users/d.edens/lab/regressiontestkit"},
-    { name = "init.lua", path = "~/.hammerspoon/init.lua" },
-    -- { name = "init.lua", path = "~/.hammerspoon/init.lua" },
-    -- { name = "init.lua", path = "~/.hammerspoon/init.lua" },
-    -- { name = "init.lua", path = "~/.hammerspoon/init.lua" },
-
+    { name = "OculusTestKit", path = "/Users/d.edens/lab/regressiontestkit/OculusTestKit" },
+    { name = "hs", path = "~/.hammerspoon" },
 
 }
-
 
     -- { name = "pycharm settings", path = "/Users/d.edens/Library/Application Support/JetBrains/PyCharmCE2024.2/options/"},
 

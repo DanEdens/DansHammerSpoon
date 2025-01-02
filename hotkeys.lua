@@ -121,16 +121,6 @@ end
 local gap = 5
 local cols = 4
 local counter = 0
---    local f = win:frame()
---    local g = win:frame()
---    f.x = max.x + (max.w * 0.5)
---    f.y = max.y + (max.h * 0.1)
---    f.w = max.w * 0.35
---    f.h = max.h * 0.8
---    g.x = max.x + (max.w * 0.5)
---    g.y = max.y + (max.h * 0.1)
---    g.w = max.w * 0.45
---    g.h = max.h * 0.8
 
 
 local logKeyStroke = nil
@@ -145,13 +135,10 @@ function usbDeviceCallback(data)
     end
 
     if data["eventType"] == "added" then
-
         if data["vendorName"] == "SAMSUNG" and data["productName"] == "SAMSUNG_Android" then
             if data["productID"] == 26720 then
                 hs.alert.show("Samsung Android plugged in (Device 988a1b30573456354d)")
-
                 local scrcpyPath = "/opt/homebrew/bin/scrcpy -s 988a1b30573456354d -S --stay-awake"
-
                 local success, output, errorOutput = hs.execute(scrcpyPath, false)
                 if success then
                     print("scrcpy executed successfully")
@@ -161,7 +148,6 @@ function usbDeviceCallback(data)
             elseif data["productID"] == 26732 then
                 hs.alert.show("Samsung Android plugged in (Device R5CT602ZVTJ)")
                 local scrcpyPath = "/opt/homebrew/bin/scrcpy --stay-awake -S -s R5CT602ZVTJ &"
-
                 local success, output, errorOutput = hs.execute(scrcpyPath, false)
                 if success then
                     print("scrcpy executed successfully")
@@ -169,6 +155,18 @@ function usbDeviceCallback(data)
                     print("Error executing scrcpy:", output, errorOutput)
                 end
             end
+        elseif data["vendorName"] == "Google" then
+            hs.alert.show("Google " .. data["productName"] .. " plugged in")
+            -- Use nohup to prevent termination and & to background, redirect output to /dev/null
+            local scrcpyPath = "nohup /opt/homebrew/bin/scrcpy --stay-awake -S > /dev/null 2>&1 &"
+            local success, output, errorOutput = hs.execute(scrcpyPath, false)
+            if success then
+                print("scrcpy launched in background successfully")
+            else
+                print("Error launching scrcpy:", output, errorOutput)
+            end
+        else
+            hs.alert.show(data["vendorName"] .. " device plugged in")
         end
     end
 
@@ -179,8 +177,6 @@ function usbDeviceCallback(data)
             hs.alert.show("USB Keyboard unplugged")
         end
     end
-
-
 end
 
 -- Create a USB watcher and set the callback

@@ -1,3 +1,22 @@
+#!/bin/zsh
+# ~/.hammerspoon/scripts/launch_scrcpy.sh
+
+DEVICE_TYPE=$1
+DEVICE_ID=$2
+
+# Create logs directory if it doesn't exist
+LOGS_DIR="$HOME/.hammerspoon/logs"
+mkdir -p "$LOGS_DIR"
+
+LOG_FILE="$LOGS_DIR/scrcpy.log"
+
+# Function to log messages with timestamp
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
+}
+
+log "Starting scrcpy for $DEVICE_TYPE device: $DEVICE_ID"
+
 case "$DEVICE_TYPE" in
     "samsung")
         if [ ! -z "$DEVICE_ID" ]; then
@@ -13,3 +32,7 @@ case "$DEVICE_TYPE" in
         /opt/homebrew/bin/scrcpy --stay-awake -S >> "$LOG_FILE" 2>&1 &
         ;;
 esac
+
+# Store the PID of the background process
+echo $! > "$LOGS_DIR/scrcpy.pid"
+log "Started scrcpy with PID: $!"

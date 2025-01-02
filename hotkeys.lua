@@ -202,6 +202,7 @@ local function toggleUSBLogging()
     end
     print("USB is now " .. (usbisEnabled and "enabled" or "disabled"))
 end
+toggleUSBLogging()
 
 function tempFunction()
     hs.alert.show("Hotkey not set")

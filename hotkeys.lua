@@ -476,220 +476,111 @@ function fullShuffle()
     counter = (counter + 1) % (rows * cols)
 end                                                                                     -- hammer 0     -- Full shuffle
 
-function leftTopCorner()
+function moveToCorner(position)
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()
     local max = screen:frame()
-    f.x = max.x
-    f.y = max.y
+
+    -- Define positions using a table
+    local positions = {
+        topLeft = { x = 0, y = 0 },
+        topRight = { x = 0.5, y = 0 },
+        bottomLeft = { x = 0, y = 0.5 },
+        bottomRight = { x = 0.5, y = 0.5 }
+    }
+
+    local pos = positions[position]
+    f.x = max.x + (max.w * pos.x)
+    f.y = max.y + (max.h * pos.y)
     f.w = max.w / 2
     f.h = max.h / 2
-    win:setFrame(f)
-end                                                                                   -- hammer 1     -- Move window Top Left corner
 
-function leftBottomCorner()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x
-    f.y = max.y + (max.h / 2)
-    f.w = max.w / 2
-    f.h = max.h / 2
     win:setFrame(f)
-end                                                                                -- hammer 1     -- Move window Bottom Left corner
+end
 
-function rightTopCorner()
+function moveSide(side, isSmall)
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()
     local max = screen:frame()
-    f.x = max.x + (max.w / 2)
-    f.y = max.y
-    f.w = max.w / 2
-    f.h = max.h / 2
-    win:setFrame(f)
-end                                                                                  -- hammer 2     -- Move window Top Right corner
 
-function rightBottomCorner()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x + (max.w / 2)
-    f.y = max.y + (max.h / 2)
-    f.w = max.w / 2
-    f.h = max.h / 2
-    win:setFrame(f)
-end                                                                               -- hammer 2     -- Move window Bottom Right corner
+    local width = isSmall and (max.w * 0.4) or (max.w / 2)
+    local height = isSmall and (max.h * 0.8) or max.h
+    local yOffset = isSmall and (max.h * 0.1) or 0
+    local xOffset = (side == "right") and (max.w - width) or 0
 
-function fullScreen()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x
-    f.y = max.y
-    f.w = max.w
-    f.h = max.h
-    win:setFrame(f)
-end                                                                                      -- hammer 3     -- full screen
+    f.x = max.x + xOffset
+    f.y = max.y + yOffset
+    f.w = width
+    f.h = height
 
-function nearlyFullScreen()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x + (max.w * 0.1)
-    f.y = max.y + (max.h * 0.1)
-    f.w = max.w * 0.8
-    f.h = max.h * 0.8
     win:setFrame(f)
-end                                                                                -- _hyper 3     -- 80% full screen centered
+end
 
-function moveWindow95By72FromLeftSide()
+function moveToScreen(direction, position)
     local win = hs.window.focusedWindow()
-    local f = win:frame()
     local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x + 30
-    f.y = max.y + (max.h * 0.01)
-    f.w = max.w * 0.72 - 30
-    f.h = max.h * 0.98
-    win:setFrame(f)
-end                                                                    -- hammer 4     -- Move window 95 by 72 left side
-
-function moveWindow95By30FromRightSide()
-    local win = hs.window.focusedWindow()
+    local nextScreen = (direction == "next") and screen:next() or screen:previous()
     local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x + (max.w * 0.73)
-    f.y = max.y + (max.h * 0.01)
-    f.w = max.w * 0.27
-    f.h = max.h * 0.98
-    win:setFrame(f)
-end                                                                   -- hammer 4     -- Move window 95 by 72 left side
-
-function leftSideSmall()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x
-    f.y = max.y + (max.h * 0.1)
-    f.w = max.w * 0.4
-    f.h = max.h * 0.8
-    win:setFrame(f)
-end                                                                                   -- hammer 6     -- smaller left side
-
-function leftSide()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x
-    f.y = max.y
-    f.w = max.w / 2
-    f.h = max.h
-    win:setFrame(f)
-end                                                                                        -- _hyper 6     -- left half
-
-function rightSideSmall()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x + (max.w * 0.6)
-    f.y = max.y + (max.h * 0.1)
-    f.w = max.w * 0.4
-    f.h = max.h * 0.8
-    win:setFrame(f)
-end                                                                                  -- hammer 7     -- smaller right side
-
-function rightSide()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x + (max.w / 2)
-    f.y = max.y
-    f.w = max.w / 2
-    f.h = max.h
-    win:setFrame(f)
-end                                                                                       -- _hyper 7     -- right half
-function moveWindowMouseCenter()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local mouse = hs.mouse.absolutePosition()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = mouse.x - (f.w / 2)
-    f.y = mouse.y - (f.h / 2)
-    win:setFrame(f)
-end                                                                           -- hammer 9     -- move focused window to mouse as center
-function moveWindowMouseCorner()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local mouse = hs.mouse.absolutePosition()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = mouse.x
-    f.y = mouse.y
-    win:setFrame(f)
-end                                                                           -- _hyper 9     -- move focused window to cursor as top left corner
-function moveToNextScreenLeft()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local nextScreen = screen:next()
     local max = nextScreen:frame()
-    f.x = max.x
-    f.y = max.y
+
+    if position == "left" then
+        f.x = max.x
+        f.y = max.y
+    else
+        f.x = max.x + (max.w / 2)
+        f.y = max.y
+        f.w = max.w / 2
+        f.h = max.h / 2
+    end
+
     win:setFrame(f)
     win:moveToScreen(nextScreen)
-end                                                                            -- hammer right -- move to next screen left
-function moveToNextScreenRight()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local nextScreen = screen:next()
-    local max = nextScreen:frame()
-    f.x = max.x + (max.w / 2)
-    f.y = max.y
-    f.w = max.w / 2
-    f.h = max.h / 2
-    win:setFrame(f)
-    win:setFrame(f)
-    win:moveToScreen(nextScreen)
-end                                                                           -- _hyper right -- move to next screen right
-function moveToPreviousScreenLeft()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local nextScreen = screen:previous()
-    local max = nextScreen:frame()
-    f.x = max.x
-    f.y = max.y
-    win:setFrame(f)
-    win:moveToScreen(nextScreen)
-end                                                                        -- hammer left  -- move to previous screen left
-function moveToPreviousScreenRight()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local nextScreen = screen:previous()
-    local max = nextScreen:frame()
-    f.x = max.x + (max.w / 2)
-    f.y = max.y
-    f.w = max.w / 2
-    f.h = max.h / 2
-    win:setFrame(f)
-    win:setFrame(f)
-    win:moveToScreen(nextScreen)
-end                                                                       -- _hyper left  -- move to previous screen right
+end
 
+function moveWindow(direction)
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    local moveStep = 150
+
+    local movements = {
+        left = { x = -moveStep, y = 0 },
+        right = { x = moveStep, y = 0 },
+        up = { x = 0, y = -moveStep },
+        down = { x = 0, y = moveStep }
+    }
+
+    local move = movements[direction]
+    f.x = f.x + move.x
+    f.y = f.y + move.y
+
+    win:setFrame(f)
+end
+
+-- Corner bindings
+hs.hotkey.bind(hammer, "1", function() moveToCorner("topLeft") end)
+hs.hotkey.bind(_hyper, "1", function() moveToCorner("bottomLeft") end)
+hs.hotkey.bind(hammer, "2", function() moveToCorner("topRight") end)
+hs.hotkey.bind(_hyper, "2", function() moveToCorner("bottomRight") end)
+
+-- Side bindings
+hs.hotkey.bind(hammer, "6", function() moveSide("left", true) end)
+hs.hotkey.bind(_hyper, "6", function() moveSide("left", false) end)
+hs.hotkey.bind(hammer, "7", function() moveSide("right", true) end)
+hs.hotkey.bind(_hyper, "7", function() moveSide("right", false) end)
+
+-- Screen movement bindings
+hs.hotkey.bind(hammer, "right", function() moveToScreen("next", "left") end)
+hs.hotkey.bind(_hyper, "right", function() moveToScreen("next", "right") end)
+hs.hotkey.bind(hammer, "left", function() moveToScreen("previous", "left") end)
+hs.hotkey.bind(_hyper, "left", function() moveToScreen("previous", "right") end)
+
+-- Window movement bindings
+hs.hotkey.bind(hammer, "left", function() moveWindow("left") end)
+hs.hotkey.bind(hammer, "right", function() moveWindow("right") end)
+hs.hotkey.bind(hammer, "up", function() moveWindow("up") end)
+hs.hotkey.bind(hammer, "down", function() moveWindow("down") end)
 
 local lastWindowPosition = {}
 

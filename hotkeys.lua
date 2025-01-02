@@ -1,3 +1,6 @@
+local log = hs.logger.new('WindowManager','debug')
+log.i('Initializing window management system')
+
 local window = require "hs.window"
 local spaces = require "hs.spaces"
 --local countdown = require "hs.countdown"
@@ -6,8 +9,7 @@ hammer = { "cmd", "ctrl", "alt" }
 _hyper = { "cmd", "shift", "ctrl", "alt" }
 _meta = { "cmd", "shift", "alt" }
 
-
---Set default editor
+-- Set default editor
 local editor = "cursor"
 -- local editor = "nvim"
 --local editor = "PyCharm Community Edition"
@@ -40,6 +42,8 @@ local projects_list = {
 }
 
     -- { name = "pycharm settings", path = "/Users/d.edens/Library/Application Support/JetBrains/PyCharmCE2024.2/options/"},
+
+local scripts_dir = os.getenv("HOME") .. "/.hammerspoon/scripts"
 
 function populateJiraTickets()
     -- retrieve currently active tickets
@@ -129,52 +133,48 @@ local usbisEnabled = false
 local usbWatcher = nil
 
 function usbDeviceCallback(data)
-    -- Print all contents of the table 'data'
+    log.i('USB event detected:', hs.inspect(data))
+
+    -- Guard against nil data
+    if not data then
+        log.e('Received nil data in USB callback')
+        return
+    end
+
     for key, value in pairs(data) do
-        print(key .. ": " .. tostring(value))
+        log.d(key .. ": " .. tostring(value))
     end
 
     if data["eventType"] == "added" then
         if data["vendorName"] == "SAMSUNG" and data["productName"] == "SAMSUNG_Android" then
-            if data["productID"] == 26720 then
-                hs.alert.show("Samsung Android plugged in (Device 988a1b30573456354d)")
-                local scrcpyPath = "/opt/homebrew/bin/scrcpy -s 988a1b30573456354d -S --stay-awake"
-                local success, output, errorOutput = hs.execute(scrcpyPath, false)
-                if success then
-                    print("scrcpy executed successfully")
-                else
-                    print("Error executing scrcpy:", output, errorOutput)
-                end
-            elseif data["productID"] == 26732 then
-                hs.alert.show("Samsung Android plugged in (Device R5CT602ZVTJ)")
-                local scrcpyPath = "/opt/homebrew/bin/scrcpy --stay-awake -S -s R5CT602ZVTJ &"
-                local success, output, errorOutput = hs.execute(scrcpyPath, false)
-                if success then
-                    print("scrcpy executed successfully")
-                else
-                    print("Error executing scrcpy:", output, errorOutput)
-                end
-            end
-        elseif data["vendorName"] == "Google" then
-            hs.alert.show("Google " .. data["productName"] .. " plugged in")
-            -- Use nohup to prevent termination and & to background, redirect output to /dev/null
-            local scrcpyPath = "nohup /opt/homebrew/bin/scrcpy --stay-awake -S > /dev/null 2>&1 &"
-            local success, output, errorOutput = hs.execute(scrcpyPath, false)
-            if success then
-                print("scrcpy launched in background successfully")
-            else
-                print("Error launching scrcpy:", output, errorOutput)
-            end
-        else
-            hs.alert.show(data["vendorName"] .. " device plugged in")
-        end
-    end
+            log.i('Samsung device connected:', data["productID"])
+            local device_id = nil
 
-    if data["productName"] == "USB Keyboard" then
-        if data["eventType"] == "added" then
-            hs.alert.show("USB Keyboard plugged in")
-        elseif data["eventType"] == "removed" then
-            hs.alert.show("USB Keyboard unplugged")
+            if data["productID"] == 26720 then
+                device_id = "988a1b30573456354d"
+                hs.alert.show("Samsung Android plugged in (Device 988a1b30573456354d)")
+            elseif data["productID"] == 26732 then
+                device_id = "R5CT602ZVTJ"
+                hs.alert.show("Samsung Android plugged in (Device R5CT602ZVTJ)")
+            end
+
+            if device_id then
+                local cmd = string.format("%s/launch_scrcpy.sh samsung %s", scripts_dir, device_id)
+                log.d('Executing script:', cmd)
+                hs.task.new("/bin/zsh", nil, {cmd}):start()
+            else
+                log.w('Unknown Samsung device ID:', data["productID"])
+            end
+
+        elseif data["vendorName"] == "Google" then
+            log.i('Google device connected:', data["productName"])
+            local cmd = string.format("%s/launch_scrcpy.sh google", scripts_dir)
+            log.d('Executing script:', cmd)
+            hs.task.new("/bin/zsh", nil, {cmd}):start()
+            hs.alert.show("Google " .. data["productName"] .. " plugged in")
+        else
+            log.i('Other device connected:', data["vendorName"])
+            hs.alert.show(data["vendorName"] .. " device plugged in")
         end
     end
 end
@@ -396,33 +396,42 @@ end                                                                             
 
 
 function halfShuffle(isHorizontal, numSections)
-    -- Set defaults if not provided
-    isHorizontal = isHorizontal or false  -- default to vertical
-    numSections = numSections or 6        -- default to 6 sections
+    log.i('Half shuffle called:', {horizontal = isHorizontal, sections = numSections})
+
+    isHorizontal = isHorizontal or false
+    numSections = numSections or 6
 
     local win = hs.window.focusedWindow()
+    if not win then
+        log.w('No focused window found')
+        return
+    end
+
     local f = win:frame()
     local screen = win:screen()
     local max = screen:frame()
 
+    log.d('Current window frame:', hs.inspect(f))
+    log.d('Screen frame:', hs.inspect(max))
+
     if isHorizontal then
-        -- Horizontal sections
+        log.d('Calculating horizontal sections')
         local sectionWidth = max.w / numSections
-        local sectionHeight = max.h * 0.98  -- Using 98% of screen height
+        local sectionHeight = max.h * 0.98
 
         local x = max.x + (counter * sectionWidth)
-        local y = max.y + (max.h * 0.01)  -- 1% gap from top
+        local y = max.y + (max.h * 0.01)
 
         f.x = x
         f.y = y
         f.w = sectionWidth
         f.h = sectionHeight
     else
-        -- Vertical sections
-        local sectionWidth = max.w * 0.33  -- Using 98% of screen width
+        log.d('Calculating vertical sections')
+        local sectionWidth = max.w * 0.33
         local sectionHeight = max.h / numSections
 
-        local x = max.x + (max.w * 0.01)  -- 1% gap from left
+        local x = max.x + (max.w * 0.01)
         local y = max.y + (counter * sectionHeight)
 
         f.x = x
@@ -431,10 +440,11 @@ function halfShuffle(isHorizontal, numSections)
         f.h = sectionHeight
     end
 
+    log.d('New window frame:', hs.inspect(f))
     win:setFrame(f)
 
-    -- Reset counter based on number of sections
     counter = (counter + 1) % numSections
+    log.d('Counter updated to:', counter)
 end
 
 function half2Shuffle()
@@ -469,12 +479,20 @@ function fullShuffle()
 end                                                                                     -- hammer 0     -- Full shuffle
 
 function moveToCorner(position)
+    log.i('Moving window to corner:', position)
     local win = hs.window.focusedWindow()
+    if not win then
+        log.w('No focused window found')
+        return
+    end
+
     local f = win:frame()
     local screen = win:screen()
     local max = screen:frame()
 
-    -- Define positions using a table
+    log.d('Current window frame:', hs.inspect(f))
+    log.d('Screen frame:', hs.inspect(max))
+
     local positions = {
         topLeft = { x = 0, y = 0 },
         topRight = { x = 0.5, y = 0 },
@@ -483,12 +501,19 @@ function moveToCorner(position)
     }
 
     local pos = positions[position]
+    if not pos then
+        log.e('Invalid position specified:', position)
+        return
+    end
+
     f.x = max.x + (max.w * pos.x)
     f.y = max.y + (max.h * pos.y)
     f.w = max.w / 2
     f.h = max.h / 2
 
+    log.d('New window frame:', hs.inspect(f))
     win:setFrame(f)
+    log.i('Window moved successfully to', position)
 end
 
 function moveSide(side, isSmall)
@@ -720,19 +745,27 @@ end                                                                       -- _hy
 local lastWindowPosition = {}
 
 function saveWindowPosition()
-local win = hs.window.focusedWindow()
-if win then
-lastWindowPosition[win:id()] = win:frame()
-hs.alert.show("Window position saved")
-end
+    log.i('Saving window position')
+    local win = hs.window.focusedWindow()
+    if win then
+        lastWindowPosition[win:id()] = win:frame()
+        log.d('Saved position for window:', win:id(), hs.inspect(win:frame()))
+        hs.alert.show("Window position saved")
+    else
+        log.w('No focused window to save position')
+    end
 end
 
 function restoreWindowPosition()
-local win = hs.window.focusedWindow()
-if win and lastWindowPosition[win:id()] then
-win:setFrame(lastWindowPosition[win:id()])
-hs.alert.show("Window position restored")
-end
+    log.i('Restoring window position')
+    local win = hs.window.focusedWindow()
+    if win and lastWindowPosition[win:id()] then
+        log.d('Restoring position for window:', win:id(), hs.inspect(lastWindowPosition[win:id()]))
+        win:setFrame(lastWindowPosition[win:id()])
+        hs.alert.show("Window position restored")
+    else
+        log.w('No saved position found for window:', win and win:id() or 'no window focused')
+    end
 end
 
 local lastWindowPositions = {}

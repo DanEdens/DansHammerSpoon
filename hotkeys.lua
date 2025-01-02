@@ -360,10 +360,10 @@ function miniShuffle(isHorizontal, numSections)
         -- Horizontal sections
         local sectionWidth = max.w / numSections
         local sectionHeight = max.h * 0.98  -- Using 98% of screen height
-        
+
         local x = max.x + (counter * sectionWidth)
         local y = max.y + (max.h * 0.01)  -- 1% gap from top
-        
+
         f.x = x
         f.y = y
         f.w = sectionWidth
@@ -372,18 +372,18 @@ function miniShuffle(isHorizontal, numSections)
         -- Vertical sections
         local sectionWidth = max.w * 0.98  -- Using 98% of screen width
         local sectionHeight = max.h / numSections
-        
+
         local x = max.x + (max.w * 0.01)  -- 1% gap from left
         local y = max.y + (counter * sectionHeight)
-        
+
         f.x = x
         f.y = y
         f.w = sectionWidth
         f.h = sectionHeight
     end
-    
+
     win:setFrame(f)
-    
+
     -- Reset counter based on number of sections
     counter = (counter + 1) % numSections
 end

@@ -835,40 +835,24 @@ end
 
 function showHammerList()
     hs.alert.show("\
-    P     -- PyCharm  \
-    B     -- Arc Browser  \
-    D     -- AnythingLLM  \
-    Y     -- Countdown Timer  \
-    L     -- Logi Options+  \
-    F     -- Scrcpy  \
-    M     -- Media Play/Pause  \
-    S     -- Slack  \
-    G     -- GitHub Desktop  \
-    E     -- Edit File Menu  \
-    T     -- Barrier  \
-    F1    -- Toggle HS Console  \
-    F2    -- Post S22  \
-    F3    -- Toggle USB Logging  \
-    F4    -- Toggle Key Logging  \
-    F5    -- Reload HS  \
-    F6    -- Save Window Position  \
-    F7    -- Restore Window Position  \
     F8    -- Set Target Window  \
-    0     -- Horizontal Shuffle (3 sections)  \
-    1     -- Move Window Top-Left Corner  \
-    2     -- Move Window Top-Right Corner  \
-    3     -- Full Screen  \
-    4     -- Move Window 95/72 Left Side  \
-    6     -- Small Left Side  \
-    7     -- Small Right Side  \
-    8     -- Layouts Menu  \
-    9     -- Move Window to Mouse Center  \
-    Left  -- Move Window Left  \
-    Right -- Move Window Right  \
-    Up    -- Move Window Up  \
-    Down  -- Move Window Down  \
-    -     -- Show This List  \
-    `     -- Cursor  \
+    P     -- PyCharm                                         B     -- Arc Browser  \
+    D     -- AnythingLLM                                Y     -- Countdown Timer  \
+    L     -- Logi Options+                                F     -- Scrcpy  \
+    M     -- Media Play/Pause                        S     -- Slack  \
+    G     -- GitHub Desktop                           E     -- Edit File Menu  \
+    T     -- Barrier                                              F1    -- Toggle HS Console  \
+    F2    -- Post S22                                        F3    -- Toggle USB Logging  \
+    F4    -- Toggle Key Logging                   F5    -- Reload HS  \
+    F6    -- Save Window Position              F7    -- Restore Window Position  \
+    F8    -- Set Target Window                    0     -- Horizontal Shuffle  \
+    1     -- Move Top-Left Corner                2     -- Move Top-Right Corner  \
+    3     -- Full Screen                                     4     -- Move Window 95/72 Left Side  \
+    6     -- Small Left Side                             7     -- Small Right Side  \
+    8     -- Layouts Menu                              9     -- Move Window to Mouse Center  \
+    Left  -- Move Window Left                   Right -- Move Window Right  \
+    Up    -- Move Window Up                     Down  -- Move Window Down  \
+    -     -- Show This List                               `     -- Cursor  \
     Tab   -- Mission Control  \
     ")
 end
@@ -1230,16 +1214,9 @@ spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()                   
 hs.hotkey.bind(_hyper, "8", function() tempFunction() end)                                                       -- _hyper 8     -- Temporary Function
 hs.hotkey.bind(hammer, "9", function() moveWindowMouseCenter() end)                                              -- hammer 9     -- Move window to mouse as center
 hs.hotkey.bind(_hyper, "9", function() openSelectedFile() end)                                              -- _hyper 9     -- Move window to cursor as top-left corner
--- hs.hotkey.bind(hammer, "left", moveWindowLeft)  -- Move window left
--- hs.hotkey.bind(_hyper, "left", function() moveToNextScreenRight() end)                                           -- _hyper Left  -- Move to next screen right
--- hs.hotkey.bind(hammer, "right", moveWindowRight)  -- Move window right
--- hs.hotkey.bind(_hyper, "right", function() moveToPreviousScreenRight() end)                                      -- _hyper Right -- Move to previous screen right
--- hs.hotkey.bind(hammer, "up", moveWindowUp)                                                                       -- hammer Up    -- Move window up
--- hs.hotkey.bind(_hyper, "up", function() tempFunction() end)                                                      -- _hyper Up    -- Move to next screen up
--- hs.hotkey.bind(hammer, "down", moveWindowDown)                                                                   -- hammer Down  -- Move window down
--- hs.hotkey.bind(_hyper, "down", function() tempFunction() end)                                                    -- _hyper Down  -- Move to next screen down
-hs.hotkey.bind(hammer, "-", function() showHammerList() end)                                                     -- hammer -     -- Flash list of hammer options
-hs.hotkey.bind(_hyper, "-", function() showHyperList() end)                                                      -- _hyper -     -- Flash list of hyper options
+
+hs.hotkey.bind(hammer, "Space", function() showHammerList() end)                                                     -- hammer -     -- Flash list of hammer options
+hs.hotkey.bind(_hyper, "Space", function() showHyperList() end)                                                      -- _hyper -     -- Flash list of hyper options
 hs.hotkey.bind(hammer, "`", function() hs.application.launchOrFocus("cursor") end)                   -- hammer `     -- Vscode
 hs.hotkey.bind(_hyper, "`", function() hs.application.launchOrFocus("Visual Studio Code") end)                   -- hammer `     -- Vscode
 hs.hotkey.bind(hammer, "Tab", function() hs.application.launchOrFocus("Mission Control.app") end)                -- hammer Tab   -- Mission Control

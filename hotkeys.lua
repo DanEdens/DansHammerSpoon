@@ -159,18 +159,28 @@ function usbDeviceCallback(data)
             end
 
             if device_id then
-                local cmd = string.format("%s/launch_scrcpy.sh samsung %s", scripts_dir, device_id)
-                log.d('Executing script:', cmd)
-                hs.task.new("/bin/zsh", nil, {cmd}):start()
+                local cmd = string.format("%s/launch_scrcpy.sh samsung &> /dev/null &", scripts_dir)
+                log.d('Executing command:', cmd)
+                local success, output, error = os.execute(cmd)
+                if success then
+                    log.i('Successfully launched scrcpy script')
+                else
+                    log.e('Error launching scrcpy script:', error)
+                end
             else
                 log.w('Unknown Samsung device ID:', data["productID"])
             end
 
         elseif data["vendorName"] == "Google" then
             log.i('Google device connected:', data["productName"])
-            local cmd = string.format("%s/launch_scrcpy.sh google", scripts_dir)
-            log.d('Executing script:', cmd)
-            hs.task.new("/bin/zsh", nil, {cmd}):start()
+            local cmd = string.format("nohup %s/launch_scrcpy.sh google &> /dev/null &", scripts_dir)
+            log.d('Executing command:', cmd)
+            local success, output, error = os.execute(cmd)
+            if success then
+                log.i('Successfully launched scrcpy script')
+            else
+                log.e('Error launching scrcpy script:', error)
+            end
             hs.alert.show("Google " .. data["productName"] .. " plugged in")
         else
             log.i('Other device connected:', data["vendorName"])

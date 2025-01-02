@@ -403,8 +403,50 @@ function miniShuffle()
 end                                                                                     -- hammer 0     -- shuffle
 
 
+function halfShuffle(isHorizontal, numSections)
+    -- Set defaults if not provided
+    isHorizontal = isHorizontal or false  -- default to vertical
+    numSections = numSections or 6        -- default to 6 sections
 
-function halfShuffle()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    local screen = win:screen()
+    local max = screen:frame()
+
+    if isHorizontal then
+        -- Horizontal sections
+        local sectionWidth = max.w / numSections
+        local sectionHeight = max.h * 0.98  -- Using 98% of screen height
+
+        local x = max.x + (counter * sectionWidth)
+        local y = max.y + (max.h * 0.01)  -- 1% gap from top
+
+        f.x = x
+        f.y = y
+        f.w = sectionWidth
+        f.h = sectionHeight
+    else
+        -- Vertical sections
+        local sectionWidth = max.w * 0.33  -- Using 98% of screen width
+        local sectionHeight = max.h / numSections
+
+        local x = max.x + (max.w * 0.01)  -- 1% gap from left
+        local y = max.y + (counter * sectionHeight)
+
+        f.x = x
+        f.y = y
+        f.w = sectionWidth
+        f.h = sectionHeight
+    end
+
+    win:setFrame(f)
+
+    -- Reset counter based on number of sections
+    counter = (counter + 1) % numSections
+end
+
+function half2Shuffle()
+
     local win = hs.window.focusedWindow()
     local f = win:frame()
     local screen = win:screen()
@@ -1087,9 +1129,8 @@ hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)                     
 hs.hotkey.bind(_hyper, "F11", nil, function() moveWindowOneSpace("left", false) end)                             -- _hyper F11   -- Move window one space left
 hs.hotkey.bind(_hyper, "F12", nil, function() moveWindowOneSpace("right", false) end)                            -- _hyper F12   -- Move window one space right
 hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)                           -- shift F13    -- Open Screenshots folder
-hs.hotkey.bind(hammer, "0", function() halfShuffle() end)                                                        -- hammer 0     -- Half Shuffle
-hs.hotkey.bind(_hyper, "0", function() fullShuffle() end)                                                        -- _hyper 0     -- Full Shuffle (1/4th screen vertical)
-hs.hotkey.bind(hammer, "1", function() leftTopCorner() end)                                                      -- hammer 1     -- Move window to Left Top Corner
+hs.hotkey.bind(hammer, "0", function() halfShuffle(true, 3) end)   -- hammer 4  -- Mini Shuffle (8 vertical sections)hs.hotkey.bind(hammer, "1", function() leftTopCorner() end)                                                      -- hammer 1     -- Move window to Left Top Corner
+hs.hotkey.bind(_hyper, "0", function() halfShuffle(false, 4) end)    -- _hyper 4  -- Mini Shuffle (6 horizontal sections)
 hs.hotkey.bind(_hyper, "1", function() leftBottomCorner() end)                                                   -- _hyper 1     -- Move window to Bottom Left Corner
 hs.hotkey.bind(hammer, "2", function() rightTopCorner() end)                                                     -- hammer 2     -- Move window to Right Top Corner
 hs.hotkey.bind(_hyper, "2", function() rightBottomCorner() end)                                                  -- _hyper 2     -- Move window to Bottom Right Corner

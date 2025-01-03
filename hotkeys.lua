@@ -369,50 +369,134 @@ local function toggleKeyLogging()
     end
 end                                                                          -- Function for enabling key-logging
 
+-- Define layouts table outside the function
+local miniLayouts = {
+    {  -- Layout 1
+        x = function(max) return max.x + (max.w * 0.72) end,
+        y = function(max) return max.y + (max.h * 0.01) + 25 end,
+        w = function(max) return max.w * 0.26 end,
+        h = function(max) return max.h * 0.97 end
+    },
+    {  -- Layout 2
+        x = function(max) return max.x + (max.w * 0.76) end,
+        y = function(max) return max.y + (max.h * 0.01) - 25 end,
+        w = function(max) return max.w * 0.24 end,
+        h = function(max) return max.h * 0.97 end
+    },
+    {  -- Layout 3
+        x = function(max) return max.x + (max.w * 0.7) end,
+        y = function(max) return max.y + (max.h * 0.01) - 30 end,
+        w = function(max) return max.w * 0.5 end,
+        h = function(max) return max.h * 0.9 end
+    },
+    {  -- Layout 4
+        x = function(max) return max.x + (max.w * 0.5) end,
+        y = function(max) return max.y + (max.h * 0.01) end,
+        w = function(max) return max.w * 0.5 end,
+        h = function(max) return max.h * 0.9 end
+    }
+}
+
+-- New standardLayouts table combining various window positions
+local standardLayouts = {
+    fullScreen = {  -- Full screen
+        x = function(max) return max.x end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w end,
+        h = function(max) return max.h end
+    },
+    nearlyFull = {  -- 80% centered
+        x = function(max) return max.x + (max.w * 0.1) end,
+        y = function(max) return max.y + (max.h * 0.1) end,
+        w = function(max) return max.w * 0.8 end,
+        h = function(max) return max.h * 0.8 end
+    },
+    leftHalf = {  -- Left half
+        x = function(max) return max.x end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h end
+    },
+    rightHalf = {  -- Right half
+        x = function(max) return max.x + (max.w / 2) end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h end
+    },
+    leftSmall = {  -- Small left side
+        x = function(max) return max.x end,
+        y = function(max) return max.y + (max.h * 0.1) end,
+        w = function(max) return max.w * 0.4 end,
+        h = function(max) return max.h * 0.8 end
+    },
+    rightSmall = {  -- Small right side
+        x = function(max) return max.x + (max.w * 0.6) end,
+        y = function(max) return max.y + (max.h * 0.1) end,
+        w = function(max) return max.w * 0.4 end,
+        h = function(max) return max.h * 0.8 end
+    },
+    topLeft = {  -- Top left corner
+        x = function(max) return max.x end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h / 2 end
+    },
+    topRight = {  -- Top right corner
+        x = function(max) return max.x + (max.w / 2) end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h / 2 end
+    },
+    bottomLeft = {  -- Bottom left corner
+        x = function(max) return max.x end,
+        y = function(max) return max.y + (max.h / 2) end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h / 2 end
+    },
+    bottomRight = {  -- Bottom right corner
+        x = function(max) return max.x + (max.w / 2) end,
+        y = function(max) return max.y + (max.h / 2) end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h / 2 end
+    },
+    leftWide = {  -- 72% left side
+        x = function(max) return max.x + 30 end,
+        y = function(max) return max.y + (max.h * 0.01) end,
+        w = function(max) return max.w * 0.72 - 30 end,
+        h = function(max) return max.h * 0.98 end
+    },
+    rightNarrow = {  -- 27% right side
+        x = function(max) return max.x + (max.w * 0.73) end,
+        y = function(max) return max.y + (max.h * 0.01) end,
+        w = function(max) return max.w * 0.27 end,
+        h = function(max) return max.h * 0.98 end
+    }
+}
+
 function miniShuffle()
     local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local g = win:frame()
-    local h = win:frame()
-    local i = win:frame()
+    if not win then return end
+
     local screen = win:screen()
     local max = screen:frame()
 
-    f.x = max.x + (max.w * 0.72)
-    f.y = max.y + (max.h * 0.01) + 25
-    f.w = max.w * 0.26
-    f.h = max.h * 0.97
+    -- Get current layout based on counter
+    local layout = miniLayouts[(counter % #miniLayouts) + 1]
 
-    g.x = max.x + (max.w * 0.76)
-    g.y = max.y + (max.h * 0.01) - 25
-    g.w = max.w * 0.24
-    g.h = max.h * 0.97
+    -- Create new frame using layout functions
+    local newFrame = {
+        x = layout.x(max),
+        y = layout.y(max),
+        w = layout.w(max),
+        h = layout.h(max)
+    }
 
-    h.x = max.x + (max.w * 0.7)
-    h.y = max.y + (max.h * 0.01) - 30
-    h.w = max.w * 0.5
-    h.h = max.h * 0.9
+    -- Apply the frame
+    win:setFrame(newFrame)
 
-    i.x = max.x + (max.w * 0.5)
-    i.y = max.y + (max.h * 0.01)
-    i.w = max.w * 0.5
-    i.h = max.h * 0.9
-
-    -- toggle counter
-    if counter == 0 then
-        win:setFrame(f)
-        counter = 1
-    elseif counter == 1 then
-        win:setFrame(g)
-        counter = 2
-    elseif counter == 2 then
-        win:setFrame(h)
-        counter = 3
-    else
-        win:setFrame(i)
-        counter = 0
-    end
-end                                                                                     -- hammer 0     -- shuffle
+    -- Increment counter
+    counter = (counter + 1) % #miniLayouts
+end
 
 
 function halfShuffle(isHorizontal, numSections)
@@ -499,60 +583,23 @@ function fullShuffle()
 end                                                                                     -- hammer 0     -- Full shuffle
 
 function moveToCorner(position)
-    log.i('Moving window to corner:', position)
-    local win = hs.window.focusedWindow()
-    if not win then
-        log.w('No focused window found')
-        return
-    end
-
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-
-    log.d('Current window frame:', hs.inspect(f))
-    log.d('Screen frame:', hs.inspect(max))
-
-    local positions = {
-        topLeft = { x = 0, y = 0 },
-        topRight = { x = 0.5, y = 0 },
-        bottomLeft = { x = 0, y = 0.5 },
-        bottomRight = { x = 0.5, y = 0.5 }
-    }
-
-    local pos = positions[position]
-    if not pos then
-        log.e('Invalid position specified:', position)
-        return
-    end
-
-    f.x = max.x + (max.w * pos.x)
-    f.y = max.y + (max.h * pos.y)
-    f.w = max.w / 2
-    f.h = max.h / 2
-
-    log.d('New window frame:', hs.inspect(f))
-    win:setFrame(f)
-    log.i('Window moved successfully to', position)
+    applyLayout(position)
 end
 
 function moveSide(side, isSmall)
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-
-    local width = isSmall and (max.w * 0.4) or (max.w / 2)
-    local height = isSmall and (max.h * 0.8) or max.h
-    local yOffset = isSmall and (max.h * 0.1) or 0
-    local xOffset = (side == "right") and (max.w - width) or 0
-
-    f.x = max.x + xOffset
-    f.y = max.y + yOffset
-    f.w = width
-    f.h = height
-
-    win:setFrame(f)
+    if side == "left" then
+        if isSmall then
+            applyLayout('leftSmall')
+        else
+            applyLayout('leftHalf')
+        end
+    else
+        if isSmall then
+            applyLayout('rightSmall')
+        else
+            applyLayout('rightHalf')
+        end
+    end
 end
 
 function moveToScreen(direction, position)
@@ -596,99 +643,35 @@ function moveWindow(direction)
 end                                                                               -- hammer 2     -- Move window Bottom Right corner
 
 function fullScreen()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x
-    f.y = max.y
-    f.w = max.w
-    f.h = max.h
-    win:setFrame(f)
+    applyLayout('fullScreen')
 end                                                                                      -- hammer 3     -- full screen
 
 function nearlyFullScreen()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x + (max.w * 0.1)
-    f.y = max.y + (max.h * 0.1)
-    f.w = max.w * 0.8
-    f.h = max.h * 0.8
-    win:setFrame(f)
+    applyLayout('nearlyFull')
 end                                                                                -- _hyper 3     -- 80% full screen centered
 
 function moveWindow95By72FromLeftSide()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x + 30
-    f.y = max.y + (max.h * 0.01)
-    f.w = max.w * 0.72 - 30
-    f.h = max.h * 0.98
-    win:setFrame(f)
+    applyLayout('leftWide')
 end
 
 function moveWindow95By30FromRightSide()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x + (max.w * 0.73)
-    f.y = max.y + (max.h * 0.01)
-    f.w = max.w * 0.27
-    f.h = max.h * 0.98
-    win:setFrame(f)
+    applyLayout('rightNarrow')
 end                                                                   -- hammer 4     -- Move window 95 by 72 left side
 
 function leftSideSmall()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x
-    f.y = max.y + (max.h * 0.1)
-    f.w = max.w * 0.4
-    f.h = max.h * 0.8
-    win:setFrame(f)
+    applyLayout('leftSmall')
 end                                                                                   -- hammer 6     -- smaller left side
 
 function leftSide()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x
-    f.y = max.y
-    f.w = max.w / 2
-    f.h = max.h
-    win:setFrame(f)
+    applyLayout('leftHalf')
 end                                                                                        -- _hyper 6     -- left half
 
 function rightSideSmall()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x + (max.w * 0.6)
-    f.y = max.y + (max.h * 0.1)
-    f.w = max.w * 0.4
-    f.h = max.h * 0.8
-    win:setFrame(f)
+    applyLayout('rightSmall')
 end                                                                                  -- hammer 7     -- smaller right side
 
 function rightSide()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local screen = win:screen()
-    local max = screen:frame()
-    f.x = max.x + (max.w / 2)
-    f.y = max.y
-    f.w = max.w / 2
-    f.h = max.h
-    win:setFrame(f)
+    applyLayout('rightHalf')
 end                                                                                       -- _hyper 7     -- right half
 function moveWindowMouseCenter()
     local win = hs.window.focusedWindow()
@@ -1246,3 +1229,30 @@ hs.hotkey.bind(hammer, "up", function() moveWindow("up") end)
 hs.hotkey.bind(_hyper, "up", function() tempFunction() end)
 hs.hotkey.bind(hammer, "down", function() moveWindow("down") end)
 hs.hotkey.bind(_hyper, "down", function() tempFunction() end)
+
+function applyLayout(layoutName)
+    local win = hs.window.focusedWindow()
+    if not win then
+        log.w('No focused window found')
+        return
+    end
+
+    local layout = standardLayouts[layoutName]
+    if not layout then
+        log.e('Invalid layout name:', layoutName)
+        return
+    end
+
+    local screen = win:screen()
+    local max = screen:frame()
+    local f = win:frame()
+
+    -- Apply the layout functions
+    f.x = layout.x(max)
+    f.y = layout.y(max)
+    f.w = layout.w(max)
+    f.h = layout.h(max)
+
+    win:setFrame(f)
+    log.i('Applied layout:', layoutName)
+end

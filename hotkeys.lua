@@ -6,7 +6,7 @@ local spaces = require "hs.spaces"
 --local countdown = require "hs.countdown"
 -- hammer = "fn"
 hammer = { "cmd", "ctrl", "alt" }
-_hyper = { "cmd", "shift", "ctrl", "alt" }
+_hyper = table.insert(table.shallow_copy(hammer), "shift")  -- Dynamically adds shift to hammer's modifiers
 _meta = { "cmd", "shift", "alt" }
 
 -- Set default editor
@@ -44,6 +44,15 @@ local projects_list = {
     -- { name = "pycharm settings", path = "/Users/d.edens/Library/Application Support/JetBrains/PyCharmCE2024.2/options/"},
 
 local scripts_dir = os.getenv("HOME") .. "/.hammerspoon/scripts"
+
+-- Helper function to create a shallow copy of a table
+function table.shallow_copy(t)
+    local t2 = {}
+    for k,v in pairs(t) do
+        t2[k] = v
+    end
+    return t2
+end
 
 function populateJiraTickets()
     -- retrieve currently active tickets
@@ -1224,13 +1233,16 @@ hs.hotkey.bind(_hyper, "7", function() moveSide("right", false) end)
 
 -- Screen movement bindings
 -- hs.hotkey.bind(hammer, "right", function() moveToScreen("next", "left") end)
-hs.hotkey.bind(_hyper, "right", function() moveToScreen("next", "right") end)
 -- hs.hotkey.bind(hammer, "left", function() moveToScreen("previous", "left") end)
-hs.hotkey.bind(_hyper, "left", function() moveToScreen("previous", "right") end)
 
 -- Window movement bindings
 hs.hotkey.bind(hammer, "left", function() moveWindow("left") end)
+hs.hotkey.bind(_hyper, "left", function() moveToScreen("previous", "right") end)
+-- hs.hotkey.bind(_hyper, "left", function() tempFunction() end)
 hs.hotkey.bind(hammer, "right", function() moveWindow("right") end)
+hs.hotkey.bind(_hyper, "right", function() moveToScreen("next", "right") end)
+-- hs.hotkey.bind(_hyper, "right", function() tempFunction() end)
 hs.hotkey.bind(hammer, "up", function() moveWindow("up") end)
+hs.hotkey.bind(_hyper, "up", function() tempFunction() end)
 hs.hotkey.bind(hammer, "down", function() moveWindow("down") end)
--- @formatter:on
+hs.hotkey.bind(_hyper, "down", function() tempFunction() end)

@@ -1088,6 +1088,33 @@ function shuffleLayouts()
 end
 
 
+function applyLayout(layoutName)
+    local win = hs.window.focusedWindow()
+    if not win then
+        log.w('No focused window found')
+        return
+    end
+
+    local layout = standardLayouts[layoutName]
+    if not layout then
+        log.e('Invalid layout name:', layoutName)
+        return
+    end
+
+    local screen = win:screen()
+    local max = screen:frame()
+    local f = win:frame()
+
+    -- Apply the layout functions
+    f.x = layout.x(max)
+    f.y = layout.y(max)
+    f.w = layout.w(max)
+    f.h = layout.h(max)
+
+    win:setFrame(f)
+    log.i('Applied layout:', layoutName)
+end
+
 
 -- function arrangeWorkWindows()
 --    local slack = hs.application.find("Slack")
@@ -1214,45 +1241,12 @@ hs.hotkey.bind(_hyper, "6", function() moveSide("left", false) end)
 hs.hotkey.bind(hammer, "7", function() moveSide("right", true) end)
 hs.hotkey.bind(_hyper, "7", function() moveSide("right", false) end)
 
--- Screen movement bindings
--- hs.hotkey.bind(hammer, "right", function() moveToScreen("next", "left") end)
--- hs.hotkey.bind(hammer, "left", function() moveToScreen("previous", "left") end)
-
 -- Window movement bindings
 hs.hotkey.bind(hammer, "left", function() moveWindow("left") end)
 hs.hotkey.bind(_hyper, "left", function() moveToScreen("previous", "right") end)
--- hs.hotkey.bind(_hyper, "left", function() tempFunction() end)
 hs.hotkey.bind(hammer, "right", function() moveWindow("right") end)
 hs.hotkey.bind(_hyper, "right", function() moveToScreen("next", "right") end)
--- hs.hotkey.bind(_hyper, "right", function() tempFunction() end)
 hs.hotkey.bind(hammer, "up", function() moveWindow("up") end)
 hs.hotkey.bind(_hyper, "up", function() tempFunction() end)
 hs.hotkey.bind(hammer, "down", function() moveWindow("down") end)
 hs.hotkey.bind(_hyper, "down", function() tempFunction() end)
-
-function applyLayout(layoutName)
-    local win = hs.window.focusedWindow()
-    if not win then
-        log.w('No focused window found')
-        return
-    end
-
-    local layout = standardLayouts[layoutName]
-    if not layout then
-        log.e('Invalid layout name:', layoutName)
-        return
-    end
-
-    local screen = win:screen()
-    local max = screen:frame()
-    local f = win:frame()
-
-    -- Apply the layout functions
-    f.x = layout.x(max)
-    f.y = layout.y(max)
-    f.w = layout.w(max)
-    f.h = layout.h(max)
-
-    win:setFrame(f)
-    log.i('Applied layout:', layoutName)
-end

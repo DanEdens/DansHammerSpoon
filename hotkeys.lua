@@ -22,26 +22,26 @@ local fileList = {
     { name = "zshenv", path = "~/.zshenv"},
     { name = "zshrc", path = "~/.zshrc"},
     { name = "bash_aliases", path = "~/.bash_aliases"},
-    { name = "tasks", path = "/Users/d.edens/lab/regressiontestkit/tasks.py"},
-    { name = "ssh config", path = "/Users/d.edens/.ssh/config"},
-    { name = "RTK.cursorrules", path = "/Users/d.edens/lab/regressiontestkit/regressiontest/.cursorrules"},
+    { name = "tasks", path = "~/lab/regressiontestkit/tasks.py"},
+    { name = "ssh config", path = "~/.ssh/config"},
+    { name = "RTK.cursorrules", path = "~/lab/regressiontestkit/regressiontest/.cursorrules"},
     { name = "cursor keybindings", path = "~/Library/Application Support/Cursor/User/keybindings.json"},
     { name = "cursor settings", path = "~/Library/Application Support/Cursor/User/settings.json"},
-    { name = "pycharm keybindings", path = "/Users/d.edens/Library/Application Support/JetBrains/PyCharmCE2024.2/keymaps/JetSetStudio.xml"},
-    { name = "pycharm templates", path = "/Users/d.edens/Library/Application Support/JetBrains/PyCharmCE2024.2/templates/Python.xml"},
+    { name = "pycharm keybindings", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/keymaps/JetSetStudio.xml"},
+    { name = "pycharm templates", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/templates/Python.xml"},
 }
 local selectedFile = nil
 local fileChooser = nil
 
 local projects_list = {
     { name = "lab", path = "~/lab" },
-    { name = "regressiontestkit", path = "/Users/d.edens/lab/regressiontestkit"},
-    { name = "OculusTestKit", path = "/Users/d.edens/lab/regressiontestkit/OculusTestKit" },
+    { name = "regressiontestkit", path = "~/lab/regressiontestkit"},
+    { name = "OculusTestKit", path = "~/lab/regressiontestkit/OculusTestKit" },
     { name = "hs", path = "~/.hammerspoon" },
 
 }
 
-    -- { name = "pycharm settings", path = "/Users/d.edens/Library/Application Support/JetBrains/PyCharmCE2024.2/options/"},
+    -- { name = "pycharm settings", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/options/"},
 
 local scripts_dir = os.getenv("HOME") .. "/.hammerspoon/scripts"
 

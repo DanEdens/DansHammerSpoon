@@ -6,7 +6,8 @@ local spaces = require "hs.spaces"
 --local countdown = require "hs.countdown"
 -- hammer = "fn"
 hammer = { "cmd", "ctrl", "alt" }
-_hyper = table.insert(table.shallow_copy(hammer), "shift")  -- Dynamically adds shift to hammer's modifiers
+_hyper = { "cmd", "shift", "ctrl", "alt" }
+-- _hyper = table.insert(table.shallow_copy(hammer), "shift")  -- Dynamically adds shift to hammer's modifiers
 _meta = { "cmd", "shift", "alt" }
 
 -- Set default editor
@@ -1208,8 +1209,8 @@ hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)                     
 hs.hotkey.bind(_hyper, "F11", nil, function() moveWindowOneSpace("left", false) end)                             -- _hyper F11   -- Move window one space left
 hs.hotkey.bind(_hyper, "F12", nil, function() moveWindowOneSpace("right", false) end)                            -- _hyper F12   -- Move window one space right
 hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)                           -- shift F13    -- Open Screenshots folder
-hs.hotkey.bind(hammer, "0", function() halfShuffle(true, 3) end)   -- hammer 4  -- Mini Shuffle (8 vertical sections)hs.hotkey.bind(hammer, "1", function() leftTopCorner() end)                                                      -- hammer 1     -- Move window to Left Top Corner
-hs.hotkey.bind(_hyper, "0", function() halfShuffle(false, 4) end)    -- _hyper 4  -- Mini Shuffle (6 horizontal sections)
+hs.hotkey.bind(hammer, "0", function() halfShuffle(false, 4) end)    -- _hyper 4  -- Mini Shuffle (6 horizontal sections)
+hs.hotkey.bind(_hyper, "0", function() halfShuffle(true, 3) end)   -- hammer 4  -- Mini Shuffle (8 vertical sections)hs.hotkey.bind(hammer, "1", function() leftTopCorner() end)                                                      -- hammer 1     -- Move window to Left Top Corner
 hs.hotkey.bind(hammer, "3", function() fullScreen() end)                                                         -- hammer 3     -- Full Screen
 hs.hotkey.bind(_hyper, "3", function() nearlyFullScreen() end)                                                   -- _hyper 3     -- Nearly Full Screen (80% centered)
 hs.hotkey.bind(hammer, "4", function() moveWindow95By72FromLeftSide() end)                                       -- hammer 4     -- Move window 95 by 72 from left side

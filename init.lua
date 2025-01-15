@@ -1,5 +1,3 @@
-
-
 dofile(hs.configdir .. "/loadConfig.lua")
 dofile(hs.configdir .. "/ExtendedClipboard.lua")
 
@@ -8,6 +6,38 @@ dofile(hs.configdir .. "/ExtendedClipboard.lua")
 
 -- dofile(hs.configdir .. "/temp.lua")
 
+-- Configure Console Dark Mode
+local darkMode = {
+    backgroundColor = { white = 0.1 },    -- Dark gray, almost black
+    textColor = { white = 0.8 },          -- Light gray
+    cursorColor = { white = 0.8 },        -- Light gray cursor
+    selectionColor = { red = 0.3, blue = 0.4, green = 0.35 }, -- Subtle blue-green selection
+    fontName = "Menlo",                   -- Use Menlo font
+    fontSize = 12                         -- 12pt font size
+}
+
+-- Apply console styling
+hs.console.darkMode(true)                 -- Enable system dark mode for the window frame
+hs.console.windowBackgroundColor({
+    red = 0.11,                          -- Slightly different than content background
+    green = 0.11,                        -- to create a subtle depth effect
+    blue = 0.11,
+    alpha = 0.95
+})
+hs.console.outputBackgroundColor(darkMode.backgroundColor)
+hs.console.consoleCommandColor(darkMode.textColor)
+hs.console.consolePrintColor(darkMode.textColor)
+hs.console.consoleResultColor({ white = 0.7 }) -- Slightly dimmer than regular text
+hs.console.alpha(0.95)                    -- Slightly transparent
+hs.console.titleVisibility("hidden")      -- Hide the title bar for a cleaner look
+
+-- Wait a bit for the console window to be ready before setting appearance
+hs.timer.doAfter(0.1, function()
+    local consoleWindow = hs.console.hswindow()
+    if consoleWindow and consoleWindow.setAppearance then
+        consoleWindow:setAppearance(hs.drawing.windowAppearance.darkAqua)
+    end
+end)
 
 function reloadConfig(files)
     doReload = false

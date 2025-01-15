@@ -39,6 +39,29 @@ hs.timer.doAfter(0.1, function()
     end
 end)
 
+-- Create and configure console toolbar
+local toolbar = require("hs.webview.toolbar")
+local consoleTB = toolbar.new("myConsole", {
+    {
+        id = "editConfig",
+        label = "Edit Config",
+        image = hs.image.imageFromName("NSAdvanced"),
+        fn = function()
+            hs.execute("open -a 'Visual Studio Code' '" .. hs.configdir .. "/init.lua'")
+        end
+    },
+    {
+        id = "reloadConfig",
+        label = "Reload",
+        image = hs.image.imageFromName("NSRefresh"),
+        fn = function() hs.reload() end
+    }
+})
+:canCustomize(true)
+:autosaves(true)
+
+hs.console.toolbar(consoleTB)
+
 function reloadConfig(files)
     doReload = false
     for _,file in pairs(files) do

@@ -402,6 +402,127 @@ end
 --- Returns:
 ---  * The generated HTML
 function obj:generateTreeHTML()
+    -- Base HTML with styles
+    local baseHtml = [[
+    <html>
+    <head>
+        <style>
+            :root {
+                --bg-color: #1e1e1e;
+                --text-color: #d4d4d4;
+                --border-color: #404040;
+                --hover-color: #2d2d2d;
+                --active-color: #3d3d3d;
+                --selected-color: #094771;
+            }
+            
+            body {
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                margin: 0;
+                padding: 0;
+                user-select: none;
+                height: 100vh;
+                display: flex;
+            }
+            
+            #tree-panel {
+                width: 70%;
+                border-right: 1px solid var(--border-color);
+                overflow-y: auto;
+                padding: 10px;
+            }
+            
+            #properties-panel {
+                width: 30%;
+                padding: 10px;
+                overflow-y: auto;
+            }
+            
+            .tree-item {
+                padding: 6px 8px;
+                margin: 2px 0;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+            }
+            
+            .tree-item:hover {
+                background-color: var(--hover-color);
+            }
+            
+            .tree-item.selected {
+                background-color: var(--selected-color);
+            }
+            
+            .tree-item .icon {
+                margin-right: 8px;
+                font-size: 16px;
+            }
+            
+            .tree-item .name {
+                flex-grow: 1;
+            }
+            
+            .tree-item .actions {
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+            
+            .tree-item:hover .actions {
+                opacity: 1;
+            }
+            
+            .tree-item button {
+                background: none;
+                border: none;
+                color: var(--text-color);
+                cursor: pointer;
+                font-size: 14px;
+                padding: 2px 4px;
+                margin-left: 4px;
+            }
+            
+            .tree-item button:hover {
+                background-color: var(--active-color);
+                border-radius: 3px;
+            }
+            
+            .properties-form {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .form-group label {
+                font-weight: 500;
+            }
+            
+            .form-group input, .form-group select {
+                background-color: var(--bg-color);
+                border: 1px solid var(--border-color);
+                color: var(--text-color);
+                padding: 6px 8px;
+                border-radius: 4px;
+            }
+            
+            .form-group input:focus, .form-group select:focus {
+                outline: none;
+                border-color: var(--selected-color);
+            }
+        </style>
+    </head>
+    <body>
+    ]]
+
     local function generateItemHTML(item, depth)
         local indent = string.rep("    ", depth)
         local icon = item.type == "folder" and (item.expanded and "📂" or "📁") or
@@ -431,22 +552,17 @@ function obj:generateTreeHTML()
         return html
     end
     
-    local treeHtml = [[
-        <div id="tree-panel">
-    ]]
+    local treeContent = [[<div id="tree-panel">]]
     
     for _, item in ipairs(self.macroTree) do
-        treeHtml = treeHtml .. generateItemHTML(item, 0)
+        treeContent = treeContent .. generateItemHTML(item, 0)
     end
     
-    treeHtml = treeHtml .. [[
-        </div>
-        <div id="properties-panel">
-    ]]
+    treeContent = treeContent .. [[</div><div id="properties-panel">]]
     
     -- Add properties panel content if an item is selected
     if self.currentSelection then
-        treeHtml = treeHtml .. string.format([[
+        treeContent = treeContent .. string.format([[
             <div class="properties-form">
                 <div class="form-group">
                     <label>Name</label>
@@ -460,11 +576,9 @@ function obj:generateTreeHTML()
         ]], self.currentSelection.name, self.currentSelection.type)
     end
     
-    treeHtml = treeHtml .. [[
-        </div>
-    ]]
+    treeContent = treeContent .. [[</div>]]
     
-    return treeHtml
+    return baseHtml .. treeContent .. [[</body></html>]]
 end
 
 --- HammerGhost:saveConfig()

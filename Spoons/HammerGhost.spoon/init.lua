@@ -189,13 +189,13 @@ function obj:createMainWindow()
         local scheme, host, params = action:match("^([^:]+)://([^?]+)%??(.*)$")
         if scheme == "hammerspoon" then
             if host == "selectItem" then
-                self:selectItem(params)
+                self:selectItem(hs.http.urlDecode(params))
             elseif host == "toggleItem" then
-                self:toggleItem(params)
+                self:toggleItem(hs.http.urlDecode(params))
             elseif host == "editItem" then
-                self:editItem(params)
+                self:editItem(hs.http.urlDecode(params))
             elseif host == "deleteItem" then
-                self:deleteItem(params)
+                self:deleteItem(hs.http.urlDecode(params))
             end
         end
         return true

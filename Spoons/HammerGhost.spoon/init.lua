@@ -469,6 +469,9 @@ function obj:generateTreeHTML()
             .tree-item .actions {
                 opacity: 0;
                 transition: opacity 0.2s;
+                display: flex;
+                align-items: center;
+                gap: 4px;
             }
             
             .tree-item:hover .actions {
@@ -481,13 +484,26 @@ function obj:generateTreeHTML()
                 color: var(--text-color);
                 cursor: pointer;
                 font-size: 14px;
-                padding: 2px 4px;
-                margin-left: 4px;
+                padding: 4px;
+                margin: 0;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 24px;
+                height: 24px;
             }
             
             .tree-item button:hover {
                 background-color: var(--active-color);
-                border-radius: 3px;
+            }
+            
+            .tree-item button.edit:hover {
+                background-color: #2b4f77;
+            }
+            
+            .tree-item button.delete:hover {
+                background-color: #772b2b;
             }
             
             .properties-form {
@@ -519,6 +535,32 @@ function obj:generateTreeHTML()
                 border-color: var(--selected-color);
             }
         </style>
+        <script>
+            function selectItem(id, event) {
+                if (event) event.stopPropagation();
+                window.location.href = 'hammerspoon://selectItem?' + encodeURIComponent(id);
+            }
+            
+            function toggleItem(id, event) {
+                if (event) event.stopPropagation();
+                window.location.href = 'hammerspoon://toggleItem?' + encodeURIComponent(id);
+            }
+            
+            function editItem(id, event) {
+                if (event) event.stopPropagation();
+                const name = prompt('Enter new name:');
+                if (name) {
+                    window.location.href = 'hammerspoon://editItem?' + encodeURIComponent(JSON.stringify({id: id, name: name}));
+                }
+            }
+            
+            function deleteItem(id, event) {
+                if (event) event.stopPropagation();
+                if (confirm('Are you sure you want to delete this item?')) {
+                    window.location.href = 'hammerspoon://deleteItem?' + encodeURIComponent(id);
+                }
+            }
+        </script>
     </head>
     <body>
     ]]
@@ -537,8 +579,8 @@ function obj:generateTreeHTML()
                 <span class="icon" onclick="toggleItem('%s', event)">%s</span>
                 <span class="name">%s</span>
                 <div class="actions">
-                    <button onclick="editItem('%s', event)">✏️</button>
-                    <button onclick="deleteItem('%s', event)">🗑️</button>
+                    <button class="edit" onclick="editItem('${item.id}', event)" title="Edit">✏️</button>
+                    <button class="delete" onclick="deleteItem('${item.id}', event)" title="Delete">🗑️</button>
                 </div>
             </div>
         ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, icon, item.name, item.id, item.id)
@@ -771,6 +813,77 @@ function obj:toggleItem(id)
     
     if findAndToggle(self.macroTree) then
         self:refreshWindow()
+    end
+end
+
+--- HammerGhost:editItem(data)
+--- Method
+--- Edit an item in the tree
+---
+--- Parameters:
+---  * data - The data of the item to edit
+---
+--- Returns:
+---  * None
+function obj:editItem(data)
+    local success, data = pcall(hs.json.decode, data)
+    if not success then
+        hs.logger.new("HammerGhost"):e("Failed to decode edit data")
+        return
+    end
+    
+    local function updateItem(items)
+        for i, item in ipairs(items) do
+            if item.id == data.id then
+                item.name = data.name
+                return true
+            end
+            if item.children then
+                if updateItem(item.children) then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+    
+    if updateItem(self.macroTree) then
+        self:refreshWindow()
+        self:saveConfig()
+    end
+end
+
+--- HammerGhost:deleteItem(id)
+--- Method
+--- Delete an item from the tree
+---
+--- Parameters:
+---  * id - The ID of the item to delete
+---
+--- Returns:
+---  * None
+function obj:deleteItem(id)
+    local function removeItem(items)
+        for i, item in ipairs(items) do
+            if item.id == id then
+                table.remove(items, i)
+                return true
+            end
+            if item.children then
+                if removeItem(item.children) then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+    
+    if removeItem(self.macroTree) then
+        if self.currentSelection and self.currentSelection.id == id then
+            self.currentSelection = nil
+        end
+        self:refreshWindow()
+        self:saveConfig()
     end
 end
 

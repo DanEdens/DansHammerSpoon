@@ -26,10 +26,18 @@ obj.webview = nil
 obj.toolbar = nil
 obj.configPath = hs.configdir .. "/hammerghost_config.xml"
 obj.macroTree = {}
+obj.currentSelection = nil
+obj.lastId = 0
 obj.spoonPath = hs.spoons.scriptPath()
 
 -- Load additional modules
 dofile(hs.spoons.resourcePath("scripts/xmlparser.lua"))
+
+-- Helper function to generate unique IDs
+function obj:generateId()
+    self.lastId = self.lastId + 1
+    return tostring(self.lastId)
+end
 
 --- HammerGhost:init()
 --- Method
@@ -396,20 +404,23 @@ end
 function obj:generateTreeHTML()
     local function generateItemHTML(item, depth)
         local indent = string.rep("    ", depth)
-        local icon = item.type == "folder" and "📁" or
+        local icon = item.type == "folder" and (item.expanded and "📂" or "📁") or
                     item.type == "action" and "⚡" or
                     item.type == "sequence" and "⚙️" or "❓"
         
+        local selectedClass = (self.currentSelection and self.currentSelection.id == item.id) and " selected" or ""
+        local indentStyle = string.format("padding-left: %dpx;", depth * 20)
+        
         local html = string.format([[
-            <div class="tree-item" data-type="%s" data-expanded="%s">
-                <span class="icon">%s</span>
+            <div class="tree-item%s" data-id="%s" data-type="%s" style="%s" onclick="selectItem('%s')">
+                <span class="icon" onclick="toggleItem('%s', event)">%s</span>
                 <span class="name">%s</span>
                 <div class="actions">
-                    <button onclick="editItem('%s')">✏️</button>
-                    <button onclick="deleteItem('%s')">🗑️</button>
+                    <button onclick="editItem('%s', event)">✏️</button>
+                    <button onclick="deleteItem('%s', event)">🗑️</button>
                 </div>
             </div>
-        ]], item.type, tostring(item.expanded), icon, item.name, item.id or "", item.id or "")
+        ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, icon, item.name, item.id, item.id)
         
         if item.children and #item.children > 0 and item.expanded then
             for _, child in ipairs(item.children) do
@@ -431,7 +442,25 @@ function obj:generateTreeHTML()
     treeHtml = treeHtml .. [[
         </div>
         <div id="properties-panel">
-            <!-- Properties will be dynamically populated -->
+    ]]
+    
+    -- Add properties panel content if an item is selected
+    if self.currentSelection then
+        treeHtml = treeHtml .. string.format([[
+            <div class="properties-form">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" value="%s" onchange="updateProperty('name', this.value)">
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <input type="text" value="%s" readonly>
+                </div>
+            </div>
+        ]], self.currentSelection.name, self.currentSelection.type)
+    end
+    
+    treeHtml = treeHtml .. [[
         </div>
     ]]
     
@@ -520,6 +549,115 @@ function obj:checkResources()
     end
     
     return true
+end
+
+--- HammerGhost:createMacroItem(name, type, parent)
+--- Method
+--- Create a new macro item (folder, action, or sequence)
+---
+--- Parameters:
+---  * name - The name of the item
+---  * type - The type of item ("folder", "action", or "sequence")
+---  * parent - Optional parent item to add this item to
+---
+--- Returns:
+---  * The created item
+function obj:createMacroItem(name, type, parent)
+    local item = {
+        id = self:generateId(),
+        name = name,
+        type = type,
+        expanded = false,
+        children = (type ~= "action") and {} or nil
+    }
+    
+    if type == "action" then
+        item.fn = function() 
+            hs.alert.show("Action: " .. name)
+        end
+    elseif type == "sequence" then
+        item.steps = {}
+    end
+    
+    if parent then
+        table.insert(parent.children, item)
+    else
+        table.insert(self.macroTree, item)
+    end
+    
+    -- Refresh the window to show the new item
+    self:refreshWindow()
+    return item
+end
+
+--- HammerGhost:getCurrentSelection()
+--- Method
+--- Get the currently selected item
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * The selected item or nil
+function obj:getCurrentSelection()
+    return self.currentSelection
+end
+
+--- HammerGhost:selectItem(id)
+--- Method
+--- Select an item in the tree
+---
+--- Parameters:
+---  * id - The ID of the item to select
+---
+--- Returns:
+---  * None
+function obj:selectItem(id)
+    local function findItem(items)
+        for _, item in ipairs(items) do
+            if item.id == id then
+                return item
+            end
+            if item.children then
+                local found = findItem(item.children)
+                if found then return found end
+            end
+        end
+        return nil
+    end
+    
+    self.currentSelection = findItem(self.macroTree)
+    self:refreshWindow()
+end
+
+--- HammerGhost:toggleItem(id)
+--- Method
+--- Toggle the expanded state of an item
+---
+--- Parameters:
+---  * id - The ID of the item to toggle
+---
+--- Returns:
+---  * None
+function obj:toggleItem(id)
+    local function findAndToggle(items)
+        for _, item in ipairs(items) do
+            if item.id == id and item.children then
+                item.expanded = not item.expanded
+                return true
+            end
+            if item.children then
+                if findAndToggle(item.children) then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+    
+    if findAndToggle(self.macroTree) then
+        self:refreshWindow()
+    end
 end
 
 -- Return the object

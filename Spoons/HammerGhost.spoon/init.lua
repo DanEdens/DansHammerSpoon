@@ -29,8 +29,7 @@ obj.macroTree = {}
 obj.spoonPath = hs.spoons.scriptPath()
 
 -- Load additional modules
-local scriptPath = debug.getinfo(1, "S").source:sub(2):match("(.*/)")
-local xmlparser = dofile(scriptPath .. "scripts/xmlparser.lua")
+dofile(hs.spoons.resourcePath("scripts/xmlparser.lua"))
 
 --- HammerGhost:init()
 --- Method
@@ -42,6 +41,12 @@ local xmlparser = dofile(scriptPath .. "scripts/xmlparser.lua")
 --- Returns:
 ---  * The HammerGhost object
 function obj:init()
+    -- Check resources first
+    if not self:checkResources() then
+        hs.alert.show("HammerGhost: Missing required resources")
+        return self
+    end
+    
     -- Load saved macros if they exist
     if hs.fs.attributes(self.configPath) then
         local f = io.open(self.configPath, "r")
@@ -165,7 +170,9 @@ function obj:createMainWindow()
 
     -- Set up webview
     webview:windowTitle("HammerGhost")
-    webview:windowStyle("closable,titled,resizable")
+    webview:windowStyle(hs.webview.windowMasks.titled 
+                     | hs.webview.windowMasks.closable 
+                     | hs.webview.windowMasks.resizable)
     webview:allowTextEntry(true)
     webview:darkMode(true)
 
@@ -210,26 +217,41 @@ end
 --- Returns:
 ---  * None
 function obj:createToolbar()
+    -- Define toolbar items with system icons
     local toolbar = hs.webview.toolbar.new("HammerGhostToolbar", {
-        { id = "addFolder", label = "New Folder", image = hs.image.imageFromPath(hs.spoons.resourcePath("assets/images/folder.png")) },
-        { id = "addAction", label = "New Action", image = hs.image.imageFromPath(hs.spoons.resourcePath("assets/images/action.png")) },
-        { id = "addSequence", label = "New Sequence", image = hs.image.imageFromPath(hs.spoons.resourcePath("assets/images/sequence.png")) },
-        { id = "save", label = "Save", image = hs.image.imageFromPath(hs.spoons.resourcePath("assets/images/save.png")) }
+        {
+            id = "addFolder",
+            label = "New Folder",
+            image = hs.image.imageFromName("NSFolderSmartTemplate"),
+            fn = function() self:addFolder() end
+        },
+        {
+            id = "addAction",
+            label = "New Action",
+            image = hs.image.imageFromName("NSActionTemplate"),
+            fn = function() self:addAction() end
+        },
+        {
+            id = "addSequence",
+            label = "New Sequence",
+            image = hs.image.imageFromName("NSListViewTemplate"),
+            fn = function() self:addSequence() end
+        },
+        {
+            id = "save",
+            label = "Save",
+            image = hs.image.imageFromName("NSSaveTemplate"),
+            fn = function() self:saveConfig() end
+        }
     })
     
-    toolbar:setCallback(function(toolbar, webview, id)
-        if id == "addFolder" then
-            self:addFolder()
-        elseif id == "addAction" then
-            self:addAction()
-        elseif id == "addSequence" then
-            self:addSequence()
-        elseif id == "save" then
-            self:saveConfig()
-        end
-    end)
+    -- Apply the toolbar to the window
+    if self.window then
+        self.window:attachedToolbar(toolbar)
+    end
     
-    self.window:attachedToolbar(toolbar)
+    -- Store the toolbar reference
+    self.toolbar = toolbar
 end
 
 --- HammerGhost:selectItem(index)
@@ -298,8 +320,8 @@ end
 --- Returns:
 ---  * None
 function obj:addFolder()
-    -- TODO: Implement folder addition
-    hs.logger.new("HammerGhost"):d("Adding new folder")
+    local name = "New Folder"
+    self:createMacroItem(name, "folder", self:getCurrentSelection())
 end
 
 --- HammerGhost:addAction()
@@ -312,8 +334,8 @@ end
 --- Returns:
 ---  * None
 function obj:addAction()
-    -- TODO: Implement action addition
-    hs.logger.new("HammerGhost"):d("Adding new action")
+    local name = "New Action"
+    self:createMacroItem(name, "action", self:getCurrentSelection())
 end
 
 --- HammerGhost:addSequence()
@@ -326,8 +348,93 @@ end
 --- Returns:
 ---  * None
 function obj:addSequence()
-    -- TODO: Implement sequence addition
-    hs.logger.new("HammerGhost"):d("Adding new sequence")
+    local name = "New Sequence"
+    self:createMacroItem(name, "sequence", self:getCurrentSelection())
+end
+
+--- HammerGhost:getCurrentSelection()
+--- Method
+--- Get the current selection
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * The current selection
+function obj:getCurrentSelection()
+    -- TODO: Implement selection tracking
+    return nil
+end
+
+--- HammerGhost:refreshWindow()
+--- Method
+--- Refresh the window content
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * None
+function obj:refreshWindow()
+    if not self.window then return end
+    
+    -- Generate HTML for the macro tree
+    local html = self:generateTreeHTML()
+    self.window:html(html)
+end
+
+--- HammerGhost:generateTreeHTML()
+--- Method
+--- Generate HTML for the macro tree
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * The generated HTML
+function obj:generateTreeHTML()
+    local function generateItemHTML(item, depth)
+        local indent = string.rep("    ", depth)
+        local icon = item.type == "folder" and "📁" or
+                    item.type == "action" and "⚡" or
+                    item.type == "sequence" and "⚙️" or "❓"
+        
+        local html = string.format([[
+            <div class="tree-item" data-type="%s" data-expanded="%s">
+                <span class="icon">%s</span>
+                <span class="name">%s</span>
+                <div class="actions">
+                    <button onclick="editItem('%s')">✏️</button>
+                    <button onclick="deleteItem('%s')">🗑️</button>
+                </div>
+            </div>
+        ]], item.type, tostring(item.expanded), icon, item.name, item.id or "", item.id or "")
+        
+        if item.children and #item.children > 0 and item.expanded then
+            for _, child in ipairs(item.children) do
+                html = html .. generateItemHTML(child, depth + 1)
+            end
+        end
+        
+        return html
+    end
+    
+    local treeHtml = [[
+        <div id="tree-panel">
+    ]]
+    
+    for _, item in ipairs(self.macroTree) do
+        treeHtml = treeHtml .. generateItemHTML(item, 0)
+    end
+    
+    treeHtml = treeHtml .. [[
+        </div>
+        <div id="properties-panel">
+            <!-- Properties will be dynamically populated -->
+        </div>
+    ]]
+    
+    return treeHtml
 end
 
 --- HammerGhost:saveConfig()
@@ -340,8 +447,78 @@ end
 --- Returns:
 ---  * None
 function obj:saveConfig()
-    -- TODO: Implement XML saving
-    hs.logger.new("HammerGhost"):d("Saving configuration")
+    -- Convert macro tree to XML
+    local xml = self:macroTreeToXML()
+    
+    -- Save to file
+    local f = io.open(self.configPath, "w")
+    if f then
+        f:write(xml)
+        f:close()
+        hs.alert.show("Configuration saved")
+    else
+        hs.alert.show("Error saving configuration")
+    end
+end
+
+--- HammerGhost:macroTreeToXML()
+--- Method
+--- Convert the macro tree to XML
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * The generated XML
+function obj:macroTreeToXML()
+    local function itemToXML(item)
+        local attrs = string.format('type="%s" name="%s"', item.type, item.name)
+        if item.type == "action" then
+            return string.format('<item %s/>', attrs)
+        else
+            local children = ""
+            if item.children and #item.children > 0 then
+                for _, child in ipairs(item.children) do
+                    children = children .. itemToXML(child)
+                end
+            end
+            return string.format('<item %s>%s</item>', attrs, children)
+        end
+    end
+    
+    local xml = '<?xml version="1.0" encoding="UTF-8"?>\n<macros>\n'
+    for _, item in ipairs(self.macroTree) do
+        xml = xml .. itemToXML(item) .. "\n"
+    end
+    xml = xml .. '</macros>'
+    
+    return xml
+end
+
+--- HammerGhost:checkResources()
+--- Method
+--- Ensure all required resources are available
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * True if all resources are available, false otherwise
+function obj:checkResources()
+    local resources = {
+        "scripts/xmlparser.lua",
+        "assets/index.html"
+    }
+    
+    for _, resource in ipairs(resources) do
+        local path = hs.spoons.resourcePath(resource)
+        if not hs.fs.attributes(path) then
+            hs.logger.new("HammerGhost"):e("Missing required resource: " .. resource)
+            return false
+        end
+    end
+    
+    return true
 end
 
 -- Return the object

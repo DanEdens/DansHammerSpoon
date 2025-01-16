@@ -132,25 +132,25 @@
             const selected = document.querySelector(`[data-index="${index}"]`);
             if (selected) {
                 selected.classList.add('selected');
-                webkit.messageHandlers.selectItem.postMessage(index);
+                window.location.href = 'hammerspoon://selectItem?' + encodeURIComponent(index);
             }
         }
         
         // Handle item expansion/collapse
         function toggleItem(index) {
-            webkit.messageHandlers.toggleItem.postMessage(index);
+            window.location.href = 'hammerspoon://toggleItem?' + encodeURIComponent(index);
         }
         
         // Handle item editing
         function editItem(index, event) {
             event.stopPropagation();
-            webkit.messageHandlers.editItem.postMessage(index);
+            window.location.href = 'hammerspoon://editItem?' + encodeURIComponent(index);
         }
         
         // Handle item deletion
         function deleteItem(index, event) {
             event.stopPropagation();
-            webkit.messageHandlers.deleteItem.postMessage(index);
+            window.location.href = 'hammerspoon://deleteItem?' + encodeURIComponent(index);
         }
     </script>
 </body>

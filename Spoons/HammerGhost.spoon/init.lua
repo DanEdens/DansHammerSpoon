@@ -177,16 +177,17 @@ function obj:createMainWindow()
     webview:darkMode(true)
 
     -- Set up message handlers
-    webview:setCallback(function(action, data)
+    webview:navigationCallback(function(action, webview)
         if action == "selectItem" then
-            self:selectItem(data)
+            self:selectItem(webview:evaluateJavaScript("event.data"))
         elseif action == "toggleItem" then
-            self:toggleItem(data)
+            self:toggleItem(webview:evaluateJavaScript("event.data"))
         elseif action == "editItem" then
-            self:editItem(data)
+            self:editItem(webview:evaluateJavaScript("event.data"))
         elseif action == "deleteItem" then
-            self:deleteItem(data)
+            self:deleteItem(webview:evaluateJavaScript("event.data"))
         end
+        return true
     end)
 
     -- Load HTML content

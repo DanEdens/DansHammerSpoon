@@ -29,7 +29,8 @@ obj.macroTree = {}
 obj.spoonPath = hs.spoons.scriptPath()
 
 -- Load additional modules
-dofile(hs.spoons.resourcePath("scripts/xmlparser.lua"))
+local scriptPath = debug.getinfo(1, "S").source:sub(2):match("(.*/)")
+local xmlparser = dofile(scriptPath .. "scripts/xmlparser.lua")
 
 --- HammerGhost:init()
 --- Method

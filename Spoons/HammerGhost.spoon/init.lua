@@ -87,6 +87,28 @@ function obj:stop()
     return self
 end
 
+--- HammerGhost:toggle()
+--- Method
+--- Toggle the HammerGhost window visibility
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * The HammerGhost object
+function obj:toggle()
+    if not self.window then
+        self:start()
+    else
+        if self.window:isVisible() then
+            self:stop()
+        else
+            self:start()
+        end
+    end
+    return self
+end
+
 --- HammerGhost:bindHotkeys(mapping)
 --- Method
 --- Binds hotkeys for HammerGhost
@@ -102,34 +124,12 @@ end
 ---  * The HammerGhost object
 function obj:bindHotkeys(mapping)
     local spec = {
-        toggle = hs.fnutils.partial(self.toggleWindow, self),
+        toggle = hs.fnutils.partial(self.toggle, self),
         addAction = hs.fnutils.partial(self.addAction, self),
         addSequence = hs.fnutils.partial(self.addSequence, self),
         addFolder = hs.fnutils.partial(self.addFolder, self)
     }
     hs.spoons.bindHotkeysToSpec(spec, mapping)
-    return self
-end
-
---- HammerGhost:toggleWindow()
---- Method
---- Toggle the HammerGhost window visibility
----
---- Parameters:
----  * None
----
---- Returns:
----  * The HammerGhost object
-function obj:toggleWindow()
-    if not self.window then
-        self:createMainWindow()
-    else
-        if self.window:isVisible() then
-            self.window:hide()
-        else
-            self.window:show()
-        end
-    end
     return self
 end
 

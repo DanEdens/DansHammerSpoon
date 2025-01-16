@@ -6,6 +6,12 @@ dofile(hs.configdir .. "/ExtendedClipboard.lua")
 
 -- dofile(hs.configdir .. "/temp.lua")
 
+-- Load HammerGhost
+hs.loadSpoon("HammerGhost")
+spoon.HammerGhost:bindHotkeys({
+    toggle = {{"cmd", "alt", "ctrl"}, "M"}  -- Use Cmd+Alt+Ctrl+G to toggle HammerGhost
+})
+
 -- Configure Console Dark Mode
 local darkMode = {
     backgroundColor = { white = 0.1 },    -- Dark gray, almost black
@@ -294,7 +300,7 @@ end
 function showCurrentLevel()
     local current = getCurrentLevel()
     local choices = {}
-    
+
     -- Add back button if we're in a subcategory
     if #breadcrumbs > 0 then
         table.insert(choices, {
@@ -303,7 +309,7 @@ function showCurrentLevel()
             image = hs.image.imageFromName("NSGoLeftTemplate")
         })
     end
-    
+
     -- Add items from current level
     for name, category in pairs(current) do
         -- Create image from system icon or fallback to text icon
@@ -314,11 +320,11 @@ function showCurrentLevel()
                 img = hs.styledtext.new(category.icon, {font = {size = 16}})
             else
                 -- For system icons, use imageFromName
-                img = hs.image.imageFromName(category.icon) or 
+                img = hs.image.imageFromName(category.icon) or
                       hs.image.imageFromName("NSActionTemplate")
             end
         end
-        
+
         table.insert(choices, {
             text = category.name,
             subText = category.items and "Open submenu" or "Execute action",
@@ -326,14 +332,14 @@ function showCurrentLevel()
             fn = category.items and nil or category.fn
         })
     end
-    
+
     -- Update chooser title to show breadcrumbs
     local title = "Macro Tree"
     if #breadcrumbs > 0 then
         title = table.concat(breadcrumbs, " → ")
     end
     macroChooser:placeholderText(title)
-    
+
     macroChooser:choices(choices)
     macroChooser:show()
 end
@@ -345,7 +351,7 @@ function showMacroTree()
 end
 
 -- Bind hotkey to show macro tree (Cmd+Alt+Ctrl+M)
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", showMacroTree)
+-- hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", showMacroTree)
 
 -- myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 
@@ -381,11 +387,11 @@ hs.alert.show("Config loaded")
 
 
 --everyday at 9:45 am
-hs.timer.doAt("9:44", "1d", function()
-    hs.alert.show("Time to stand up!")
-    -- open slack to a specific channel
-    hs.execute("open -a 'Slack' https://app.slack.com/client/T036VBQJD/C042B3Q7DQQ")
-end)
+-- hs.timer.doAt("9:44", "1d", function()
+--     hs.alert.show("Time to stand up!")
+--     -- open slack to a specific channel
+--     hs.execute("open -a 'Slack' https://app.slack.com/client/T036VBQJD/C042B3Q7DQQ")
+-- end)
 
 
 
@@ -394,7 +400,7 @@ end)
 
 -- hammer_bright = os.getenv("HAMMER_BRIGHT")
 -- # set brightness to max
-hs.brightness.set(100)
+hs.brightness.set(10)
 hs.window.animationDuration = 0
 
 white = hs.drawing.color.white

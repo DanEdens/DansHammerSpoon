@@ -54,7 +54,7 @@ function obj:init()
         hs.alert.show("HammerGhost: Missing required resources")
         return self
     end
-    
+
     -- Load saved macros if they exist
     if hs.fs.attributes(self.configPath) then
         local f = io.open(self.configPath, "r")
@@ -82,8 +82,8 @@ function obj:start()
     if not self.window then
         self:createMainWindow()
     end
-    if self.window then
-        self.window:show()
+    if self.window and self.window:_window() then
+        self.window:_window():show()
     end
     return self
 end
@@ -98,8 +98,8 @@ end
 --- Returns:
 ---  * The HammerGhost object
 function obj:stop()
-    if self.window then
-        self.window:hide()
+    if self.window and self.window:_window() then
+        self.window:_window():hide()
     end
     return self
 end
@@ -117,7 +117,7 @@ function obj:toggle()
     if not self.window then
         self:start()
     else
-        if self.window:isVisible() then
+        if self.window:_window() and self.window:_window():isVisible() then
             self:stop()
         else
             self:start()
@@ -178,8 +178,8 @@ function obj:createMainWindow()
 
     -- Set up webview
     webview:windowTitle("HammerGhost")
-    webview:windowStyle(hs.webview.windowMasks.titled 
-                     | hs.webview.windowMasks.closable 
+    webview:windowStyle(hs.webview.windowMasks.titled
+                     | hs.webview.windowMasks.closable
                      | hs.webview.windowMasks.resizable)
     webview:allowTextEntry(true)
     webview:darkMode(true)
@@ -211,10 +211,10 @@ function obj:createMainWindow()
         hs.logger.new("HammerGhost"):e("Failed to load index.html")
         webview:html("<html><body style='background: #1e1e1e; color: #d4d4d4;'><h1>Error loading UI</h1></body></html>")
     end
-    
+
     -- Store the webview
     self.window = webview
-    
+
     -- Create toolbar
     self:createToolbar()
 end
@@ -256,12 +256,12 @@ function obj:createToolbar()
             fn = function() self:saveConfig() end
         }
     })
-    
+
     -- Apply the toolbar to the window
     if self.window then
         self.window:attachedToolbar(toolbar)
     end
-    
+
     -- Store the toolbar reference
     self.toolbar = toolbar
 end
@@ -389,7 +389,7 @@ end
 ---  * None
 function obj:refreshWindow()
     if not self.window then return end
-    
+
     -- Generate HTML for the macro tree
     local html = self:generateTreeHTML()
     self.window:html(html)
@@ -573,10 +573,10 @@ function obj:generateTreeHTML()
         local icon = item.type == "folder" and (item.expanded and "📂" or "📁") or
                     item.type == "action" and "⚡" or
                     item.type == "sequence" and "⚙️" or "❓"
-        
+
         local selectedClass = (self.currentSelection and self.currentSelection.id == item.id) and " selected" or ""
         local indentStyle = string.format("padding-left: %dpx;", depth * 20)
-        
+
         local html = string.format([[
             <div class="tree-item%s" data-id="%s" data-type="%s" style="%s" onclick="selectItem('%s')">
                 <span class="icon" onclick="toggleItem('%s', event)">%s</span>
@@ -587,24 +587,24 @@ function obj:generateTreeHTML()
                 </div>
             </div>
         ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, icon, item.name, item.id, item.id)
-        
+
         if item.children and #item.children > 0 and item.expanded then
             for _, child in ipairs(item.children) do
                 html = html .. generateItemHTML(child, depth + 1)
             end
         end
-        
+
         return html
     end
-    
+
     local treeContent = [[<div id="tree-panel">]]
-    
+
     for _, item in ipairs(self.macroTree) do
         treeContent = treeContent .. generateItemHTML(item, 0)
     end
-    
+
     treeContent = treeContent .. [[</div><div id="properties-panel">]]
-    
+
     -- Add properties panel content if an item is selected
     if self.currentSelection then
         treeContent = treeContent .. string.format([[
@@ -620,9 +620,9 @@ function obj:generateTreeHTML()
             </div>
         ]], self.currentSelection.name, self.currentSelection.type)
     end
-    
+
     treeContent = treeContent .. [[</div>]]
-    
+
     return baseHtml .. treeContent .. [[</body></html>]]
 end
 
@@ -638,7 +638,7 @@ end
 function obj:saveConfig()
     -- Convert macro tree to XML
     local xml = self:macroTreeToXML()
-    
+
     -- Save to file
     local f = io.open(self.configPath, "w")
     if f then
@@ -674,13 +674,13 @@ function obj:macroTreeToXML()
             return string.format('<item %s>%s</item>', attrs, children)
         end
     end
-    
+
     local xml = '<?xml version="1.0" encoding="UTF-8"?>\n<macros>\n'
     for _, item in ipairs(self.macroTree) do
         xml = xml .. itemToXML(item) .. "\n"
     end
     xml = xml .. '</macros>'
-    
+
     return xml
 end
 
@@ -698,7 +698,7 @@ function obj:checkResources()
         "scripts/xmlparser.lua",
         "assets/index.html"
     }
-    
+
     for _, resource in ipairs(resources) do
         local path = hs.spoons.resourcePath(resource)
         if not hs.fs.attributes(path) then
@@ -706,7 +706,7 @@ function obj:checkResources()
             return false
         end
     end
-    
+
     return true
 end
 
@@ -729,21 +729,21 @@ function obj:createMacroItem(name, type, parent)
         expanded = false,
         children = (type ~= "action") and {} or nil
     }
-    
+
     if type == "action" then
-        item.fn = function() 
+        item.fn = function()
             hs.alert.show("Action: " .. name)
         end
     elseif type == "sequence" then
         item.steps = {}
     end
-    
+
     if parent then
         table.insert(parent.children, item)
     else
         table.insert(self.macroTree, item)
     end
-    
+
     -- Refresh the window to show the new item
     self:refreshWindow()
     return item
@@ -784,7 +784,7 @@ function obj:selectItem(id)
         end
         return nil
     end
-    
+
     self.currentSelection = findItem(self.macroTree)
     self:refreshWindow()
 end
@@ -813,7 +813,7 @@ function obj:toggleItem(id)
         end
         return false
     end
-    
+
     if findAndToggle(self.macroTree) then
         self:refreshWindow()
     end
@@ -834,7 +834,7 @@ function obj:editItem(data)
         hs.logger.new("HammerGhost"):e("Failed to decode edit data")
         return
     end
-    
+
     local function updateItem(items)
         for i, item in ipairs(items) do
             if item.id == data.id then
@@ -849,7 +849,7 @@ function obj:editItem(data)
         end
         return false
     end
-    
+
     if updateItem(self.macroTree) then
         self:refreshWindow()
         self:saveConfig()
@@ -880,7 +880,7 @@ function obj:deleteItem(id)
         end
         return false
     end
-    
+
     if removeItem(self.macroTree) then
         if self.currentSelection and self.currentSelection.id == id then
             self.currentSelection = nil
@@ -891,4 +891,4 @@ function obj:deleteItem(id)
 end
 
 -- Return the object
-return obj 
+return obj

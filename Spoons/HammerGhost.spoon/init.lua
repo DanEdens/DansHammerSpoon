@@ -111,6 +111,28 @@ function obj:bindHotkeys(mapping)
     return self
 end
 
+--- HammerGhost:toggleWindow()
+--- Method
+--- Toggle the HammerGhost window visibility
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * The HammerGhost object
+function obj:toggleWindow()
+    if not self.window then
+        self:createMainWindow()
+    else
+        if self.window:isVisible() then
+            self.window:hide()
+        else
+            self.window:show()
+        end
+    end
+    return self
+end
+
 --- HammerGhost:createMainWindow()
 --- Method
 --- Creates the main HammerGhost window
@@ -130,7 +152,7 @@ function obj:createMainWindow()
         y = frame.y + (frame.h * 0.1),
         w = frame.w * 0.8,
         h = frame.h * 0.8
-    })
+    }, { developerExtrasEnabled = true })  -- Enable dev tools for debugging
     
     -- Set up webview
     self.window:windowTitle("HammerGhost")
@@ -138,12 +160,28 @@ function obj:createMainWindow()
     self.window:allowTextEntry(true)
     self.window:darkMode(true)
     
+    -- Set up message handlers
+    self.window:setCallback(function(action, data)
+        if action == "selectItem" then
+            self:selectItem(data)
+        elseif action == "toggleItem" then
+            self:toggleItem(data)
+        elseif action == "editItem" then
+            self:editItem(data)
+        elseif action == "deleteItem" then
+            self:deleteItem(data)
+        end
+    end)
+    
     -- Load HTML content
     local htmlFile = io.open(hs.spoons.resourcePath("assets/index.html"), "r")
     if htmlFile then
         local content = htmlFile:read("*all")
         htmlFile:close()
         self.window:html(content)
+    else
+        hs.logger.new("HammerGhost"):e("Failed to load index.html")
+        self.window:html("<html><body style='background: #1e1e1e; color: #d4d4d4;'><h1>Error loading UI</h1></body></html>")
     end
     
     -- Create toolbar
@@ -180,6 +218,118 @@ function obj:createToolbar()
     end)
     
     self.window:attachedToolbar(toolbar)
+end
+
+--- HammerGhost:selectItem(index)
+--- Method
+--- Handle item selection in the tree view
+---
+--- Parameters:
+---  * index - The index of the selected item
+---
+--- Returns:
+---  * None
+function obj:selectItem(index)
+    -- TODO: Implement item selection and property panel update
+    hs.logger.new("HammerGhost"):d("Selected item: " .. tostring(index))
+end
+
+--- HammerGhost:toggleItem(index)
+--- Method
+--- Toggle expansion state of an item
+---
+--- Parameters:
+---  * index - The index of the item to toggle
+---
+--- Returns:
+---  * None
+function obj:toggleItem(index)
+    -- TODO: Implement item expansion/collapse
+    hs.logger.new("HammerGhost"):d("Toggled item: " .. tostring(index))
+end
+
+--- HammerGhost:editItem(index)
+--- Method
+--- Edit an item in the tree
+---
+--- Parameters:
+---  * index - The index of the item to edit
+---
+--- Returns:
+---  * None
+function obj:editItem(index)
+    -- TODO: Implement item editing
+    hs.logger.new("HammerGhost"):d("Editing item: " .. tostring(index))
+end
+
+--- HammerGhost:deleteItem(index)
+--- Method
+--- Delete an item from the tree
+---
+--- Parameters:
+---  * index - The index of the item to delete
+---
+--- Returns:
+---  * None
+function obj:deleteItem(index)
+    -- TODO: Implement item deletion
+    hs.logger.new("HammerGhost"):d("Deleting item: " .. tostring(index))
+end
+
+--- HammerGhost:addFolder()
+--- Method
+--- Add a new folder to the tree
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * None
+function obj:addFolder()
+    -- TODO: Implement folder addition
+    hs.logger.new("HammerGhost"):d("Adding new folder")
+end
+
+--- HammerGhost:addAction()
+--- Method
+--- Add a new action to the tree
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * None
+function obj:addAction()
+    -- TODO: Implement action addition
+    hs.logger.new("HammerGhost"):d("Adding new action")
+end
+
+--- HammerGhost:addSequence()
+--- Method
+--- Add a new sequence to the tree
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * None
+function obj:addSequence()
+    -- TODO: Implement sequence addition
+    hs.logger.new("HammerGhost"):d("Adding new sequence")
+end
+
+--- HammerGhost:saveConfig()
+--- Method
+--- Save the current configuration to XML
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * None
+function obj:saveConfig()
+    -- TODO: Implement XML saving
+    hs.logger.new("HammerGhost"):d("Saving configuration")
 end
 
 -- Return the object

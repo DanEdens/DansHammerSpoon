@@ -79,48 +79,48 @@ local macroTree = {
     Applications = {
         {
             name = "Development",
-            icon = "💻",
+            icon = "NSApplicationIcon",
             items = {
                 {
                     name = "Open VSCode",
-                    icon = "📝",
+                    icon = "NSEditTemplate",
                     fn = function() hs.application.launchOrFocus("Visual Studio Code") end
                 },
                 {
                     name = "Open PyCharm",
-                    icon = "🐍",
+                    icon = "NSAdvanced",
                     fn = function() hs.application.launchOrFocus("PyCharm Community Edition") end
                 },
                 {
                     name = "Open Cursor",
-                    icon = "✏️",
+                    icon = "NSComputer",
                     fn = function() hs.application.launchOrFocus("cursor") end
                 }
             }
         },
         {
             name = "Browsers",
-            icon = "🌐",
+            icon = "NSNetwork",
             items = {
                 {
                     name = "Open Chrome",
-                    icon = "🌎",
+                    icon = "NSGlobe",
                     fn = function() hs.application.launchOrFocus("Google Chrome") end
                 },
                 {
                     name = "Open Arc",
-                    icon = "🌍",
+                    icon = "NSBonjour",
                     fn = function() hs.application.launchOrFocus("Arc") end
                 }
             }
         },
         {
             name = "Communication",
-            icon = "💬",
+            icon = "NSChat",
             items = {
                 {
                     name = "Open Slack",
-                    icon = "📱",
+                    icon = "NSShareTemplate",
                     fn = function() hs.application.launchOrFocus("Slack") end
                 }
             }
@@ -129,83 +129,83 @@ local macroTree = {
     WindowManagement = {
         {
             name = "Basic Actions",
-            icon = "🪟",
+            icon = "NSPreferencesGeneral",
             items = {
                 {
                     name = "Center Window",
-                    icon = "⚪",
+                    icon = "NSCenterTextAlignment",
                     fn = function() local win = hs.window.focusedWindow(); if win then win:centerOnScreen() end end
                 },
                 {
                     name = "Full Screen",
-                    icon = "⬛",
+                    icon = "NSEnterFullScreenTemplate",
                     fn = function() local win = hs.window.focusedWindow(); if win then local f = win:screen():frame(); win:setFrame(f) end end
                 },
                 {
                     name = "Save Position",
-                    icon = "💾",
+                    icon = "NSSaveTemplate",
                     fn = saveWindowPosition
                 },
                 {
                     name = "Restore Position",
-                    icon = "🔄",
+                    icon = "NSRefreshTemplate",
                     fn = restoreWindowPosition
                 }
             }
         },
         {
             name = "Screen Positions",
-            icon = "📍",
+            icon = "NSMultipleWindows",
             items = {
                 {
                     name = "Left Half",
-                    icon = "◀",
+                    icon = "NSGoLeftTemplate",
                     fn = function() moveSide("left", false) end
                 },
                 {
                     name = "Right Half",
-                    icon = "▶",
+                    icon = "NSGoRightTemplate",
                     fn = function() moveSide("right", false) end
                 },
                 {
                     name = "Top Left",
-                    icon = "↖",
+                    icon = "NSGoBackTemplate",
                     fn = function() moveToCorner("topLeft") end
                 },
                 {
                     name = "Top Right",
-                    icon = "↗",
+                    icon = "NSGoForwardTemplate",
                     fn = function() moveToCorner("topRight") end
                 },
                 {
                     name = "Bottom Left",
-                    icon = "↙",
+                    icon = "NSGoDownTemplate",
                     fn = function() moveToCorner("bottomLeft") end
                 },
                 {
                     name = "Bottom Right",
-                    icon = "↘",
+                    icon = "NSGoUpTemplate",
                     fn = function() moveToCorner("bottomRight") end
                 }
             }
         },
         {
             name = "Layouts",
-            icon = "🎯",
+            icon = "NSListViewTemplate",
             items = {
                 {
                     name = "Mini Layout",
-                    icon = "🔲",
+                    icon = "NSFlowViewTemplate",
                     fn = miniShuffle
                 },
                 {
                     name = "Horizontal Split",
-                    icon = "↔",
+                    icon = "NSColumnViewTemplate",
                     fn = function() halfShuffle(true, 3) end
                 },
                 {
                     name = "Vertical Split",
-                    icon = "↕",
+                    icon = "NSTableViewTemplate",
                     fn = function() halfShuffle(false, 4) end
                 }
             }
@@ -214,27 +214,27 @@ local macroTree = {
     System = {
         {
             name = "Power",
-            icon = "⚡",
+            icon = "NSStatusAvailable",
             items = {
                 {
                     name = "Lock Screen",
-                    icon = "🔒",
+                    icon = "NSLockLockedTemplate",
                     fn = function() hs.caffeinate.lockScreen() end
                 },
                 {
                     name = "Show Desktop",
-                    icon = "🖥️",
+                    icon = "NSHomeTemplate",
                     fn = function() hs.spaces.toggleMissionControl() end
                 }
             }
         },
         {
             name = "Configuration",
-            icon = "⚙️",
+            icon = "NSPreferencesGeneral",
             items = {
                 {
                     name = "Edit Config",
-                    icon = "📝",
+                    icon = "NSEditTemplate",
                     fn = function()
                         local editor = "cursor"
                         local configFile = hs.configdir .. "/init.lua"
@@ -245,7 +245,7 @@ local macroTree = {
                 },
                 {
                     name = "Reload Config",
-                    icon = "🔄",
+                    icon = "NSRefreshTemplate",
                     fn = function() hs.reload(); hs.alert.show("Config reloaded") end
                 }
             }
@@ -300,16 +300,29 @@ function showCurrentLevel()
         table.insert(choices, {
             text = "← Back",
             subText = "Return to previous menu",
-            image = hs.image.imageFromASCII("↩️")
+            image = hs.image.imageFromName("NSGoLeftTemplate")
         })
     end
     
     -- Add items from current level
     for name, category in pairs(current) do
+        -- Create image from system icon or fallback to text icon
+        local img
+        if category.icon then
+            if category.icon:len() <= 2 then
+                -- For emoji/text icons, create an attributed string
+                img = hs.styledtext.new(category.icon, {font = {size = 16}})
+            else
+                -- For system icons, use imageFromName
+                img = hs.image.imageFromName(category.icon) or 
+                      hs.image.imageFromName("NSActionTemplate")
+            end
+        end
+        
         table.insert(choices, {
             text = category.name,
             subText = category.items and "Open submenu" or "Execute action",
-            image = hs.image.imageFromASCII(category.icon),
+            image = img,
             fn = category.items and nil or category.fn
         })
     end

@@ -551,7 +551,8 @@ function obj:generateTreeHTML()
             
             function editItem(id, event) {
                 if (event) event.stopPropagation();
-                const name = prompt('Enter new name:');
+                const itemName = event.target.closest('.tree-item').querySelector('.name').textContent;
+                const name = prompt('Enter new name:', itemName);
                 if (name) {
                     window.location.href = 'hammerspoon://editItem?' + encodeURIComponent(JSON.stringify({id: id, name: name}));
                 }
@@ -559,7 +560,8 @@ function obj:generateTreeHTML()
             
             function deleteItem(id, event) {
                 if (event) event.stopPropagation();
-                if (confirm('Are you sure you want to delete this item?')) {
+                const itemName = event.target.closest('.tree-item').querySelector('.name').textContent;
+                if (confirm('Are you sure you want to delete "' + itemName + '"?')) {
                     window.location.href = 'hammerspoon://deleteItem?' + encodeURIComponent(id);
                 }
             }
@@ -829,28 +831,31 @@ end
 --- Returns:
 ---  * None
 function obj:editItem(data)
+    local function findItem(id)
+        local function search(items)
+            for _, item in ipairs(items) do
+                if item.id == id then
+                    return item
+                end
+                if item.children then
+                    local found = search(item.children)
+                    if found then return found end
+                end
+            end
+            return nil
+        end
+        return search(self.macroTree)
+    end
+
     local success, data = pcall(hs.json.decode, data)
     if not success then
         hs.logger.new("HammerGhost"):e("Failed to decode edit data")
         return
     end
     
-    local function updateItem(items)
-        for i, item in ipairs(items) do
-            if item.id == data.id then
-                item.name = data.name
-                return true
-            end
-            if item.children then
-                if updateItem(item.children) then
-                    return true
-                end
-            end
-        end
-        return false
-    end
-    
-    if updateItem(self.macroTree) then
+    local item = findItem(data.id)
+    if item then
+        item.name = data.name
         self:refreshWindow()
         self:saveConfig()
     end
@@ -866,22 +871,40 @@ end
 --- Returns:
 ---  * None
 function obj:deleteItem(id)
+    local function findItem(id)
+        local function search(items)
+            for _, item in ipairs(items) do
+                if item.id == id then
+                    return item
+                end
+                if item.children then
+                    local found = search(item.children)
+                    if found then return found end
+                end
+            end
+            return nil
+        end
+        return search(self.macroTree)
+    end
+
     local function removeItem(items)
         for i, item in ipairs(items) do
             if item.id == id then
+                local name = item.name -- Store name before removal
                 table.remove(items, i)
-                return true
+                return name
             end
             if item.children then
-                if removeItem(item.children) then
-                    return true
-                end
+                local removed = removeItem(item.children)
+                if removed then return removed end
             end
         end
-        return false
+        return nil
     end
     
-    if removeItem(self.macroTree) then
+    local item = findItem(id)
+    if item then
+        local name = removeItem(self.macroTree)
         if self.currentSelection and self.currentSelection.id == id then
             self.currentSelection = nil
         end

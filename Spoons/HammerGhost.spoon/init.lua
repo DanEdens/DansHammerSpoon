@@ -186,14 +186,17 @@ function obj:createMainWindow()
 
     -- Set up message handlers
     webview:navigationCallback(function(action, webview)
-        if action == "selectItem" then
-            self:selectItem(webview:evaluateJavaScript("event.data"))
-        elseif action == "toggleItem" then
-            self:toggleItem(webview:evaluateJavaScript("event.data"))
-        elseif action == "editItem" then
-            self:editItem(webview:evaluateJavaScript("event.data"))
-        elseif action == "deleteItem" then
-            self:deleteItem(webview:evaluateJavaScript("event.data"))
+        local scheme, host, params = action:match("^([^:]+)://([^?]+)%??(.*)$")
+        if scheme == "hammerspoon" then
+            if host == "selectItem" then
+                self:selectItem(params)
+            elseif host == "toggleItem" then
+                self:toggleItem(params)
+            elseif host == "editItem" then
+                self:editItem(params)
+            elseif host == "deleteItem" then
+                self:deleteItem(params)
+            end
         end
         return true
     end)

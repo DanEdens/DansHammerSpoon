@@ -1177,7 +1177,7 @@ hs.hotkey.bind(hammer, "y", function() CountDown:startFor(3) end)               
 hs.hotkey.bind(hammer, "l", function() hs.application.launchOrFocus("logioptionsplus") end)                      -- hammer L     -- Logi Options+
 hs.hotkey.bind(_hyper, "l", function() hs.application.launchOrFocus("System Preferences") end)                   -- _hyper L     -- System Preferences
 hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy -S'") end)                                                -- hammer F     -- scrcpy
-hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY', true):post() end)             -- hammer M     -- Play/Pause
+-- hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY', true):post() end)             -- hammer M     -- Play/Pause
 hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper M     -- Edit zshrc
 hs.hotkey.bind(hammer, "s", function() hs.application.launchOrFocus("Slack") end)                                -- hammer S     -- Slack
 hs.hotkey.bind(hammer, "g", function() hs.application.launchOrFocus("GitHub Desktop") end)                       -- hammer G     -- GitHub Desktop

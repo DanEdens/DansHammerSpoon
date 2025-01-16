@@ -74,10 +74,265 @@ hs.timer.doAfter(0.2, function()
     hs.console.toolbar(consoleTB)
 end)
 
--- Bind hotkeys
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "H", function()
-    spoon.HSKeybindings:show()
+-- Macro Tree System
+local macroTree = {
+    Applications = {
+        {
+            name = "Development",
+            icon = "💻",
+            items = {
+                {
+                    name = "Open VSCode",
+                    icon = "📝",
+                    fn = function() hs.application.launchOrFocus("Visual Studio Code") end
+                },
+                {
+                    name = "Open PyCharm",
+                    icon = "🐍",
+                    fn = function() hs.application.launchOrFocus("PyCharm Community Edition") end
+                },
+                {
+                    name = "Open Cursor",
+                    icon = "✏️",
+                    fn = function() hs.application.launchOrFocus("cursor") end
+                }
+            }
+        },
+        {
+            name = "Browsers",
+            icon = "🌐",
+            items = {
+                {
+                    name = "Open Chrome",
+                    icon = "🌎",
+                    fn = function() hs.application.launchOrFocus("Google Chrome") end
+                },
+                {
+                    name = "Open Arc",
+                    icon = "🌍",
+                    fn = function() hs.application.launchOrFocus("Arc") end
+                }
+            }
+        },
+        {
+            name = "Communication",
+            icon = "💬",
+            items = {
+                {
+                    name = "Open Slack",
+                    icon = "📱",
+                    fn = function() hs.application.launchOrFocus("Slack") end
+                }
+            }
+        }
+    },
+    WindowManagement = {
+        {
+            name = "Basic Actions",
+            icon = "🪟",
+            items = {
+                {
+                    name = "Center Window",
+                    icon = "⚪",
+                    fn = function() local win = hs.window.focusedWindow(); if win then win:centerOnScreen() end end
+                },
+                {
+                    name = "Full Screen",
+                    icon = "⬛",
+                    fn = function() local win = hs.window.focusedWindow(); if win then local f = win:screen():frame(); win:setFrame(f) end end
+                },
+                {
+                    name = "Save Position",
+                    icon = "💾",
+                    fn = saveWindowPosition
+                },
+                {
+                    name = "Restore Position",
+                    icon = "🔄",
+                    fn = restoreWindowPosition
+                }
+            }
+        },
+        {
+            name = "Screen Positions",
+            icon = "📍",
+            items = {
+                {
+                    name = "Left Half",
+                    icon = "◀",
+                    fn = function() moveSide("left", false) end
+                },
+                {
+                    name = "Right Half",
+                    icon = "▶",
+                    fn = function() moveSide("right", false) end
+                },
+                {
+                    name = "Top Left",
+                    icon = "↖",
+                    fn = function() moveToCorner("topLeft") end
+                },
+                {
+                    name = "Top Right",
+                    icon = "↗",
+                    fn = function() moveToCorner("topRight") end
+                },
+                {
+                    name = "Bottom Left",
+                    icon = "↙",
+                    fn = function() moveToCorner("bottomLeft") end
+                },
+                {
+                    name = "Bottom Right",
+                    icon = "↘",
+                    fn = function() moveToCorner("bottomRight") end
+                }
+            }
+        },
+        {
+            name = "Layouts",
+            icon = "🎯",
+            items = {
+                {
+                    name = "Mini Layout",
+                    icon = "🔲",
+                    fn = miniShuffle
+                },
+                {
+                    name = "Horizontal Split",
+                    icon = "↔",
+                    fn = function() halfShuffle(true, 3) end
+                },
+                {
+                    name = "Vertical Split",
+                    icon = "↕",
+                    fn = function() halfShuffle(false, 4) end
+                }
+            }
+        }
+    },
+    System = {
+        {
+            name = "Power",
+            icon = "⚡",
+            items = {
+                {
+                    name = "Lock Screen",
+                    icon = "🔒",
+                    fn = function() hs.caffeinate.lockScreen() end
+                },
+                {
+                    name = "Show Desktop",
+                    icon = "🖥️",
+                    fn = function() hs.spaces.toggleMissionControl() end
+                }
+            }
+        },
+        {
+            name = "Configuration",
+            icon = "⚙️",
+            items = {
+                {
+                    name = "Edit Config",
+                    icon = "📝",
+                    fn = function()
+                        local editor = "cursor"
+                        local configFile = hs.configdir .. "/init.lua"
+                        if hs.fs.attributes(configFile) then
+                            hs.task.new("/usr/bin/open", nil, {"-a", editor, configFile}):start()
+                        end
+                    end
+                },
+                {
+                    name = "Reload Config",
+                    icon = "🔄",
+                    fn = function() hs.reload(); hs.alert.show("Config reloaded") end
+                }
+            }
+        }
+    }
+}
+
+-- Create the macro chooser
+local breadcrumbs = {}
+local macroChooser = hs.chooser.new(function(choice)
+    if not choice then
+        -- If user cancelled and we're in a subcategory, go back one level
+        if #breadcrumbs > 0 then
+            table.remove(breadcrumbs)
+            showCurrentLevel()
+        end
+        return
+    end
+
+    if choice.fn then
+        -- Execute the macro
+        choice.fn()
+        breadcrumbs = {}
+    else
+        -- Navigate to subcategory
+        table.insert(breadcrumbs, choice.text)
+        showCurrentLevel()
+    end
 end)
+
+-- Function to get current level in the macro tree based on breadcrumbs
+function getCurrentLevel()
+    local current = macroTree
+    for _, crumb in ipairs(breadcrumbs) do
+        for _, category in pairs(current) do
+            if category.name == crumb then
+                current = category.items
+                break
+            end
+        end
+    end
+    return current
+end
+
+-- Function to show current level in the chooser
+function showCurrentLevel()
+    local current = getCurrentLevel()
+    local choices = {}
+    
+    -- Add back button if we're in a subcategory
+    if #breadcrumbs > 0 then
+        table.insert(choices, {
+            text = "← Back",
+            subText = "Return to previous menu",
+            image = hs.image.imageFromASCII("↩️")
+        })
+    end
+    
+    -- Add items from current level
+    for name, category in pairs(current) do
+        table.insert(choices, {
+            text = category.name,
+            subText = category.items and "Open submenu" or "Execute action",
+            image = hs.image.imageFromASCII(category.icon),
+            fn = category.items and nil or category.fn
+        })
+    end
+    
+    -- Update chooser title to show breadcrumbs
+    local title = "Macro Tree"
+    if #breadcrumbs > 0 then
+        title = table.concat(breadcrumbs, " → ")
+    end
+    macroChooser:placeholderText(title)
+    
+    macroChooser:choices(choices)
+    macroChooser:show()
+end
+
+-- Function to show macro tree
+function showMacroTree()
+    breadcrumbs = {}
+    showCurrentLevel()
+end
+
+-- Bind hotkey to show macro tree (Cmd+Alt+Ctrl+M)
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", showMacroTree)
 
 -- myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 

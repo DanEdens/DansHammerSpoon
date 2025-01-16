@@ -45,40 +45,39 @@ local consoleTB = toolbar.new("myConsole", {
     {
         id = "editConfig",
         label = "Edit Config",
-        image = hs.image.imageFromName("NSAdvanced"),
+        image = hs.image.imageFromName("NSEditTemplate"),
         fn = function()
-            hs.execute("open -a 'Visual Studio Code' '" .. hs.configdir .. "/init.lua'")
+            local editor = "cursor"  -- Use cursor as the editor
+            local configFile = hs.configdir .. "/init.lua"
+            if hs.fs.attributes(configFile) then
+                hs.task.new("/usr/bin/open", nil, {"-a", editor, configFile}):start()
+            else
+                hs.alert.show("Could not find config file")
+            end
         end
     },
     {
         id = "reloadConfig",
         label = "Reload",
-        image = hs.image.imageFromName("NSRefresh"),
-        fn = function() hs.reload() end
+        image = hs.image.imageFromName("NSRefreshTemplate"),
+        fn = function()
+            hs.reload()
+            hs.alert.show("Config reloaded")
+        end
     }
 })
 :canCustomize(true)
 :autosaves(true)
 
-hs.console.toolbar(consoleTB)
+-- Apply the toolbar after a short delay to ensure console is ready
+hs.timer.doAfter(0.2, function()
+    hs.console.toolbar(consoleTB)
+end)
 
-function reloadConfig(files)
-    doReload = false
-    for _,file in pairs(files) do
-        if file:sub(-4) == ".lua" then
-            doReload = true
-        end
-    end
-    if doReload then
-        hs.reload()
-    end
-end
-
- hs.loadSpoon("HSKeybindings")
- hs.hotkey.bind({"cmd", "alt", "ctrl"}, "H", function()
-     spoon.HSKeybindings:show()
- end)
-
+-- Bind hotkeys
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "H", function()
+    spoon.HSKeybindings:show()
+end)
 
 -- myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 

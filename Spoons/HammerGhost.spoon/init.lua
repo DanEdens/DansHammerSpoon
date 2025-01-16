@@ -75,7 +75,7 @@ function obj:start()
         self:createMainWindow()
     end
     if self.window then
-        self.window:_window():show()
+        self.window:show()
     end
     return self
 end
@@ -91,7 +91,7 @@ end
 ---  * The HammerGhost object
 function obj:stop()
     if self.window then
-        self.window:_window():hide()
+        self.window:hide()
     end
     return self
 end
@@ -109,7 +109,7 @@ function obj:toggle()
     if not self.window then
         self:start()
     else
-        if self.window:_window():isVisible() then
+        if self.window:isVisible() then
             self:stop()
         else
             self:start()

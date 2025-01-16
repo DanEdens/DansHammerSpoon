@@ -67,7 +67,9 @@ function obj:start()
     if not self.window then
         self:createMainWindow()
     end
-    self.window:show()
+    if self.window then
+        self.window:show()
+    end
     return self
 end
 
@@ -147,21 +149,26 @@ function obj:createMainWindow()
     local frame = screen:frame()
     
     -- Create main window
-    self.window = hs.webview.new({
+    local webview = hs.webview.new({
         x = frame.x + (frame.w * 0.1),
         y = frame.y + (frame.h * 0.1),
         w = frame.w * 0.8,
         h = frame.h * 0.8
     }, { developerExtrasEnabled = true })  -- Enable dev tools for debugging
     
+    if not webview then
+        hs.logger.new("HammerGhost"):e("Failed to create webview")
+        return
+    end
+    
     -- Set up webview
-    self.window:windowTitle("HammerGhost")
-    self.window:windowStyle("closable,titled,resizable")
-    self.window:allowTextEntry(true)
-    self.window:darkMode(true)
+    webview:windowTitle("HammerGhost")
+    webview:windowStyle("closable,titled,resizable")
+    webview:allowTextEntry(true)
+    webview:darkMode(true)
     
     -- Set up message handlers
-    self.window:setCallback(function(action, data)
+    webview:setCallback(function(action, data)
         if action == "selectItem" then
             self:selectItem(data)
         elseif action == "toggleItem" then
@@ -178,11 +185,14 @@ function obj:createMainWindow()
     if htmlFile then
         local content = htmlFile:read("*all")
         htmlFile:close()
-        self.window:html(content)
+        webview:html(content)
     else
         hs.logger.new("HammerGhost"):e("Failed to load index.html")
-        self.window:html("<html><body style='background: #1e1e1e; color: #d4d4d4;'><h1>Error loading UI</h1></body></html>")
+        webview:html("<html><body style='background: #1e1e1e; color: #d4d4d4;'><h1>Error loading UI</h1></body></html>")
     end
+    
+    -- Store the webview
+    self.window = webview
     
     -- Create toolbar
     self:createToolbar()

@@ -63,12 +63,13 @@ end
 ---
 --- Returns:
 ---  * The HammerGhost object
+
 function obj:start()
     if not self.window then
         self:createMainWindow()
     end
     if self.window then
-        self.window:show()
+        self.window:_window():show()
     end
     return self
 end
@@ -84,7 +85,7 @@ end
 ---  * The HammerGhost object
 function obj:stop()
     if self.window then
-        self.window:hide()
+        self.window:_window():hide()
     end
     return self
 end
@@ -102,7 +103,7 @@ function obj:toggle()
     if not self.window then
         self:start()
     else
-        if self.window:isVisible() then
+        if self.window:_window():isVisible() then
             self:stop()
         else
             self:start()
@@ -147,7 +148,7 @@ end
 function obj:createMainWindow()
     local screen = hs.screen.mainScreen()
     local frame = screen:frame()
-    
+
     -- Create main window
     local webview = hs.webview.new({
         x = frame.x + (frame.w * 0.1),
@@ -155,18 +156,18 @@ function obj:createMainWindow()
         w = frame.w * 0.8,
         h = frame.h * 0.8
     }, { developerExtrasEnabled = true })  -- Enable dev tools for debugging
-    
+
     if not webview then
         hs.logger.new("HammerGhost"):e("Failed to create webview")
         return
     end
-    
+
     -- Set up webview
     webview:windowTitle("HammerGhost")
     webview:windowStyle("closable,titled,resizable")
     webview:allowTextEntry(true)
     webview:darkMode(true)
-    
+
     -- Set up message handlers
     webview:setCallback(function(action, data)
         if action == "selectItem" then
@@ -179,7 +180,7 @@ function obj:createMainWindow()
             self:deleteItem(data)
         end
     end)
-    
+
     -- Load HTML content
     local htmlFile = io.open(hs.spoons.resourcePath("assets/index.html"), "r")
     if htmlFile then

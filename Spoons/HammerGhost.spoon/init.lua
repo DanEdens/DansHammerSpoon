@@ -579,8 +579,8 @@ function obj:generateTreeHTML()
                 <span class="icon" onclick="toggleItem('%s', event)">%s</span>
                 <span class="name">%s</span>
                 <div class="actions">
-                    <button class="edit" onclick="editItem('${item.id}', event)" title="Edit">✏️</button>
-                    <button class="delete" onclick="deleteItem('${item.id}', event)" title="Delete">🗑️</button>
+                    <button class="edit" onclick="editItem('%s', event)" title="Edit">✏️</button>
+                    <button class="delete" onclick="deleteItem('%s', event)" title="Delete">🗑️</button>
                 </div>
             </div>
         ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, icon, item.name, item.id, item.id)

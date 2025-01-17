@@ -31,7 +31,7 @@ obj.lastId = 0
 obj.spoonPath = hs.spoons.scriptPath()
 
 -- Load additional modules
-dofile(hs.spoons.resourcePath("scripts/xmlparser.lua"))
+local xmlparser = dofile(hs.spoons.resourcePath("scripts/xmlparser.lua"))
 
 -- Helper function to generate unique IDs
 function obj:generateId()
@@ -61,8 +61,25 @@ function obj:init()
         if f then
             local content = f:read("*all")
             f:close()
-            -- TODO: Parse XML content
-            -- self.macroTree = parseXML(content) or {}
+            self.macroTree = xmlparser.fromXML(content) or {}
+            -- Find highest ID to continue from
+            local function findHighestId(items)
+                local highest = 0
+                for _, item in ipairs(items) do
+                    local id = tonumber(item.id)
+                    if id and id > highest then
+                        highest = id
+                    end
+                    if item.children then
+                        local childHighest = findHighestId(item.children)
+                        if childHighest > highest then
+                            highest = childHighest
+                        end
+                    end
+                end
+                return highest
+            end
+            self.lastId = findHighestId(self.macroTree)
         end
     end
     return self
@@ -99,6 +116,7 @@ end
 ---  * The HammerGhost object
 function obj:stop()
     if self.window then
+        self:saveConfig()
         self.window:hide()
     end
     return self
@@ -639,7 +657,7 @@ end
 ---  * None
 function obj:saveConfig()
     -- Convert macro tree to XML
-    local xml = self:macroTreeToXML()
+    local xml = xmlparser.toXML(self.macroTree)
     
     -- Save to file
     local f = io.open(self.configPath, "w")
@@ -650,40 +668,6 @@ function obj:saveConfig()
     else
         hs.alert.show("Error saving configuration")
     end
-end
-
---- HammerGhost:macroTreeToXML()
---- Method
---- Convert the macro tree to XML
----
---- Parameters:
----  * None
----
---- Returns:
----  * The generated XML
-function obj:macroTreeToXML()
-    local function itemToXML(item)
-        local attrs = string.format('type="%s" name="%s"', item.type, item.name)
-        if item.type == "action" then
-            return string.format('<item %s/>', attrs)
-        else
-            local children = ""
-            if item.children and #item.children > 0 then
-                for _, child in ipairs(item.children) do
-                    children = children .. itemToXML(child)
-                end
-            end
-            return string.format('<item %s>%s</item>', attrs, children)
-        end
-    end
-    
-    local xml = '<?xml version="1.0" encoding="UTF-8"?>\n<macros>\n'
-    for _, item in ipairs(self.macroTree) do
-        xml = xml .. itemToXML(item) .. "\n"
-    end
-    xml = xml .. '</macros>'
-    
-    return xml
 end
 
 --- HammerGhost:checkResources()
@@ -910,6 +894,75 @@ function obj:deleteItem(id)
         end
         self:refreshWindow()
         self:saveConfig()
+    end
+end
+
+-- Add autosave on window close
+function obj:stop()
+    if self.window then
+        self:saveConfig()
+        self.window:hide()
+    end
+    return self
+end
+
+-- Add autosave when Hammerspoon is about to exit
+hs.shutdownCallback = function()
+    if obj.window then
+        obj:saveConfig()
+    end
+end
+
+-- Add test function for XML
+function obj:testXML()
+    -- Create a test macro tree
+    local testTree = {
+        {
+            id = "1",
+            type = "folder",
+            name = "Test Folder",
+            expanded = true,
+            children = {
+                {
+                    id = "2",
+                    type = "action",
+                    name = "Test Action",
+                    expanded = false
+                },
+                {
+                    id = "3",
+                    type = "sequence",
+                    name = "Test Sequence",
+                    expanded = true,
+                    children = {}
+                }
+            }
+        }
+    }
+    
+    -- Test saving
+    self.macroTree = testTree
+    self:saveConfig()
+    hs.alert.show("Test data saved")
+    
+    -- Test loading
+    if hs.fs.attributes(self.configPath) then
+        local f = io.open(self.configPath, "r")
+        if f then
+            local content = f:read("*all")
+            f:close()
+            hs.dialog.alert(0, 0, "XML Content", content)
+            
+            -- Try parsing it back
+            local loadedTree = xmlparser.fromXML(content)
+            if loadedTree and #loadedTree > 0 then
+                hs.alert.show("XML successfully loaded back")
+                -- Show first item's name as verification
+                hs.alert.show("Loaded item name: " .. loadedTree[1].name)
+            else
+                hs.alert.show("Failed to load XML")
+            end
+        end
     end
 end
 

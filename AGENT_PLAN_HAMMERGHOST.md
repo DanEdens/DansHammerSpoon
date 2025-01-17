@@ -206,3 +206,37 @@ dofile(hs.spoons.resourcePath("scripts/xmlparser.lua"))
 - Configuration guide
 - Troubleshooting guide
 - Development setup instructions
+
+
+
+## Jan 16
+XML Handling:
+The XML parser is loaded but we're not fully using it yet
+Need to implement proper XML saving/loading for configuration persistence
+Currently commented out in the init() function
+Properties Panel:
+The right-side panel is created but not fully functional
+Need to implement updateProperty function for editing properties
+Add more properties based on item type (action parameters, sequence steps, etc.)
+3. Action/Sequence Functionality:
+Need to implement actual functionality for actions
+Need to implement sequence step management
+Add ability to record/edit action parameters
+Add ability to reorder sequence steps
+Drag and Drop:
+Add ability to drag items to reorder them
+Add ability to drag items into folders
+Add visual feedback during drag operations
+Context Menu:
+Right-click menu for additional operations
+Copy/Paste functionality
+Enable/Disable items
+Import/Export functionality
+Keyboard Navigation:
+Arrow key navigation in the tree
+Keyboard shortcuts for common operations
+Tab navigation between panels
+Error Handling:
+Better error messages
+Recovery from invalid configurations
+Backup of configuration before changes

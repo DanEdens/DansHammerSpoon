@@ -192,8 +192,10 @@ function obj:createMainWindow()
                 self:selectItem(hs.http.urlDecode(params))
             elseif host == "toggleItem" then
                 self:toggleItem(hs.http.urlDecode(params))
-            elseif host == "editItem" then
-                self:editItem(hs.http.urlDecode(params))
+            elseif host == "configureItem" then
+                self:configureItem(hs.http.urlDecode(params))
+            elseif host == "saveProperties" then
+                self:saveProperties(hs.http.urlDecode(params))
             elseif host == "deleteItem" then
                 self:deleteItem(hs.http.urlDecode(params))
             end
@@ -887,6 +889,126 @@ function obj:deleteItem(id)
         end
         self:refreshWindow()
         self:saveConfig()
+    end
+end
+
+--- HammerGhost:configureItem(id)
+--- Method
+--- Show configuration panel for an item
+---
+--- Parameters:
+---  * id - The ID of the item to configure
+---
+--- Returns:
+---  * None
+function obj:configureItem(id)
+    local function findItem(items)
+        for _, item in ipairs(items) do
+            if item.id == id then
+                return item
+            end
+            if item.children then
+                local found = findItem(item.children)
+                if found then return found end
+            end
+        end
+        return nil
+    end
+
+    local item = findItem(self.macroTree)
+    if not item then return end
+
+    -- Select the item first
+    self.currentSelection = item
+
+    -- Generate properties panel HTML based on item type
+    local propertiesHtml = string.format([[
+        <div class="properties-form" id="properties-form">
+            <h2>%s Properties</h2>
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" name="name" value="%s">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="enabled" %s>
+                    Enabled
+                </label>
+            </div>
+    ]], item.type:gsub("^%l", string.upper), item.name, item.enabled and "checked" or "")
+
+    -- Add type-specific configuration fields
+    if item.type == "action" then
+        propertiesHtml = propertiesHtml .. [[
+            <div class="form-group">
+                <label for="command">Command</label>
+                <textarea name="command" data-config rows="4"></textarea>
+            </div>
+        ]]
+    elseif item.type == "sequence" then
+        propertiesHtml = propertiesHtml .. [[
+            <div class="form-group">
+                <label for="delay">Delay between steps (ms)</label>
+                <input type="number" name="delay" data-config value="0" min="0">
+            </div>
+        ]]
+    end
+
+    -- Add save/cancel buttons
+    propertiesHtml = propertiesHtml .. string.format([[
+            <div class="form-buttons">
+                <button onclick="saveProperties('%s')" class="primary">Save</button>
+            </div>
+        </div>
+    ]], item.id)
+
+    -- Update the properties panel
+    if self.window then
+        self.window:evaluateJavaScript(string.format([[
+            document.getElementById('properties-panel').innerHTML = `%s`;
+        ]], propertiesHtml))
+    end
+end
+
+--- HammerGhost:saveProperties(data)
+--- Method
+--- Save properties for an item
+---
+--- Parameters:
+---  * data - JSON string containing the properties to save
+---
+--- Returns:
+---  * None
+function obj:saveProperties(jsonData)
+    local success, data = pcall(hs.json.decode, jsonData)
+    if not success then
+        hs.logger.new("HammerGhost"):e("Failed to decode properties data")
+        return
+    end
+
+    local function updateItem(items)
+        for _, item in ipairs(items) do
+            if item.id == data.id then
+                item.name = data.name
+                item.enabled = data.enabled
+                if data.config then
+                    item.config = data.config
+                end
+                return true
+            end
+            if item.children then
+                if updateItem(item.children) then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    if updateItem(self.macroTree) then
+        self:refreshWindow()
+        self:saveConfig()
+        hs.alert.show("Properties saved")
     end
 end
 

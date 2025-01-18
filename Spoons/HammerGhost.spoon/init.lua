@@ -211,9 +211,28 @@ function obj:createMainWindow()
             elseif host == "toggleItem" then
                 self:toggleItem(hs.http.urlDecode(params))
             elseif host == "editItem" then
-                self:editItem(hs.http.urlDecode(params))
+                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
+                if success then
+                    self:editItem(data)
+                else
+                    hs.logger.new("HammerGhost"):e("Failed to decode edit data: " .. params)
+                end
             elseif host == "deleteItem" then
                 self:deleteItem(hs.http.urlDecode(params))
+            elseif host == "updateProperty" then
+                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
+                if success then
+                    self:updateProperty(data)
+                else
+                    hs.logger.new("HammerGhost"):e("Failed to decode property update data: " .. params)
+                end
+            elseif host == "moveItem" then
+                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
+                if success then
+                    self:moveItem(data)
+                else
+                    hs.logger.new("HammerGhost"):e("Failed to decode move data: " .. params)
+                end
             end
         end
         return true
@@ -468,6 +487,8 @@ function obj:generateTreeHTML()
                 display: flex;
                 align-items: center;
                 cursor: pointer;
+                cursor: move;
+                user-select: none;
             }
             
             .tree-item:hover {
@@ -555,8 +576,109 @@ function obj:generateTreeHTML()
                 outline: none;
                 border-color: var(--selected-color);
             }
+            
+            .tree-item.dragging {
+                opacity: 0.5;
+                background: var(--active-color);
+            }
+            
+            .drop-indicator {
+                height: 2px;
+                background-color: var(--selected-color);
+                margin: 0;
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+            
+            .drop-indicator.active {
+                opacity: 1;
+            }
+            
+            .drop-indicator.inside {
+                margin-left: 20px;
+            }
         </style>
         <script>
+            let draggedItem = null;
+            let lastDropIndicator = null;
+            
+            function startDrag(id, event) {
+                event.stopPropagation();
+                draggedItem = document.querySelector(`.tree-item[data-id="${id}"]`);
+                draggedItem.classList.add('dragging');
+                event.dataTransfer.setData('text/plain', id);
+                event.dataTransfer.effectAllowed = 'move';
+            }
+            
+            function endDrag(event) {
+                if (draggedItem) {
+                    draggedItem.classList.remove('dragging');
+                    draggedItem = null;
+                }
+                // Remove any active drop indicators
+                document.querySelectorAll('.drop-indicator.active').forEach(el => {
+                    el.classList.remove('active');
+                });
+            }
+            
+            function dragOver(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.dataTransfer.dropEffect = 'move';
+                
+                const target = event.target.closest('.tree-item');
+                if (!target || target === draggedItem) return;
+                
+                // Calculate drop position (before, after, or inside)
+                const rect = target.getBoundingClientRect();
+                const y = event.clientY - rect.top;
+                const position = y < rect.height / 3 ? 'before' :
+                               y > rect.height * 2/3 ? 'after' : 'inside';
+                
+                // Show drop indicator
+                if (lastDropIndicator) {
+                    lastDropIndicator.classList.remove('active');
+                }
+                
+                let indicator;
+                if (position === 'before') {
+                    indicator = target.previousElementSibling;
+                } else if (position === 'after') {
+                    indicator = target.nextElementSibling;
+                } else {
+                    indicator = target.querySelector('.drop-indicator');
+                }
+                
+                if (indicator && indicator.classList.contains('drop-indicator')) {
+                    indicator.classList.add('active');
+                    lastDropIndicator = indicator;
+                }
+            }
+            
+            function drop(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const sourceId = event.dataTransfer.getData('text/plain');
+                const target = event.target.closest('.tree-item');
+                if (!target || target.dataset.id === sourceId) return;
+                
+                // Calculate drop position
+                const rect = target.getBoundingClientRect();
+                const y = event.clientY - rect.top;
+                const position = y < rect.height / 3 ? 'before' :
+                               y > rect.height * 2/3 ? 'after' : 'inside';
+                
+                // Send move command to Hammerspoon
+                window.location.href = 'hammerspoon://moveItem?' + encodeURIComponent(JSON.stringify({
+                    sourceId: sourceId,
+                    targetId: target.dataset.id,
+                    position: position
+                }));
+                
+                endDrag(event);
+            }
+            
             function selectItem(id, event) {
                 if (event) event.stopPropagation();
                 window.location.href = 'hammerspoon://selectItem?' + encodeURIComponent(id);
@@ -567,21 +689,27 @@ function obj:generateTreeHTML()
                 window.location.href = 'hammerspoon://toggleItem?' + encodeURIComponent(id);
             }
             
-            function editItem(id, event) {
+            function editItem(id, name, event) {
                 if (event) event.stopPropagation();
-                const itemName = event.target.closest('.tree-item').querySelector('.name').textContent;
-                const name = prompt('Enter new name:', itemName);
-                if (name) {
-                    window.location.href = 'hammerspoon://editItem?' + encodeURIComponent(JSON.stringify({id: id, name: name}));
+                const newName = prompt('Enter new name:', name);
+                if (newName) {
+                    window.location.href = 'hammerspoon://editItem?' + encodeURIComponent(JSON.stringify({id: id, name: newName}));
                 }
             }
             
-            function deleteItem(id, event) {
+            function deleteItem(id, name, event) {
                 if (event) event.stopPropagation();
-                const itemName = event.target.closest('.tree-item').querySelector('.name').textContent;
-                if (confirm('Are you sure you want to delete "' + itemName + '"?')) {
+                if (confirm('Are you sure you want to delete "' + name + '"?')) {
                     window.location.href = 'hammerspoon://deleteItem?' + encodeURIComponent(id);
                 }
+            }
+            
+            function updateProperty(id, property, value) {
+                window.location.href = 'hammerspoon://updateProperty?' + encodeURIComponent(JSON.stringify({
+                    id: id,
+                    property: property,
+                    value: value
+                }));
             }
         </script>
     </head>
@@ -590,23 +718,40 @@ function obj:generateTreeHTML()
 
     local function generateItemHTML(item, depth)
         local indent = string.rep("    ", depth)
-        local icon = item.type == "folder" and (item.expanded and "📂" or "📁") or
-                    item.type == "action" and "⚡" or
-                    item.type == "sequence" and "⚙️" or "❓"
+        -- Update icon handling to use system icons
+        local icon = ""
+        if item.type == "folder" then
+            icon = item.expanded and "📂" or "📁"
+        elseif item.type == "action" then
+            icon = "⚡"
+        elseif item.type == "sequence" then
+            icon = "⚙️"
+        else
+            icon = "❓"
+        end
         
         local selectedClass = (self.currentSelection and self.currentSelection.id == item.id) and " selected" or ""
         local indentStyle = string.format("padding-left: %dpx;", depth * 20)
         
         local html = string.format([[
-            <div class="tree-item%s" data-id="%s" data-type="%s" style="%s" onclick="selectItem('%s')">
+            <div class="drop-indicator"></div>
+            <div class="tree-item%s" data-id="%s" data-type="%s" style="%s" 
+                 onclick="selectItem('%s')"
+                 draggable="true"
+                 ondragstart="startDrag('%s', event)"
+                 ondragend="endDrag(event)"
+                 ondragover="dragOver(event)"
+                 ondrop="drop(event)">
                 <span class="icon" onclick="toggleItem('%s', event)">%s</span>
                 <span class="name">%s</span>
                 <div class="actions">
-                    <button class="edit" onclick="editItem('%s', event)" title="Edit">✏️</button>
-                    <button class="delete" onclick="deleteItem('%s', event)" title="Delete">🗑️</button>
+                    <button class="edit" onclick="editItem('%s', '%s', event)" title="Edit">✏️</button>
+                    <button class="delete" onclick="deleteItem('%s', '%s', event)" title="Delete">🗑️</button>
                 </div>
             </div>
-        ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, icon, item.name, item.id, item.id)
+            <div class="drop-indicator"></div>
+        ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, item.id, icon, item.name, 
+            item.id, item.name:gsub("'", "\\'"), item.id, item.name:gsub("'", "\\'"))
         
         if item.children and #item.children > 0 and item.expanded then
             for _, child in ipairs(item.children) do
@@ -627,18 +772,50 @@ function obj:generateTreeHTML()
     
     -- Add properties panel content if an item is selected
     if self.currentSelection then
-        treeContent = treeContent .. string.format([[
-            <div class="properties-form">
-                <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" value="%s" onchange="updateProperty('name', this.value)">
-                </div>
-                <div class="form-group">
-                    <label>Type</label>
-                    <input type="text" value="%s" readonly>
-                </div>
+        local propertiesHtml = [[<div class="properties-form">]]
+        
+        -- Common properties for all types
+        propertiesHtml = propertiesHtml .. string.format([[
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" value="%s" onchange="updateProperty('%s', 'name', this.value)">
             </div>
-        ]], self.currentSelection.name, self.currentSelection.type)
+            <div class="form-group">
+                <label>Type</label>
+                <input type="text" value="%s" readonly>
+            </div>
+        ]], self.currentSelection.name, self.currentSelection.id, self.currentSelection.type)
+        
+        -- Type-specific properties
+        if self.currentSelection.type == "action" then
+            propertiesHtml = propertiesHtml .. string.format([[
+                <div class="form-group">
+                    <label>Shortcut</label>
+                    <input type="text" value="%s" onchange="updateProperty('%s', 'shortcut', this.value)" placeholder="e.g. cmd+alt+ctrl+A">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea onchange="updateProperty('%s', 'description', this.value)">%s</textarea>
+                </div>
+            ]], self.currentSelection.shortcut or "", self.currentSelection.id, 
+                self.currentSelection.id, self.currentSelection.description or "")
+        
+        elseif self.currentSelection.type == "sequence" then
+            propertiesHtml = propertiesHtml .. string.format([[
+                <div class="form-group">
+                    <label>Delay Between Steps (ms)</label>
+                    <input type="number" value="%s" onchange="updateProperty('%s', 'delay', this.value)" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Run in Background</label>
+                    <input type="checkbox" %s onchange="updateProperty('%s', 'background', this.checked)">
+                </div>
+            ]], self.currentSelection.delay or "0", self.currentSelection.id,
+                self.currentSelection.background and "checked" or "", self.currentSelection.id)
+        end
+        
+        propertiesHtml = propertiesHtml .. [[</div>]]
+        treeContent = treeContent .. propertiesHtml
     end
     
     treeContent = treeContent .. [[</div>]]
@@ -815,6 +992,11 @@ end
 --- Returns:
 ---  * None
 function obj:editItem(data)
+    if not data or not data.id or not data.name then
+        hs.logger.new("HammerGhost"):e("Invalid edit data")
+        return
+    end
+
     local function findItem(id)
         local function search(items)
             for _, item in ipairs(items) do
@@ -830,18 +1012,14 @@ function obj:editItem(data)
         end
         return search(self.macroTree)
     end
-
-    local success, data = pcall(hs.json.decode, data)
-    if not success then
-        hs.logger.new("HammerGhost"):e("Failed to decode edit data")
-        return
-    end
     
     local item = findItem(data.id)
     if item then
         item.name = data.name
         self:refreshWindow()
         self:saveConfig()
+    else
+        hs.logger.new("HammerGhost"):e("Could not find item with id: " .. data.id)
     end
 end
 
@@ -964,6 +1142,144 @@ function obj:testXML()
             end
         end
     end
+end
+
+--- HammerGhost:updateProperty(data)
+--- Method
+--- Update a property of an item
+---
+--- Parameters:
+---  * data - Table containing id, property and value
+---
+--- Returns:
+---  * None
+function obj:updateProperty(data)
+    if not data or not data.id or not data.property or data.value == nil then
+        hs.logger.new("HammerGhost"):e("Invalid property update data")
+        return
+    end
+
+    local function findItem(id)
+        local function search(items)
+            for _, item in ipairs(items) do
+                if item.id == id then
+                    return item
+                end
+                if item.children then
+                    local found = search(item.children)
+                    if found then return found end
+                end
+            end
+            return nil
+        end
+        return search(self.macroTree)
+    end
+    
+    local item = findItem(data.id)
+    if item then
+        -- Update the property
+        item[data.property] = data.value
+        
+        -- Special handling for certain properties
+        if data.property == "shortcut" and item.type == "action" then
+            -- Update the hotkey if it exists
+            if item.hotkey then
+                item.hotkey:delete()
+            end
+            if data.value and data.value ~= "" then
+                item.hotkey = hs.hotkey.new(data.value, function()
+                    if item.fn then item.fn() end
+                end)
+                item.hotkey:enable()
+            end
+        end
+        
+        self:refreshWindow()
+        self:saveConfig()
+    else
+        hs.logger.new("HammerGhost"):e("Could not find item with id: " .. data.id)
+    end
+end
+
+--- HammerGhost:moveItem(data)
+--- Method
+--- Move an item to a new position in the tree
+---
+--- Parameters:
+---  * data - Table containing sourceId, targetId, and position
+---
+--- Returns:
+---  * None
+function obj:moveItem(data)
+    if not data or not data.sourceId or not data.targetId or not data.position then
+        hs.logger.new("HammerGhost"):e("Invalid move data")
+        return
+    end
+    
+    local function findAndRemoveItem(items, id)
+        for i, item in ipairs(items) do
+            if item.id == id then
+                return table.remove(items, i)
+            end
+            if item.children then
+                local found = findAndRemoveItem(item.children, id)
+                if found then return found end
+            end
+        end
+        return nil
+    end
+    
+    local function findParentAndIndex(items, id)
+        for i, item in ipairs(items) do
+            if item.id == id then
+                return items, i
+            end
+            if item.children then
+                local parent, index = findParentAndIndex(item.children, id)
+                if parent then return parent, index end
+            end
+        end
+        return nil, nil
+    end
+    
+    -- Find and remove the source item
+    local sourceItem = findAndRemoveItem(self.macroTree, data.sourceId)
+    if not sourceItem then 
+        hs.logger.new("HammerGhost"):e("Could not find source item: " .. data.sourceId)
+        return 
+    end
+    
+    -- Find the target location
+    local targetParent, targetIndex = findParentAndIndex(self.macroTree, data.targetId)
+    if not targetParent then 
+        hs.logger.new("HammerGhost"):e("Could not find target item: " .. data.targetId)
+        -- If we failed to find the target, put the source item back
+        table.insert(self.macroTree, sourceItem)
+        return 
+    end
+    
+    -- Insert the item at the new position
+    if data.position == "before" then
+        table.insert(targetParent, targetIndex, sourceItem)
+    elseif data.position == "after" then
+        table.insert(targetParent, targetIndex + 1, sourceItem)
+    elseif data.position == "inside" and targetParent[targetIndex].type == "folder" then
+        local targetItem = targetParent[targetIndex]
+        if not targetItem.children then
+            targetItem.children = {}
+        end
+        targetItem.expanded = true
+        table.insert(targetItem.children, sourceItem)
+    else
+        -- If something went wrong, put the item back where it came from
+        table.insert(self.macroTree, sourceItem)
+        hs.logger.new("HammerGhost"):e("Invalid drop position: " .. data.position)
+        return
+    end
+    
+    -- Save the changes and refresh the window
+    self:saveConfig()
+    self:refreshWindow()
 end
 
 -- Return the object

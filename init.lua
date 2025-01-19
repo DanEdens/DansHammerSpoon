@@ -9,7 +9,7 @@ dofile(hs.configdir .. "/ExtendedClipboard.lua")
 -- Load HammerGhost
 hs.loadSpoon("HammerGhost")
 spoon.HammerGhost:bindHotkeys({
-    toggle = {{"cmd", "alt", "ctrl"}, "M"}  -- Use Cmd+Alt+Ctrl+G to toggle HammerGhost
+    toggle = {{"cmd", "alt", "ctrl"}, "M"}  -- Use Cmd+Alt+Ctrl+M to toggle HammerGhost
 })
 
 -- Configure Console Dark Mode
@@ -400,7 +400,7 @@ hs.alert.show("Config loaded")
 
 -- hammer_bright = os.getenv("HAMMER_BRIGHT")
 -- # set brightness to max
-hs.brightness.set(10)
+hs.brightness.set(100)
 hs.window.animationDuration = 0
 
 white = hs.drawing.color.white

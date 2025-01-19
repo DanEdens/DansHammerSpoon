@@ -34,7 +34,32 @@ obj.window = nil
 obj.webview = nil
 obj.toolbar = nil
 obj.configPath = hs.configdir .. "/hammerghost_config.xml"
-obj.macroTree = {}
+obj.macroTree = {
+    Applications = {
+        {
+            name = "Development",
+            icon = "NSApplicationIcon",
+            items = {
+                {
+                    name = "Open VSCode",
+                    icon = "NSEditTemplate",
+                    fn = function() hs.application.launchOrFocus("Visual Studio Code") end
+                },
+                {
+                    name = "Open PyCharm",
+                    icon = "NSAdvanced",
+                    fn = function() hs.application.launchOrFocus("PyCharm Community Edition") end
+                },
+                {
+                    name = "Open Cursor",
+                    icon = "NSComputer",
+                    fn = function() hs.application.launchOrFocus("cursor") end
+                }
+            }
+        },
+        -- Other categories...
+    }
+}
 obj.currentSelection = nil
 obj.lastId = 0
 obj.spoonPath = hs.spoons.scriptPath()
@@ -93,8 +118,11 @@ function obj:start()
     if not self.window then
         self:createMainWindow()
     end
-    if self.window and self.window:_window() then
-        self.window:_window():show()
+    if self.window then
+        hs.logger.new("HammerGhost"):d("Window initialized successfully.")
+        self.window:show()
+    else
+        hs.logger.new("HammerGhost"):e("Window is nil, cannot show.")
     end
     return self
 end
@@ -129,7 +157,7 @@ function obj:toggle()
     if not self.window then
         self:start()
     else
-        if self.window:_window() and self.window:_window():isVisible() then
+        if self.window and self.window:isVisible() then  -- Check if window is visible
             self:stop()
         else
             self:start()
@@ -172,7 +200,8 @@ end
 --- Returns:
 ---  * None
 function obj:createMainWindow()
-    ui.createMainWindow(self)  -- Use UI module
+    -- Ensure the window is created and assigned to self.window
+    self.window = ui.createMainWindow(self)  -- Use UI module
 end
 
 --- HammerGhost:createToolbar()
@@ -365,7 +394,7 @@ function obj:generateTreeHTML()
         local indentStyle = string.format("padding-left: %dpx;", level * 20)
         local selectedClass = item.id == self.currentSelection and "selected" or ""
         local icon = item.type == "folder" and "📁" or (item.type == "sequence" and "📋" or "⚡")
-        
+
         return string.format([[
             <div class="item %s" data-id="%s" data-type="%s" style="%s" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
                 <span class="icon" onclick="toggleItem('%s', event)">%s</span>
@@ -807,14 +836,11 @@ local function appSwitched(appName)
     if appName == "Arc" then
         print("Arc browser activated!")
         -- Add any specific actions for Arc here
-    else
-        print("Activated application: " .. appName)
-    end
-
-    -- Add specific actions for the Cursor application
-    if appName == "Cursor" then
+    elseif appName == "Cursor" then
         print("Cursor application activated!")
         -- Add any specific actions for Cursor here
+    else
+        print("Activated application: " .. appName)
     end
 end
 

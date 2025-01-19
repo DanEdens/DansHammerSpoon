@@ -21,7 +21,7 @@ function ui.createMainWindow(obj)
 
     if not webview then
         hs.logger.new("HammerGhost"):e("Failed to create webview")
-        return
+        return nil  -- Return nil if webview creation fails
     end
 
     -- Set up webview
@@ -38,7 +38,14 @@ function ui.createMainWindow(obj)
     end)
 
     -- Load HTML content
-    local htmlFile = io.open(hs.spoons.resourcePath("assets/index.html"), "r")
+    local filePath = hs.spoons.resourcePath("../assets/index.html")
+    if not hs.fs.attributes(filePath) then
+        hs.logger.new("HammerGhost"):e("index.html does not exist at: " .. filePath)
+        webview:html("<html><body style='background: #1e1e1e; color: #d4d4d4;'><h1>Error loading UI</h1></body></html>")
+        return webview
+    end
+
+    local htmlFile = io.open(filePath, "r")
     if htmlFile then
         local content = htmlFile:read("*all")
         htmlFile:close()
@@ -49,10 +56,12 @@ function ui.createMainWindow(obj)
     end
 
     -- Store the webview
-    obj.window = webview
+    obj.window = webview  -- Store the webview in obj.window
 
     -- Create toolbar
     obj:createToolbar()
+
+    return webview  -- Return the webview object
 end
 
-return ui 
+return ui

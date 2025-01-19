@@ -20,6 +20,15 @@ obj.author = "Dan Edens"
 obj.homepage = "https://github.com/Hammerspoon/Spoons"
 obj.license = "MIT - https://opensource.org/licenses/MIT"
 
+-- Load additional modules
+local xmlparser = dofile(hs.spoons.resourcePath("scripts/xmlparser.lua"))
+local config = dofile(hs.spoons.resourcePath("scripts/config.lua"))
+local ui = dofile(hs.spoons.resourcePath("scripts/ui.lua"))
+
+-- Initialize modules with dependencies
+config = config.init({ xmlparser = xmlparser })
+ui = ui.init({ xmlparser = xmlparser })
+
 -- Internal variables
 obj.window = nil
 obj.webview = nil
@@ -56,15 +65,17 @@ function obj:init()
     end
 
     -- Load saved macros if they exist
-    if hs.fs.attributes(self.configPath) then
-        local f = io.open(self.configPath, "r")
-        if f then
-            local content = f:read("*all")
-            f:close()
-            -- TODO: Parse XML content
-            -- self.macroTree = parseXML(content) or {}
-        end
+    self.macroTree, self.lastId = config.loadMacros(self.configPath)  -- Use config module
+
+    -- Before loading the UI
+    hs.logger.new("HammerGhost"):d("Loading UI...")
+
+    -- Load the UI
+    local success, err = pcall(function() ui.createMainWindow(self) end)
+    if not success then
+        hs.logger.new("HammerGhost"):e("Error loading UI: " .. err)
     end
+
     return self
 end
 
@@ -98,8 +109,9 @@ end
 --- Returns:
 ---  * The HammerGhost object
 function obj:stop()
-    if self.window and self.window:_window() then
-        self.window:_window():hide()
+    if self.window then
+        self:saveConfig()
+        self.window:hide()
     end
     return self
 end
@@ -160,65 +172,7 @@ end
 --- Returns:
 ---  * None
 function obj:createMainWindow()
-    local screen = hs.screen.mainScreen()
-    local frame = screen:frame()
-
-    -- Create main window
-    local webview = hs.webview.new({
-        x = frame.x + (frame.w * 0.1),
-        y = frame.y + (frame.h * 0.1),
-        w = frame.w * 0.8,
-        h = frame.h * 0.8
-    }, { developerExtrasEnabled = true })  -- Enable dev tools for debugging
-
-    if not webview then
-        hs.logger.new("HammerGhost"):e("Failed to create webview")
-        return
-    end
-
-    -- Set up webview
-    webview:windowTitle("HammerGhost")
-    webview:windowStyle(hs.webview.windowMasks.titled
-                     | hs.webview.windowMasks.closable
-                     | hs.webview.windowMasks.resizable)
-    webview:allowTextEntry(true)
-    webview:darkMode(true)
-
-    -- Set up message handlers
-    webview:navigationCallback(function(action, webview)
-        local scheme, host, params = action:match("^([^:]+)://([^?]+)%??(.*)$")
-        if scheme == "hammerspoon" then
-            if host == "selectItem" then
-                self:selectItem(hs.http.urlDecode(params))
-            elseif host == "toggleItem" then
-                self:toggleItem(hs.http.urlDecode(params))
-            elseif host == "configureItem" then
-                self:configureItem(hs.http.urlDecode(params))
-            elseif host == "saveProperties" then
-                self:saveProperties(hs.http.urlDecode(params))
-            elseif host == "deleteItem" then
-                self:deleteItem(hs.http.urlDecode(params))
-            end
-        end
-        return true
-    end)
-
-    -- Load HTML content
-    local htmlFile = io.open(hs.spoons.resourcePath("assets/index.html"), "r")
-    if htmlFile then
-        local content = htmlFile:read("*all")
-        htmlFile:close()
-        webview:html(content)
-    else
-        hs.logger.new("HammerGhost"):e("Failed to load index.html")
-        webview:html("<html><body style='background: #1e1e1e; color: #d4d4d4;'><h1>Error loading UI</h1></body></html>")
-    end
-
-    -- Store the webview
-    self.window = webview
-
-    -- Create toolbar
-    self:createToolbar()
+    ui.createMainWindow(self)  -- Use UI module
 end
 
 --- HammerGhost:createToolbar()
@@ -407,225 +361,84 @@ end
 --- Returns:
 ---  * The generated HTML
 function obj:generateTreeHTML()
-    -- Base HTML with styles
-    local baseHtml = [[
-    <html>
-    <head>
-        <style>
-            :root {
-                --bg-color: #1e1e1e;
-                --text-color: #d4d4d4;
-                --border-color: #404040;
-                --hover-color: #2d2d2d;
-                --active-color: #3d3d3d;
-                --selected-color: #094771;
-            }
-            
-            body {
-                background-color: var(--bg-color);
-                color: var(--text-color);
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                margin: 0;
-                padding: 0;
-                user-select: none;
-                height: 100vh;
-                display: flex;
-            }
-            
-            #tree-panel {
-                width: 70%;
-                border-right: 1px solid var(--border-color);
-                overflow-y: auto;
-                padding: 10px;
-            }
-            
-            #properties-panel {
-                width: 30%;
-                padding: 10px;
-                overflow-y: auto;
-            }
-            
-            .tree-item {
-                padding: 6px 8px;
-                margin: 2px 0;
-                border-radius: 4px;
-                display: flex;
-                align-items: center;
-                cursor: pointer;
-            }
-            
-            .tree-item:hover {
-                background-color: var(--hover-color);
-            }
-            
-            .tree-item.selected {
-                background-color: var(--selected-color);
-            }
-            
-            .tree-item .icon {
-                margin-right: 8px;
-                font-size: 16px;
-            }
-            
-            .tree-item .name {
-                flex-grow: 1;
-            }
-            
-            .tree-item .actions {
-                opacity: 0;
-                transition: opacity 0.2s;
-                display: flex;
-                align-items: center;
-                gap: 4px;
-            }
-            
-            .tree-item:hover .actions {
-                opacity: 1;
-            }
-            
-            .tree-item button {
-                background: none;
-                border: none;
-                color: var(--text-color);
-                cursor: pointer;
-                font-size: 14px;
-                padding: 4px;
-                margin: 0;
-                border-radius: 4px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 24px;
-                height: 24px;
-            }
-            
-            .tree-item button:hover {
-                background-color: var(--active-color);
-            }
-            
-            .tree-item button.edit:hover {
-                background-color: #2b4f77;
-            }
-            
-            .tree-item button.delete:hover {
-                background-color: #772b2b;
-            }
-            
-            .properties-form {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .form-group {
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-            }
-            
-            .form-group label {
-                font-weight: 500;
-            }
-            
-            .form-group input, .form-group select {
-                background-color: var(--bg-color);
-                border: 1px solid var(--border-color);
-                color: var(--text-color);
-                padding: 6px 8px;
-                border-radius: 4px;
-            }
-            
-            .form-group input:focus, .form-group select:focus {
-                outline: none;
-                border-color: var(--selected-color);
-            }
-        </style>
-        <script>
-            function selectItem(id, event) {
-                if (event) event.stopPropagation();
-                window.location.href = 'hammerspoon://selectItem?' + encodeURIComponent(id);
-            }
-            
-            function toggleItem(id, event) {
-                if (event) event.stopPropagation();
-                window.location.href = 'hammerspoon://toggleItem?' + encodeURIComponent(id);
-            }
-            
-            function editItem(id, event) {
-                if (event) event.stopPropagation();
-                const name = prompt('Enter new name:');
-                if (name) {
-                    window.location.href = 'hammerspoon://editItem?' + encodeURIComponent(JSON.stringify({id: id, name: name}));
-                }
-            }
-            
-            function deleteItem(id, event) {
-                if (event) event.stopPropagation();
-                if (confirm('Are you sure you want to delete this item?')) {
-                    window.location.href = 'hammerspoon://deleteItem?' + encodeURIComponent(id);
-                }
-            }
-        </script>
-    </head>
-    <body>
-    ]]
-
-    local function generateItemHTML(item, depth)
-        local indent = string.rep("    ", depth)
-        local icon = item.type == "folder" and (item.expanded and "📂" or "📁") or
-                    item.type == "action" and "⚡" or
-                    item.type == "sequence" and "⚙️" or "❓"
-
-        local selectedClass = (self.currentSelection and self.currentSelection.id == item.id) and " selected" or ""
-        local indentStyle = string.format("padding-left: %dpx;", depth * 20)
-
-        local html = string.format([[
-            <div class="tree-item%s" data-id="%s" data-type="%s" style="%s" onclick="selectItem('%s')">
+    local function itemToHTML(item, level)
+        local indentStyle = string.format("padding-left: %dpx;", level * 20)
+        local selectedClass = item.id == self.currentSelection and "selected" or ""
+        local icon = item.type == "folder" and "📁" or (item.type == "sequence" and "📋" or "⚡")
+        
+        return string.format([[
+            <div class="item %s" data-id="%s" data-type="%s" style="%s" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
                 <span class="icon" onclick="toggleItem('%s', event)">%s</span>
                 <span class="name">%s</span>
                 <div class="actions">
-                    <button class="edit" onclick="editItem('%s', event)" title="Edit">✏️</button>
-                    <button class="delete" onclick="deleteItem('%s', event)" title="Delete">🗑️</button>
+                    <button class="edit" onclick="editItem('%s', '%s', event)" title="Edit">✏️</button>
+                    <button class="delete" onclick="deleteItem('%s', '%s', event)" title="Delete">🗑️</button>
                 </div>
+                <div class="drop-indicator"></div>
             </div>
-        ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, icon, item.name, item.id, item.id)
-
-        if item.children and #item.children > 0 and item.expanded then
-            for _, child in ipairs(item.children) do
-                html = html .. generateItemHTML(child, depth + 1)
-            end
-        end
-
-        return html
+        ]], selectedClass, item.id, item.type, indentStyle, item.id, icon, item.name,
+            item.id, item.name:gsub("'", "\\'"), item.id, item.name:gsub("'", "\\'"))
     end
 
     local treeContent = [[<div id="tree-panel">]]
 
     for _, item in ipairs(self.macroTree) do
-        treeContent = treeContent .. generateItemHTML(item, 0)
+        treeContent = treeContent .. itemToHTML(item, 0)
     end
 
     treeContent = treeContent .. [[</div><div id="properties-panel">]]
 
     -- Add properties panel content if an item is selected
     if self.currentSelection then
-        treeContent = treeContent .. string.format([[
-            <div class="properties-form">
-                <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" value="%s" onchange="updateProperty('name', this.value)">
-                </div>
-                <div class="form-group">
-                    <label>Type</label>
-                    <input type="text" value="%s" readonly>
-                </div>
+        local propertiesHtml = [[<div class="properties-form">]]
+
+        -- Common properties for all types
+        propertiesHtml = propertiesHtml .. string.format([[
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" value="%s" onchange="updateProperty('%s', 'name', this.value)">
             </div>
-        ]], self.currentSelection.name, self.currentSelection.type)
+            <div class="form-group">
+                <label>Type</label>
+                <input type="text" value="%s" readonly>
+            </div>
+        ]], self.currentSelection.name, self.currentSelection.id, self.currentSelection.type)
+
+        -- Type-specific properties
+        if self.currentSelection.type == "action" then
+            propertiesHtml = propertiesHtml .. string.format([[
+                <div class="form-group">
+                    <label>Shortcut</label>
+                    <input type="text" value="%s" onchange="updateProperty('%s', 'shortcut', this.value)" placeholder="e.g. cmd+alt+ctrl+A">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea onchange="updateProperty('%s', 'description', this.value)">%s</textarea>
+                </div>
+            ]], self.currentSelection.shortcut or "", self.currentSelection.id,
+                self.currentSelection.id, self.currentSelection.description or "")
+
+        elseif self.currentSelection.type == "sequence" then
+            propertiesHtml = propertiesHtml .. string.format([[
+                <div class="form-group">
+                    <label>Delay Between Steps (ms)</label>
+                    <input type="number" value="%s" onchange="updateProperty('%s', 'delay', this.value)" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Run in Background</label>
+                    <input type="checkbox" %s onchange="updateProperty('%s', 'background', this.checked)">
+                </div>
+            ]], self.currentSelection.delay or "0", self.currentSelection.id,
+                self.currentSelection.background and "checked" or "", self.currentSelection.id)
+        end
+
+        propertiesHtml = propertiesHtml .. [[</div>]]
+        treeContent = treeContent .. propertiesHtml
     end
 
     treeContent = treeContent .. [[</div>]]
 
-    return baseHtml .. treeContent .. [[</body></html>]]
+    return treeContent
 end
 
 --- HammerGhost:saveConfig()
@@ -638,52 +451,8 @@ end
 --- Returns:
 ---  * None
 function obj:saveConfig()
-    -- Convert macro tree to XML
-    local xml = self:macroTreeToXML()
-
-    -- Save to file
-    local f = io.open(self.configPath, "w")
-    if f then
-        f:write(xml)
-        f:close()
-        hs.alert.show("Configuration saved")
-    else
-        hs.alert.show("Error saving configuration")
-    end
-end
-
---- HammerGhost:macroTreeToXML()
---- Method
---- Convert the macro tree to XML
----
---- Parameters:
----  * None
----
---- Returns:
----  * The generated XML
-function obj:macroTreeToXML()
-    local function itemToXML(item)
-        local attrs = string.format('type="%s" name="%s"', item.type, item.name)
-        if item.type == "action" then
-            return string.format('<item %s/>', attrs)
-        else
-            local children = ""
-            if item.children and #item.children > 0 then
-                for _, child in ipairs(item.children) do
-                    children = children .. itemToXML(child)
-                end
-            end
-            return string.format('<item %s>%s</item>', attrs, children)
-        end
-    end
-
-    local xml = '<?xml version="1.0" encoding="UTF-8"?>\n<macros>\n'
-    for _, item in ipairs(self.macroTree) do
-        xml = xml .. itemToXML(item) .. "\n"
-    end
-    xml = xml .. '</macros>'
-
-    return xml
+    config.saveMacros(self.configPath, self.macroTree)  -- Use config module
+    hs.alert.show("Configuration saved")
 end
 
 --- HammerGhost:checkResources()
@@ -892,123 +661,192 @@ function obj:deleteItem(id)
     end
 end
 
---- HammerGhost:configureItem(id)
+--- HammerGhost:updateProperty(data)
 --- Method
---- Show configuration panel for an item
+--- Update a property of an item
 ---
 --- Parameters:
----  * id - The ID of the item to configure
+---  * data - The data containing the item ID, property name, and new value
 ---
 --- Returns:
 ---  * None
-function obj:configureItem(id)
-    local function findItem(items)
-        for _, item in ipairs(items) do
+function obj:updateProperty(data)
+    if not data or not data.id or not data.property or data.value == nil then
+        hs.logger.new("HammerGhost"):e("Invalid property update data")
+        return
+    end
+
+    local function findItem(id)
+        local function search(items)
+            for _, item in ipairs(items) do
+                if item.id == id then
+                    return item
+                end
+                if item.children then
+                    local found = search(item.children)
+                    if found then return found end
+                end
+            end
+            return nil
+        end
+        return search(self.macroTree)
+    end
+
+    local item = findItem(data.id)
+    if item then
+        -- Update the property
+        item[data.property] = data.value
+
+        -- Special handling for certain properties
+        if data.property == "shortcut" and item.type == "action" then
+            -- Update the hotkey if it exists
+            if item.hotkey then
+                item.hotkey:delete()
+            end
+            if data.value and data.value ~= "" then
+                item.hotkey = hs.hotkey.new(data.value, function()
+                    if item.fn then item.fn() end
+                end)
+                item.hotkey:enable()
+            end
+        end
+
+        self:refreshWindow()
+        self:saveConfig()
+    else
+        hs.logger.new("HammerGhost"):e("Could not find item with id: " .. data.id)
+    end
+end
+
+--- HammerGhost:moveItem(data)
+--- Method
+--- Move an item to a new position in the tree
+---
+--- Parameters:
+---  * data - Table containing sourceId, targetId, and position
+---
+--- Returns:
+---  * None
+function obj:moveItem(data)
+    if not data or not data.sourceId or not data.targetId or not data.position then
+        hs.logger.new("HammerGhost"):e("Invalid move data")
+        return
+    end
+
+    local function findAndRemoveItem(items, id)
+        for i, item in ipairs(items) do
             if item.id == id then
-                return item
+                return table.remove(items, i)
             end
             if item.children then
-                local found = findItem(item.children)
+                local found = findAndRemoveItem(item.children, id)
                 if found then return found end
             end
         end
         return nil
     end
 
-    local item = findItem(self.macroTree)
-    if not item then return end
-
-    -- Select the item first
-    self.currentSelection = item
-
-    -- Generate properties panel HTML based on item type
-    local propertiesHtml = string.format([[
-        <div class="properties-form" id="properties-form">
-            <h2>%s Properties</h2>
-            <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" name="name" value="%s">
-            </div>
-            <div class="form-group">
-                <label>
-                    <input type="checkbox" name="enabled" %s>
-                    Enabled
-                </label>
-            </div>
-    ]], item.type:gsub("^%l", string.upper), item.name, item.enabled and "checked" or "")
-
-    -- Add type-specific configuration fields
-    if item.type == "action" then
-        propertiesHtml = propertiesHtml .. [[
-            <div class="form-group">
-                <label for="command">Command</label>
-                <textarea name="command" data-config rows="4"></textarea>
-            </div>
-        ]]
-    elseif item.type == "sequence" then
-        propertiesHtml = propertiesHtml .. [[
-            <div class="form-group">
-                <label for="delay">Delay between steps (ms)</label>
-                <input type="number" name="delay" data-config value="0" min="0">
-            </div>
-        ]]
+    local function findParentAndIndex(items, id)
+        for i, item in ipairs(items) do
+            if item.id == id then
+                return items, i
+            end
+            if item.children then
+                local parent, index = findParentAndIndex(item.children, id)
+                if parent then return parent, index end
+            end
+        end
+        return nil, nil
     end
 
-    -- Add save/cancel buttons
-    propertiesHtml = propertiesHtml .. string.format([[
-            <div class="form-buttons">
-                <button onclick="saveProperties('%s')" class="primary">Save</button>
-            </div>
-        </div>
-    ]], item.id)
-
-    -- Update the properties panel
-    if self.window then
-        self.window:evaluateJavaScript(string.format([[
-            document.getElementById('properties-panel').innerHTML = `%s`;
-        ]], propertiesHtml))
-    end
-end
-
---- HammerGhost:saveProperties(data)
---- Method
---- Save properties for an item
----
---- Parameters:
----  * data - JSON string containing the properties to save
----
---- Returns:
----  * None
-function obj:saveProperties(jsonData)
-    local success, data = pcall(hs.json.decode, jsonData)
-    if not success then
-        hs.logger.new("HammerGhost"):e("Failed to decode properties data")
+    -- Find and remove the source item
+    local sourceItem = findAndRemoveItem(self.macroTree, data.sourceId)
+    if not sourceItem then
+        hs.logger.new("HammerGhost"):e("Could not find source item: " .. data.sourceId)
         return
     end
 
-    local function updateItem(items)
-        for _, item in ipairs(items) do
-            if item.id == data.id then
-                item.name = data.name
-                item.enabled = data.enabled
-                if data.config then
-                    item.config = data.config
-                end
-                return true
-            end
-            if item.children then
-                if updateItem(item.children) then
-                    return true
-                end
-            end
-        end
-        return false
+    -- Find the target location
+    local targetParent, targetIndex = findParentAndIndex(self.macroTree, data.targetId)
+    if not targetParent then
+        hs.logger.new("HammerGhost"):e("Could not find target item: " .. data.targetId)
+        -- If we failed to find the target, put the source item back
+        table.insert(self.macroTree, sourceItem)
+        return
     end
 
-    if updateItem(self.macroTree) then
-        self:refreshWindow()
-        self:saveConfig()
-        hs.alert.show("Properties saved")
+    -- Insert the item at the new position
+    if data.position == "before" then
+        table.insert(targetParent, targetIndex, sourceItem)
+    elseif data.position == "after" then
+        table.insert(targetParent, targetIndex + 1, sourceItem)
+    elseif data.position == "inside" and targetParent[targetIndex].type == "folder" then
+        local targetItem = targetParent[targetIndex]
+        if not targetItem.children then
+            targetItem.children = {}
+        end
+        targetItem.expanded = true
+        table.insert(targetItem.children, sourceItem)
+    else
+        -- If something went wrong, put the item back where it came from
+        table.insert(self.macroTree, sourceItem)
+        hs.logger.new("HammerGhost"):e("Invalid drop position: " .. data.position)
+        return
+    end
+
+    -- Save the changes and refresh the window
+    self:saveConfig()
+    self:refreshWindow()
+end
+
+-- Function to handle application switch events
+local function appSwitched(appName)
+    print("Switched to application: " .. appName)
+
+    -- Add specific actions for the Arc browser
+    if appName == "Arc" then
+        print("Arc browser activated!")
+        -- Add any specific actions for Arc here
+    else
+        print("Activated application: " .. appName)
+    end
+
+    -- Add specific actions for the Cursor application
+    if appName == "Cursor" then
+        print("Cursor application activated!")
+        -- Add any specific actions for Cursor here
+    end
+end
+
+-- Function to handle cursor switch events
+-- (This function can be removed if not needed)
+-- local function cursorSwitched()
+--     print("Cursor switched!")
+--     -- Add any specific actions for cursor switch here
+-- end
+
+-- Create an application watcher
+appWatcher = hs.application.watcher.new(function(appName, eventType, app)
+    if eventType == hs.application.watcher.activated then
+        appSwitched(appName)
+    end
+end)
+
+-- (Remove the cursor watcher if not needed)
+-- cursorWatcher = hs.mouse.new(function(event)
+--     if event:getType() == "mouseMoved" then
+--         cursorSwitched()
+--     end
+-- end)
+
+-- Start the watchers
+appWatcher:start()
+-- cursorWatcher:start() -- Uncomment if you keep the cursor watcher
+
+-- Add autosave when Hammerspoon is about to exit
+hs.shutdownCallback = function()
+    if obj.window then
+        obj:saveConfig()
     end
 end
 

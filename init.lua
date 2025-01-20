@@ -869,10 +869,10 @@ end
 ---
 --- Returns:
 ---  * None
-function obj:selectItem(id)
-    self.currentSelection = findItem(self.macroTree, id)
-    self:refreshWindow()
-end
+-- function obj:selectItem(id)
+--     self.currentSelection = findItem(self.macroTree, id)
+--     self:refreshWindow()
+-- end
 
 -- After loading macros
 self.macroTree, self.lastId = config.loadMacros(self.configPath)  -- Use config module

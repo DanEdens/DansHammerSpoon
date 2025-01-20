@@ -8,6 +8,12 @@ end
 
 -- Create toolbar for the main window
 function ui.createToolbar(obj)
+    -- Check if the toolbar already exists
+    if obj.toolbar then
+        hs.logger.new("HammerGhost"):e("Toolbar already exists")
+        return obj.toolbar
+    end
+
     local toolbar = hs.webview.toolbar.new("hammerghost", {
         {
             id = "addFolder",

@@ -26,6 +26,12 @@ local config = dofile(hs.spoons.resourcePath("scripts/config.lua"))
 local ui = dofile(hs.spoons.resourcePath("scripts/ui.lua"))
 local treeHelpers = dofile(hs.spoons.resourcePath("scripts/tree_helpers.lua"))
 
+-- Ensure config is initialized before use
+if not config then
+    hs.alert.show("HammerGhost: Failed to load config module")
+    return
+end
+
 -- Initialize modules with dependencies
 config = config.init({ xmlparser = xmlparser })
 ui = ui.init({ xmlparser = xmlparser })
@@ -49,6 +55,24 @@ function obj:init()
 
     -- Load saved macros if they exist
     self.macroTree, self.lastId = config.loadMacros(self.configPath)  -- Use config module
+
+    -- Check if the loaded configuration is empty or nil
+    if not self.macroTree or #self.macroTree == 0 then
+        -- Set up a default configuration
+        self.macroTree = {
+            {
+                id = "1",
+                name = "Default Macro",
+                type = "action",
+                expanded = false,
+                tag = "macro",  -- Ensure the tag matches expected structure
+                children = {},  -- Include children if necessary
+                fn = function() hs.alert.show("Default Action Triggered") end
+            }
+        }
+        self.lastId = 1
+        config.saveMacros(self.configPath, self.macroTree)  -- Save the default configuration
+    end
 
     -- Initialize UI
     self:createMainWindow()

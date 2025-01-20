@@ -6,38 +6,55 @@ dofile(hs.configdir .. "/ExtendedClipboard.lua")
 
 -- dofile(hs.configdir .. "/temp.lua")
 
--- Load HammerGhost
+-- Load additional modules as needed
+dofile(hs.configdir .. "/hotkeys.lua")
+
+-- Load the HammerGhost spoon
 hs.loadSpoon("HammerGhost")
-spoon.HammerGhost:bindHotkeys({
-    toggle = {{"cmd", "alt", "ctrl"}, "M"}  -- Use Cmd+Alt+Ctrl+M to toggle HammerGhost
+
+-- Initialize the HammerGhost spoon and assign it to 'obj'
+if spoon.HammerGhost then
+    obj = spoon.HammerGhost:init()
+    hs.logger.new("init.lua"):i("HammerGhost spoon loaded successfully.")
+else
+    hs.logger.new("init.lua"):e("Failed to load HammerGhost spoon.")
+end
+
+-- Bind hotkeys (ensure this comes after initializing 'obj')
+obj:bindHotkeys({
+    toggle = { {"cmd", "alt", "ctrl"}, "H" },
+    -- Add other hotkey bindings here if necessary
 })
+
+-- Example: Toggle HammerGhost with the bound hotkey
+-- obj:toggle()
 
 -- Configure Console Dark Mode
 local darkMode = {
-    backgroundColor = { white = 0.1 },    -- Dark gray, almost black
-    textColor = { white = 0.8 },          -- Light gray
-    cursorColor = { white = 0.8 },        -- Light gray cursor
-    selectionColor = { red = 0.3, blue = 0.4, green = 0.35 }, -- Subtle blue-green selection
-    fontName = "Menlo",                   -- Use Menlo font
-    fontSize = 12                         -- 12pt font size
+    backgroundColor = { white = 0.1 },
+    textColor = { white = 0.8 },
+    cursorColor = { white = 0.8 },
+    selectionColor = { red = 0.3, blue = 0.4, green = 0.35 },
+    fontName = "Menlo",
+    fontSize = 12
 }
 
 -- Apply console styling
-hs.console.darkMode(true)                 -- Enable system dark mode for the window frame
+hs.console.darkMode(true)
 hs.console.windowBackgroundColor({
-    red = 0.11,                          -- Slightly different than content background
-    green = 0.11,                        -- to create a subtle depth effect
+    red = 0.11,
+    green = 0.11,
     blue = 0.11,
     alpha = 0.95
 })
 hs.console.outputBackgroundColor(darkMode.backgroundColor)
 hs.console.consoleCommandColor(darkMode.textColor)
 hs.console.consolePrintColor(darkMode.textColor)
-hs.console.consoleResultColor({ white = 0.7 }) -- Slightly dimmer than regular text
-hs.console.alpha(0.95)                    -- Slightly transparent
-hs.console.titleVisibility("hidden")      -- Hide the title bar for a cleaner look
+hs.console.consoleResultColor({ white = 0.7 })
+hs.console.alpha(0.95)
+hs.console.titleVisibility("hidden")
 
--- Wait a bit for the console window to be ready before setting appearance
+-- Apply appearance after a short delay
 hs.timer.doAfter(0.1, function()
     local consoleWindow = hs.console.hswindow()
     if consoleWindow and consoleWindow.setAppearance then
@@ -75,10 +92,13 @@ local consoleTB = toolbar.new("myConsole", {
 :canCustomize(true)
 :autosaves(true)
 
--- Apply the toolbar after a short delay to ensure console is ready
+-- Apply the toolbar after a short delay
 hs.timer.doAfter(0.2, function()
     hs.console.toolbar(consoleTB)
 end)
+
+-- Alert to indicate that the config has been loaded
+hs.alert.show("Config loaded")
 
 -- Macro Tree System
 local macroTree = {
@@ -354,8 +374,6 @@ end
 -- hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", showMacroTree)
 
 -- myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
-
-hs.alert.show("Config loaded")
 
 -- hs.eventtap.new(hs.eventtap.event.types.middleMouseUp, function(event)
 
@@ -791,4 +809,71 @@ gray = {red=246/255,blue=246/255,green=246/255,alpha=0.3}
 --     end
 -- end):start()
 
-dofile(hs.configdir .. "/hotkeys.lua")
+-- Modify itemToHTML function to handle missing 'name' and nested 'children'
+local function itemToHTML(item, level)
+    if not item.name then
+        hs.logger.new("HammerGhost"):e("Skipping item with missing 'name': " .. hs.inspect(item))
+        return ""
+    end
+
+    local indentStyle = string.format("padding-left: %dpx;", level * 20)
+    local selectedClass = (self.currentSelection and item.id == self.currentSelection.id) and "selected" or ""
+    local icon = item.type == "folder" and "📁" or (item.type == "sequence" and "📋" or "⚡")
+
+    local html = string.format([[
+        <div class="item %s" data-id="%s" data-type="%s" style="%s" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+            <span class="icon" onclick="toggleItem('%s', event)">%s</span>
+            <span class="name">%s</span>
+            <div class="actions">
+                <button class="edit" onclick="editItem('%s', '%s', event)" title="Edit">✏️</button>
+                <button class="delete" onclick="deleteItem('%s', '%s', event)" title="Delete">🗑️</button>
+            </div>
+            <div class="drop-indicator"></div>
+        </div>
+    ]], selectedClass, item.id, item.type, indentStyle, item.id, icon, item.name,
+        item.id, item.name:gsub("'", "\\'"), item.id, item.name:gsub("'", "\\'"))
+
+    if item.children and #item.children > 0 then
+        html = html .. "<div class='children'>"
+        for _, child in ipairs(item.children) do
+            html = html .. itemToHTML(child, level + 1)
+        end
+        html = html .. "</div>"
+    end
+
+    return html
+end
+
+-- Update HammerGhost:findItem to handle nested items
+local function findItem(items, id)
+    for _, item in ipairs(items) do
+        if item.id == id then
+            return item
+        end
+        if item.children then
+            local found = findItem(item.children, id)
+            if found then
+                return found
+            end
+        end
+    end
+    return nil
+end
+
+--- HammerGhost:selectItem(id)
+--- Method
+--- Select an item in the tree
+---
+--- Parameters:
+---  * id - The ID of the item to select
+---
+--- Returns:
+---  * None
+function obj:selectItem(id)
+    self.currentSelection = findItem(self.macroTree, id)
+    self:refreshWindow()
+end
+
+-- After loading macros
+self.macroTree, self.lastId = config.loadMacros(self.configPath)  -- Use config module
+self.currentSelection = nil  -- Ensure there is no initial selection

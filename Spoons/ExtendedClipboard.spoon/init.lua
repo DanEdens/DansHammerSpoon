@@ -1,219 +1,189 @@
 --- === ExtendedClipboard ===
 ---
---- This adds additional Clipboard capablities like 1-10 register, history, and mqtt based device sharing
+--- Enhanced clipboard capabilities with numbered registers, history, and device sharing
 ---
---- Download:
 local obj = {}
 obj.__index = obj
 
 -- Metadata
 obj.name = "ExtendedClipboard"
-obj.version = "0.1.1"
+obj.version = "0.2.0"
 obj.author = "<d.edens@email>"
 obj.homepage = ""
 obj.license = "MIT - https://opensource.org/licenses/MIT"
 
--- Define local references to the modifier combinations
-local _alt = {"alt"}
-local _alt_ctrl = {"alt", "ctrl"}
-local hammer = {"cmd", "ctrl", "alt"}
-local _hyper = {"cmd", "shift", "ctrl", "alt"}
+-- Configuration
+obj.config = {
+    max_history = 100,
+    log_path = os.getenv("HOME") .. "/cliplog.txt",
+    history_path = os.getenv("HOME") .. "/.hammerspoon/clipboard_history.json",
+    editor = "Visual Studio Code"
+}
 
---- ExtendedClipboard:helloWorld()
+-- State
+obj.history = {}
+local json = require("hs.json")
 
-hs.hotkey.bind(_alt, "1", function()
-    --  Get Clipboard contents.
-    local clipboardContent = hs.pasteboard.getContents()
+-- Helper Functions
+local function saveToRegister(number)
+    return function()
+        local content = hs.pasteboard.getContents()
+        if not content then return end
 
-    --Store the clipboard content in a global variable
-    _G.clip1 = clipboardContent
+        _G["clip" .. number] = content
+        hs.alert.show(string.format("%d - %s", number, content:sub(1, 50)))
+        hs.execute(string.format("rost vars/clip%d %s", number, content))
 
-    --Display OSD (On-Screen Display).
-    hs.alert.show("1 - " .. clipboardContent)
+        -- Add to history
+        table.insert(obj.history, 1, {
+            content = content,
+            timestamp = os.time(),
+            register = number
+        })
 
-    -- Set topic var with rost
-    hs.execute("rost vars/clip1 " .. clipboardContent)
-end)
+        -- Trim history if needed
+        if #obj.history > obj.config.max_history then
+            table.remove(obj.history)
+        end
 
-hs.hotkey.bind(_alt, "2", function()
-    local clipboardContent = hs.pasteboard.getContents()
-    _G.clip2 = clipboardContent
-    hs.alert.show("2 - " .. clipboardContent)
-    hs.execute("rost vars/clip2 " .. clipboardContent)
-end)
-
-hs.hotkey.bind(_alt, "3", function()
-    local clipboardContent = hs.pasteboard.getContents()
-    _G.clip3 = clipboardContent
-    hs.alert.show("3 - " .. clipboardContent)
-    hs.execute("rost vars/clip3 " .. clipboardContent)
-end)
-
-hs.hotkey.bind(_alt, "4", function()
-    local clipboardContent = hs.pasteboard.getContents()
-    _G.clip4 = clipboardContent
-    hs.alert.show("4 - " .. clipboardContent)
-    hs.execute("rost vars/clip4 " .. clipboardContent)
-end)
-
-hs.hotkey.bind(_alt, "5", function()
-    local clipboardContent = hs.pasteboard.getContents()
-    _G.clip5 = clipboardContent
-    hs.alert.show("5 - " .. clipboardContent)
-    hs.execute("rost vars/clip5 " .. clipboardContent)
-end)
-
-hs.hotkey.bind(_alt, "6", function()
-    local clipboardContent = hs.pasteboard.getContents()
-    _G.clip6 = clipboardContent
-    hs.alert.show("6 - " .. clipboardContent)
-    hs.execute("rost vars/clip6 " .. clipboardContent)
-end)
-
-hs.hotkey.bind(_alt, "7", function()
-    local clipboardContent = hs.pasteboard.getContents()
-    _G.clip7 = clipboardContent
-    hs.alert.show("7 - " .. clipboardContent)
-    hs.execute("rost vars/clip7 " .. clipboardContent)
-end)
-
-hs.hotkey.bind(_alt, "8", function()
-    local clipboardContent = hs.pasteboard.getContents()
-    _G.clip8 = clipboardContent
-    hs.alert.show("8 - " .. clipboardContent)
-    hs.execute("rost vars/clip8 " .. clipboardContent)
-end)
-
-
-hs.hotkey.bind(_alt, "9", function()
-    local clipboardContent = hs.pasteboard.getContents()
-    _G.clip9 = clipboardContent
-    hs.alert.show("9 - " .. clipboardContent)
-    hs.execute("rost vars/clip9 " .. clipboardContent)
-end)
-
-hs.hotkey.bind(_alt, "0", function()
-    local clipboardContent = hs.pasteboard.getContents()
-    _G.clip0 = clipboardContent
-    hs.alert.show("0 - " .. clipboardContent)
-    hs.execute("rost vars/clip0 " .. clipboardContent)
-end)
-
--- Paste Hotkeys
-hs.hotkey.bind(_alt_ctrl, "1", function()
-    -- Flash clip1 contents on screen
-    hs.alert.show("1 - " .. _G.clip1)
-    -- Set clip1 contents to clipboard
-    hs.pasteboard.setContents(_G.clip1)
-end)
-
-hs.hotkey.bind(_alt_ctrl, "2", function()
-    hs.alert.show("2 - " .. _G.clip2)
-    hs.pasteboard.setContents(_G.clip2)
-end)
-
-hs.hotkey.bind(_alt_ctrl, "3", function()
-    hs.alert.show("3 - " .. _G.clip3)
-    hs.pasteboard.setContents(_G.clip3)
-end)
-
-hs.hotkey.bind(_alt_ctrl, "4", function()
-    hs.alert.show("4 - " .. _G.clip4)
-    hs.pasteboard.setContents(_G.clip4)
-end)
-
-hs.hotkey.bind(_alt_ctrl, "5", function()
-    hs.alert.show("5 - " .. _G.clip5)
-    hs.pasteboard.setContents(_G.clip5)
-end)
-
-hs.hotkey.bind(_alt_ctrl, "6", function()
-    hs.alert.show("6 - " .. _G.clip6)
-    hs.pasteboard.setContents(_G.clip6)
-end)
-
-hs.hotkey.bind(_alt_ctrl, "7", function()
-    hs.alert.show("7 - " .. _G.clip7)
-    hs.pasteboard.setContents(_G.clip7)
-end)
-
-hs.hotkey.bind(_alt_ctrl, "8", function()
-    hs.alert.show("8 - " .. _G.clip8)
-    hs.pasteboard.setContents(_G.clip8)
-end)
-
-hs.hotkey.bind(_alt_ctrl, "9", function()
-    hs.alert.show("9 - " .. _G.clip9)
-    hs.pasteboard.setContents(_G.clip9)
-end)
-
-hs.hotkey.bind(_alt_ctrl, "0", function()
-    hs.alert.show("0 - " .. _G.clip0)
-    hs.pasteboard.setContents(_G.clip0)
-end)
-
-function saveClipboard()
-    -- Write Clipboard to cliplog file
-    local clipboardContent = hs.pasteboard.getContents()
-    local cliplog = io.open(os.getenv("HOME") .. "/cliplog.txt", "a")
-    -- add log entry
-    cliplog:write(os.date("%Y-%m-%d %H:%M:%S") .. " - " .. clipboardContent .. "\n")
-    cliplog:write(clipboardContent .. "\n")
-    cliplog:close()
+        -- Save history to file
+        local f = io.open(obj.config.history_path, "w")
+        if f then
+            f:write(json.encode(obj.history))
+            f:close()
+        end
+    end
 end
 
-function cleanCliplog()
-    -- Clean cliplog file
-    local cliplog = io.open(os.getenv("HOME") .. "/cliplog.txt", "r")
-    local lines = {}
+local function pasteFromRegister(number)
+    return function()
+        local content = _G["clip" .. number]
+        if content then
+            hs.alert.show(string.format("%d - %s", number, content:sub(1, 50)))
+            hs.pasteboard.setContents(content)
+        end
+    end
+end
 
-    -- Read each line and remove duplicates
-    for line in cliplog:lines() do
-        if not lines[line] then
-            lines[line] = true
+function obj:init()
+    -- Load history from file
+    local f = io.open(self.config.history_path, "r")
+    if f then
+        local content = f:read("*all")
+        f:close()
+        if content then
+            self.history = json.decode(content) or {}
         end
     end
 
-    cliplog:close()
-
-    -- Write cleaned contents back to the file
-    cliplog = io.open(os.getenv("HOME") .. "/cliplog.txt", "w")
-    for line, _ in pairs(lines) do
-        cliplog:write(line .. "\n")
+    -- Bind hotkeys
+    for i = 0, 9 do
+        hs.hotkey.bind(_alt, tostring(i), saveToRegister(i))
+        hs.hotkey.bind(_alt_ctrl, tostring(i), pasteFromRegister(i))
     end
 
-    cliplog:close()
+    -- Additional hotkeys
+    hs.hotkey.bind(_alt, "V", function() self:toggleClipboard() end)
+    hs.hotkey.bind(_alt, "C", function() self:saveClipboard() end)
+    hs.hotkey.bind(_hyper, "C", function() self:openAndCleanLog() end)
+    hs.hotkey.bind(hammer, "H", function() self:clearHistory() end)
+
+    return self
 end
 
-hs.hotkey.bind(_alt, "V", function()
-    spoon.ClipboardTool:toggleClipboard()
-end)
+function obj:saveClipboard()
+    local content = hs.pasteboard.getContents()
+    if not content then return end
 
-hs.hotkey.bind(_alt, "C", function()
-    saveClipboard()
-end)
+    local f = io.open(self.config.log_path, "a")
+    if not f then
+        hs.alert.show("Failed to open clipboard log!")
+        return
+    end
 
-hs.hotkey.bind(_hyper, "C", function()
-    hs.execute("open -a 'Visual Studio Code' " .. os.getenv("HOME") .. "/cliplog.txt")
-    cleanCliplog()
-end)
+    -- Write structured log entry
+    local entry = string.format([[
+[%s]
+Content: %s
+Length: %d
+Type: %s
+-------------------
+]], os.date("%Y-%m-%d %H:%M:%S"), content, #content, type(content))
 
-function obj:helloWorld(name)
-  print(string.format('Hello %s from %s', name, self.name))
+    f:write(entry)
+    f:close()
+    hs.alert.show("Clipboard saved to log")
 end
 
+function obj:cleanCliplog()
+    local f = io.open(self.config.log_path, "r")
+    if not f then return end
 
--- Adding a function to clear clipboard history
-function clearClipboardHistory()
+    local seen = {}
+    local entries = {}
+    local current_entry = {}
+
+    for line in f:lines() do
+        if line:match("^%[%d") then  -- New entry starts
+            if #current_entry > 0 then
+                local entry_text = table.concat(current_entry, "\n")
+                if not seen[entry_text] then
+                    seen[entry_text] = true
+                    table.insert(entries, entry_text)
+                end
+                current_entry = {}
+            end
+        end
+        table.insert(current_entry, line)
+    end
+
+    f:close()
+
+    -- Write cleaned entries back
+    f = io.open(self.config.log_path, "w")
+    if f then
+        f:write(table.concat(entries, "\n\n"))
+        f:close()
+    end
+end
+
+function obj:clearHistory()
+    -- Clear registers
     for i = 0, 9 do
         _G["clip" .. i] = nil
     end
+
+    -- Clear history
+    self.history = {}
+    os.remove(self.config.history_path)
+
     hs.alert.show("Clipboard history cleared!")
 end
 
--- Bind a hotkey to clear the clipboard history
-hs.hotkey.bind(hammer, "H", function()
-    clearClipboardHistory()
-end)
+function obj:openAndCleanLog()
+    self:cleanCliplog()
+    hs.execute(string.format("open -a '%s' '%s'", self.config.editor, self.config.log_path))
+end
+
+function obj:toggleClipboard()
+    -- Show clipboard history chooser
+    local choices = {}
+    for i, entry in ipairs(self.history) do
+        table.insert(choices, {
+            text = entry.content:sub(1, 50),
+            subText = os.date("%Y-%m-%d %H:%M:%S", entry.timestamp),
+            content = entry.content
+        })
+    end
+
+    local chooser = hs.chooser.new(function(choice)
+        if choice then
+            hs.pasteboard.setContents(choice.content)
+        end
+    end)
+
+    chooser:choices(choices)
+    chooser:show()
+end
 
 return obj

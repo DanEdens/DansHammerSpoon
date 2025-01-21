@@ -39,6 +39,8 @@ local projects_list = {
     { name = "regressiontestkit", path = "~/lab/regressiontestkit"},
     { name = "OculusTestKit", path = "~/lab/regressiontestkit/OculusTestKit" },
     { name = "hs", path = "~/.hammerspoon" },
+    { name = "madness_interactive", path = "~/lab/madness_interactive" },
+    { name = "Eventghost-rust", path = "~/lab/madness_interactive/projects/rust/Eventghost-rust" },
 
 }
 

@@ -12,22 +12,17 @@ dofile(hs.configdir .. "/hotkeys.lua")
 -- Load the HammerGhost spoon
 hs.loadSpoon("HammerGhost")
 
--- Initialize the HammerGhost spoon and assign it to 'obj'
-if spoon.HammerGhost then
-    obj = spoon.HammerGhost:init()
+-- Initialize the HammerGhost spoon and assign it to a local variable
+local hammerghost = spoon.HammerGhost:init()
+if hammerghost then
+    -- Bind hotkeys for HammerGhost
+    hammerghost:bindHotkeys({
+        toggle = { {"cmd", "alt", "ctrl"}, "H" }
+    })
     hs.logger.new("init.lua"):i("HammerGhost spoon loaded successfully.")
 else
     hs.logger.new("init.lua"):e("Failed to load HammerGhost spoon.")
 end
-
--- Bind hotkeys (ensure this comes after initializing 'obj')
-obj:bindHotkeys({
-    toggle = { {"cmd", "alt", "ctrl"}, "H" },
-    -- Add other hotkey bindings here if necessary
-})
-
--- Example: Toggle HammerGhost with the bound hotkey
--- obj:toggle()
 
 -- Configure Console Dark Mode
 local darkMode = {

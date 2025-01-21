@@ -38,65 +38,120 @@ end
 -- Initialize the module with dependencies
 function config.init(deps)
     config.xmlparser = deps.xmlparser
-    if not config.xmlparser or not config.xmlparser.fromXML then
-        hs.logger.new("HammerGhost"):e("Error: xmlparser or fromXML method is not available")
-    end
     return config
 end
 
--- Load macros from the specified path
-function config.loadMacros(path)
-    local macroTree = {}
-    local lastId = 0
-
-    if hs.fs.attributes(path) then
-        local f = io.open(path, "r")
-        if f then
-            local content = f:read("*all")
-            f:close()
-
-            -- Check if xmlparser and fromXML are available
-            if config.xmlparser and config.xmlparser.fromXML then
-                macroTree = config.xmlparser.fromXML(content) or {}
-                lastId = findHighestId(macroTree)
-                
-                -- Validate the loaded macroTree
-                if not validateMacroTree(macroTree) then
-                    hs.alert.show("HammerGhost: Invalid macro configuration detected. Please check the config file.")
+-- Load macros from XML file
+function config.loadMacros(filepath)
+    local file = io.open(filepath, "r")
+    if not file then
+        -- Return empty configuration if file doesn't exist
+        return {}, 0
+    end
+    
+    local content = file:read("*all")
+    file:close()
+    
+    local parsed = config.xmlparser.fromXML(content)
+    if not parsed then
+        return {}, 0
+    end
+    
+    -- Convert XML structure to macro structure
+    local function convertToMacro(item)
+        if not item then return nil end
+        
+        local macro = {
+            id = item.attributes and item.attributes.id,
+            name = item.attributes and item.attributes.name,
+            type = item.attributes and item.attributes.type,
+            tag = item.tag,
+            expanded = false,
+            children = {}
+        }
+        
+        if item.children then
+            for _, child in ipairs(item.children) do
+                local converted = convertToMacro(child)
+                if converted then
+                    table.insert(macro.children, converted)
                 end
-            else
-                hs.alert.show("Error: xmlparser or fromXML method is not available")
+            end
+        end
+        
+        return macro
+    end
+    
+    local macros = {}
+    local lastId = 0
+    
+    if parsed.children then
+        for _, item in ipairs(parsed.children) do
+            local macro = convertToMacro(item)
+            if macro then
+                table.insert(macros, macro)
+                -- Update lastId
+                if macro.id then
+                    local numId = tonumber(macro.id)
+                    if numId and numId > lastId then
+                        lastId = numId
+                    end
+                end
             end
         end
     end
-
-    return macroTree, lastId
+    
+    return macros, lastId
 end
 
--- Save macros to the specified path
-function config.saveMacros(path, macroTree)
-    -- Log the macroTree structure
-    hs.logger.new("HammerGhost"):d("Saving macroTree: " .. hs.inspect(macroTree))
-
-    -- Check if macroTree is valid
-    if not macroTree or #macroTree == 0 then
-        hs.logger.new("HammerGhost"):e("Invalid macroTree: " .. hs.inspect(macroTree))
-        return
+-- Save macros to XML file
+function config.saveMacros(filepath, macros)
+    -- Convert macro structure to XML structure
+    local function convertToXML(item)
+        if not item then return nil end
+        
+        local xmlItem = {
+            tag = item.tag or "macro",
+            attributes = {
+                id = item.id,
+                name = item.name,
+                type = item.type
+            },
+            children = {}
+        }
+        
+        if item.children then
+            for _, child in ipairs(item.children) do
+                local converted = convertToXML(child)
+                if converted then
+                    table.insert(xmlItem.children, converted)
+                end
+            end
+        end
+        
+        return xmlItem
     end
-
-    local xml = config.xmlparser.toXML(macroTree)
-    if not xml then
-        hs.logger.new("HammerGhost"):e("Failed to convert macroTree to XML")
-        return
+    
+    local root = {
+        tag = "macros",
+        children = {}
+    }
+    
+    for _, macro in ipairs(macros) do
+        local xmlMacro = convertToXML(macro)
+        if xmlMacro then
+            table.insert(root.children, xmlMacro)
+        end
     end
-
-    local f = io.open(path, "w")
-    if f then
-        f:write(xml)
-        f:close()
-    else
-        hs.alert.show("Error saving configuration")
+    
+    local xml = config.xmlparser.toXML(root)
+    local file = io.open(filepath, "w")
+    if file then
+        file:write(xml)
+        file:close()
+        return true
     end
+    return false
 end
 
 return config

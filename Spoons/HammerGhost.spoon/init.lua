@@ -68,6 +68,11 @@ function obj:init()
                 tag = "macro",  -- Ensure the tag matches expected structure
                 children = {},  -- Include children if necessary
                 fn = function() hs.alert.show("Default Action Triggered") end
+                attributes = {  -- Add attributes if needed
+                    id = "1",
+                    name = "Default Macro",
+                    type = "action"
+                }
             }
         }
         self.lastId = 1

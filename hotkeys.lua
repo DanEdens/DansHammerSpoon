@@ -1,3 +1,4 @@
+---@diagnostic disable: lowercase-global, undefined-global
 local log = hs.logger.new('WindowManager','debug')
 log.i('Initializing window management system')
 
@@ -1163,81 +1164,167 @@ end
 -- Bind the hotkey to display available windows in a GUI window
 --hs.hotkey.bind(_hyper, "p", toggleWindowList)
 --hs.hotkey.bind(_hyper, "p", toggleClipLogger)
+function open_github()
+    hs.application.launchOrFocus("GitHub Desktop")
+end
+
+function open_slack()
+    hs.application.launchOrFocus("Slack")
+end
+
+function open_arc()
+    hs.application.launchOrFocus("Arc")
+end
+
+function open_chrome()
+    hs.application.launchOrFocus("Google Chrome")
+end
+
+function open_pycharm()
+    hs.application.launchOrFocus("PyCharm Community Edition")
+end
+
+function open_anythingllm()
+    hs.application.launchOrFocus("AnythingLLM")
+end
+
+function open_mongodb()
+    hs.application.launchOrFocus("MongoDB Compass")
+end
+
+function open_logi()
+    hs.application.launchOrFocus("logioptionsplus")
+end
+
+function open_system()
+    hs.application.launchOrFocus("System Preferences")
+end
+
+function open_vscode()
+    hs.application.launchOrFocus("Visual Studio Code")
+end
+
+function open_cursor()
+    hs.application.launchOrFocus("cursor")
+end
+
+function open_barrier()
+    hs.execute("open -a 'Barrier'")
+end
+
+function open_mission_control()
+    hs.application.launchOrFocus("Mission Control.app")
+end
+
+function open_launchpad()
+    hs.application.launchOrFocus("Launchpad")
+end
 
 -- @formatter:off
 
+function clock()
+    spoon.AClock:toggleShow()
+end
+
+function top_left()
+    moveToCorner("topLeft")
+end
+
+function top_right()
+    moveToCorner("topRight")
+end
+
+function bottom_left()
+    moveToCorner("bottomLeft")
+end
+
+function bottom_right()
+    moveToCorner("bottomRight")
+end
 
 
 hs.hotkey.bind(hammer, "i", openMostRecentImage)
-hs.hotkey.bind(_hyper, "w", function() spoon.AClock:toggleShow() end)                                            -- _hyper W     -- Aclock Show
-hs.hotkey.bind(hammer, "p", function() hs.application.launchOrFocus("PyCharm Community Edition") end)            -- hammer P     -- Pycharm
-hs.hotkey.bind(_hyper, "p", function() hs.application.launchOrFocus("cursor") end)                               -- _hyper P     -- scrcpy
-hs.hotkey.bind(hammer, "b", function() hs.application.launchOrFocus("Arc") end)                                  -- hammer B     -- Arc
-hs.hotkey.bind(_hyper, "b", function() hs.application.launchOrFocus("Google Chrome") end)                        -- _hyper B     -- Chrome
-hs.hotkey.bind(hammer, "d", function() hs.application.launchOrFocus("AnythingLLM") end)                          -- hammer D     -- AnythingLLM
-hs.hotkey.bind(_hyper, "d", function() hs.application.launchOrFocus("MongoDB Compass") end)                      -- _hyper D     -- MongoDB Compass
-hs.hotkey.bind(hammer, "y", function() CountDown:startFor(3) end)                                                -- hammer Y     -- Countdown Timer
-hs.hotkey.bind(hammer, "l", function() hs.application.launchOrFocus("logioptionsplus") end)                      -- hammer L     -- Logi Options+
-hs.hotkey.bind(_hyper, "l", function() hs.application.launchOrFocus("System Preferences") end)                   -- _hyper L     -- System Preferences
-hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy -S'") end)                                                -- hammer F     -- scrcpy
--- hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY', true):post() end)             -- hammer M     -- Play/Pause
-hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper M     -- Edit zshrc
-hs.hotkey.bind(hammer, "s", function() hs.application.launchOrFocus("Slack") end)                                -- hammer S     -- Slack
-hs.hotkey.bind(hammer, "g", function() hs.application.launchOrFocus("GitHub Desktop") end)                       -- hammer G     -- GitHub Desktop
---hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- hammer E     -- Edit zshenv
-hs.hotkey.bind(hammer, "e", function() showFileMenu() end)                                                       -- hammer E     -- Edit file menu
-hs.hotkey.bind(_hyper, "e", function() showEditorMenu() end)                                                     -- _hyper E     -- editor menu
---hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotkeys.lua") end)  -- _hyper E     -- Edit hotkeys.lua
-hs.hotkey.bind(hammer, "t", function() hs.execute("open -a '" .. editor .. "' ~/lab/tasks.py") end)              -- hammer z open $Jobdir/tasks.py
-hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)             -- hammer Z     -- Edit bash_aliases
-hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper Z     -- Edit zshrc
-hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)                                                  -- hammer F1    -- Toggle HammerSpoon Console
-hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)                             -- _hyper F1    -- Open Console.app
-hs.hotkey.bind(hammer, "F2", function() hs.execute("open -a 'post S22 var=:=Task nexus_cycle_character'") end)   -- hammer F2    -- Post S22
---hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Marta") end)                              -- hammer F2    -- Open Marta
-hs.hotkey.bind(_hyper, "F2", function() hs.execute("marta ~/lab") end)                                           -- _hyper F2    -- Open ~/lab
-hs.hotkey.bind(hammer, "F3", function() toggleUSBLogging() end)                                                  -- hammer F3    -- Toggle USB Logging
-hs.hotkey.bind(_hyper, "F3", shuffleLayouts)                                                                     -- hammer s -- Shuffle window layouts
---hs.hotkey.bind(_hyper, "F3", function() tempFunction() end)                                                      -- _hyper F3    -- Temporary Function
-hs.hotkey.bind(hammer, "F4", function() toggleKeyLogging() end)                                                  -- hammer F4    -- Toggle Key Logging
-hs.hotkey.bind(_hyper, "F4", function() tempFunction() end)                                                      -- _hyper F4    -- Temporary Function
-hs.hotkey.bind(hammer, "F5", function() hs.reload() end)                                                         -- hammer F5    -- Reload HammerSpoon
-hs.hotkey.bind(_hyper, "F5", function() tempFunction() end)                                                      -- _hyper F5    -- Temporary Function
-hs.hotkey.bind(hammer, "F6", saveWindowPosition)                                                                 -- hammer F6    -- Save current window position
-hs.hotkey.bind(_hyper, "F6", saveAllWindowPositions)                                                             -- Hyper F6     -- hyper + F6 to save the positions of all windows
-hs.hotkey.bind(hammer, "F7", restoreWindowPosition)                                                              -- hammer F7    -- Restore last saved window position
-hs.hotkey.bind(_hyper, "F7", restoreAllWindowPositions)                                                          -- hyper  F7    -- restore the positions of all windows
-hs.hotkey.bind(hammer, "F8", function() setTargetWindow() end)                                                   -- hammer F8    -- Set target window
-hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)                                                  -- _hyper F8    -- Show window titles
-hs.hotkey.bind(_hyper, "F11", nil, function() moveWindowOneSpace("left", false) end)                             -- _hyper F11   -- Move window one space left
-hs.hotkey.bind(_hyper, "F12", nil, function() moveWindowOneSpace("right", false) end)                            -- _hyper F12   -- Move window one space right
-hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)                           -- shift F13    -- Open Screenshots folder
-hs.hotkey.bind(hammer, "0", function() halfShuffle(false, 4) end)    -- _hyper 4  -- Mini Shuffle (6 horizontal sections)
-hs.hotkey.bind(_hyper, "0", function() halfShuffle(true, 3) end)   -- hammer 4  -- Mini Shuffle (8 vertical sections)hs.hotkey.bind(hammer, "1", function() leftTopCorner() end)                                                      -- hammer 1     -- Move window to Left Top Corner
-hs.hotkey.bind(hammer, "3", function() fullScreen() end)                                                         -- hammer 3     -- Full Screen
-hs.hotkey.bind(_hyper, "3", function() nearlyFullScreen() end)                                                   -- _hyper 3     -- Nearly Full Screen (80% centered)
-hs.hotkey.bind(hammer, "4", function() moveWindow95By72FromLeftSide() end)                                       -- hammer 4     -- Move window 95 by 72 from left side
-hs.hotkey.bind(_hyper, "4", function() miniShuffle() end)                                                        -- _hyper 4     -- Mini Shuffle (95 by 30 from right side)
-hs.hotkey.bind(hammer, "5", function() tempFunction() end)                                                       -- hammer 5     -- Temporary Function
-hs.hotkey.bind(_hyper, "5", function() tempFunction() end)                                                       -- _hyper 5     -- Temporary Function
-spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()                                                    -- hammer 8     -- Layouts Menu
-hs.hotkey.bind(_hyper, "8", function() tempFunction() end)                                                       -- _hyper 8     -- Temporary Function
-hs.hotkey.bind(hammer, "9", function() moveWindowMouseCenter() end)                                              -- hammer 9     -- Move window to mouse as center
-hs.hotkey.bind(_hyper, "9", function() openSelectedFile() end)                                              -- _hyper 9     -- Move window to cursor as top-left corner
-hs.hotkey.bind(hammer, "Space", function() showHammerList() end)                                                     -- hammer -     -- Flash list of hammer options
-hs.hotkey.bind(_hyper, "Space", function() showHyperList() end)                                                      -- _hyper -     -- Flash list of hyper options
-hs.hotkey.bind(hammer, "`", function() hs.application.launchOrFocus("cursor") end)                   -- hammer `     -- Vscode
-hs.hotkey.bind(_hyper, "`", function() hs.application.launchOrFocus("Visual Studio Code") end)                   -- hammer `     -- Vscode
-hs.hotkey.bind(hammer, "Tab", function() hs.application.launchOrFocus("Mission Control.app") end)                -- hammer Tab   -- Mission Control
-hs.hotkey.bind(_hyper, "Tab", function() hs.application.launchOrFocus("Launchpad") end)                          -- _hyper Tab   -- Launchpad
-hs.hotkey.bind(hammer, "t", function() hs.execute("open -a 'Barrier'") end)                                      -- hammer T     -- Barrier
---hs.hotkey.bind(hammer, "H", function () showavailableHotkey() end)                                               -- hammer H     -- List setup hotkeys
+hs.hotkey.bind(_hyper, "w", clock)
+hs.hotkey.bind(hammer, "p", open_pycharm)
+hs.hotkey.bind(_hyper, "p", open_cursor)
+hs.hotkey.bind(hammer, "b", open_arc)
+hs.hotkey.bind(_hyper, "b", open_chrome)
+hs.hotkey.bind(hammer, "d", open_anythingllm)
+hs.hotkey.bind(_hyper, "d", open_mongodb)
+hs.hotkey.bind(hammer, "y", tempFunction)
+hs.hotkey.bind(hammer, "l", open_logi)
+hs.hotkey.bind(_hyper, "l", open_system)
+hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy -S'") end)
+-- hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY', true):post() end)
+hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)
+hs.hotkey.bind(hammer, "s", open_slack)
+hs.hotkey.bind(hammer, "g", open_github)
+hs.hotkey.bind("cmd", "F3", open_github)
+--hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)
+hs.hotkey.bind(hammer, "e", function() showFileMenu() end)
+hs.hotkey.bind(_hyper, "e", function() showEditorMenu() end)
+--hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotke
+hs.hotkey.bind(hammer, "t", function() hs.execute("open -a '" .. editor .. "' ~/lab/tasks.py") end)
+hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)
+hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)
+hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)
+hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)
+hs.hotkey.bind(hammer, "F2", function() hs.execute("open -a 'post P9 var=:=Task beep'") end)
+--hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Marta") end)
+hs.hotkey.bind(_hyper, "F2", function() hs.execute("marta ~/lab") end)
+hs.hotkey.bind(hammer, "F3", function() toggleUSBLogging() end)
+hs.hotkey.bind(_hyper, "F3", shuffleLayouts)
+--hs.hotkey.bind(_hyper, "F3", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F4", function() toggleKeyLogging() end)
+hs.hotkey.bind(_hyper, "F4", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F5", function() hs.reload() end)
+hs.hotkey.bind(_hyper, "F5", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F6", saveWindowPosition)
+hs.hotkey.bind(_hyper, "F6", saveAllWindowPositions)
+hs.hotkey.bind(hammer, "F7", restoreWindowPosition)
+hs.hotkey.bind(_hyper, "F7", restoreAllWindowPositions)
+hs.hotkey.bind(hammer, "F8", function() setTargetWindow() end)
+hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "F11", nil, function() moveWindowOneSpace("left", false) end)
+hs.hotkey.bind(_hyper, "F12", nil, function() moveWindowOneSpace("right", false) end)
+hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)
+hs.hotkey.bind(hammer, "0", function() halfShuffle(false, 4) end)
+hs.hotkey.bind(_hyper, "0", function() halfShuffle(true, 3) end)
+hs.hotkey.bind(hammer, "3", function() fullScreen() end)
+hs.hotkey.bind(_hyper, "3", function() nearlyFullScreen() end)
+hs.hotkey.bind(hammer, "4", function() moveWindow95By72FromLeftSide() end)
+hs.hotkey.bind(_hyper, "4", function() miniShuffle() end)
+hs.hotkey.bind(hammer, "5", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "5", function() tempFunction() end)
+spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()
+hs.hotkey.bind(_hyper, "8", function() tempFunction() end)
+hs.hotkey.bind(hammer, "9", function() moveWindowMouseCenter() end)
+hs.hotkey.bind(_hyper, "9", function() openSelectedFile() end)
+hs.hotkey.bind(hammer, "Space", function() showHammerList() end)
+hs.hotkey.bind(_hyper, "Space", function() showHyperList() end)
+hs.hotkey.bind(hammer, "`", open_cursor)
+hs.hotkey.bind(_hyper, "`", open_vscode)
+hs.hotkey.bind(hammer, "Tab", open_mission_control)
+hs.hotkey.bind(_hyper, "Tab", open_launchpad)
+hs.hotkey.bind(hammer, "t", open_barrier)
+--hs.hotkey.bind(hammer, "H", function () showavailableHotkey() end)
+
+
 
 -- Corner bindings
-hs.hotkey.bind(hammer, "1", function() moveToCorner("topLeft") end)
-hs.hotkey.bind(_hyper, "1", function() moveToCorner("bottomLeft") end)
-hs.hotkey.bind(hammer, "2", function() moveToCorner("topRight") end)
-hs.hotkey.bind(_hyper, "2", function() moveToCorner("bottomRight") end)
+hs.hotkey.bind(hammer, "1", top_left)
+hs.hotkey.bind(_hyper, "1", bottom_left)
+hs.hotkey.bind(hammer, "2", top_right)
+hs.hotkey.bind(_hyper, "2", bottom_right)
+
+function move_left()
+    moveSide("left", true)
+end
+
+function move_right()
+    moveSide("right", true)
+end
+
 
 -- Side bindings
 hs.hotkey.bind(hammer, "6", function() moveSide("left", true) end)
@@ -1254,3 +1341,36 @@ hs.hotkey.bind(hammer, "up", function() moveWindow("up") end)
 hs.hotkey.bind(_hyper, "up", function() tempFunction() end)
 hs.hotkey.bind(hammer, "down", function() moveWindow("down") end)
 hs.hotkey.bind(_hyper, "down", function() tempFunction() end)
+
+-- Add bindings for remaining keys
+-- hs.hotkey.bind(hammer, "a", tempFunction) -- hammer A
+-- hs.hotkey.bind(hammer, "s", tempFunction) -- hammer S
+-- hs.hotkey.bind(hammer, "d", tempFunction) -- hammer D
+-- hs.hotkey.bind(hammer, "f", tempFunction) -- hammer F
+-- hs.hotkey.bind(hammer, "g", tempFunction) -- hammer G
+-- hs.hotkey.bind(hammer, "h", tempFunction) -- hammer H
+-- hs.hotkey.bind(hammer, "j", tempFunction) -- hammer J
+-- hs.hotkey.bind(hammer, "k", tempFunction) -- hammer K
+-- hs.hotkey.bind(hammer, "l", tempFunction) -- hammer L
+-- hs.hotkey.bind(hammer, ";", tempFunction) -- hammer ;
+-- hs.hotkey.bind(hammer, "'", tempFunction) -- hammer '
+-- hs.hotkey.bind(hammer, "z", tempFunction) -- hammer Z
+-- hs.hotkey.bind(hammer, "x", tempFunction) -- hammer X
+-- hs.hotkey.bind(hammer, "c", tempFunction) -- hammer C
+-- hs.hotkey.bind(hammer, "v", tempFunction) -- hammer V
+-- hs.hotkey.bind(hammer, "b", tempFunction) -- hammer B
+-- hs.hotkey.bind(hammer, "n", tempFunction) -- hammer N
+-- hs.hotkey.bind(hammer, "m", tempFunction) -- hammer M
+-- hs.hotkey.bind(hammer, ",", tempFunction) -- hammer ,
+-- hs.hotkey.bind(hammer, ".", tempFunction) -- hammer .
+-- hs.hotkey.bind(hammer, "/", tempFunction) -- hammer /
+-- hs.hotkey.bind(hammer, "0", tempFunction) -- hammer 0
+-- hs.hotkey.bind(hammer, "1", tempFunction) -- hammer 1
+-- hs.hotkey.bind(hammer, "2", tempFunction) -- hammer 2
+-- hs.hotkey.bind(hammer, "3", tempFunction) -- hammer 3
+-- hs.hotkey.bind(hammer, "4", tempFunction) -- hammer 4
+-- hs.hotkey.bind(hammer, "5", tempFunction) -- hammer 5
+-- hs.hotkey.bind(hammer, "6", tempFunction) -- hammer 6
+-- hs.hotkey.bind(hammer, "7", tempFunction) -- hammer 7
+-- hs.hotkey.bind(hammer, "8", tempFunction) -- hammer 8
+-- hs.hotkey.bind(hammer, "9", tempFunction) -- hammer 9

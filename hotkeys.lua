@@ -23,13 +23,14 @@ local fileList = {
     { name = "zshenv", path = "~/.zshenv"},
     { name = "zshrc", path = "~/.zshrc"},
     { name = "bash_aliases", path = "~/.bash_aliases"},
+    { name = "goosehints",     path = "~/.config/goose/.goosehints" },
     { name = "tasks", path = "~/lab/regressiontestkit/tasks.py"},
     { name = "ssh config", path = "~/.ssh/config"},
-    { name = "RTK.cursorrules", path = "~/lab/regressiontestkit/regressiontest/.cursorrules"},
-    { name = "cursor keybindings", path = "~/Library/Application Support/Cursor/User/keybindings.json"},
-    { name = "cursor settings", path = "~/Library/Application Support/Cursor/User/settings.json"},
-    { name = "pycharm keybindings", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/keymaps/JetSetStudio.xml"},
-    { name = "pycharm templates", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/templates/Python.xml"},
+    { name = "RTK_rules",      path = "~/lab/regressiontestkit/regressiontest/.cursorrules" },
+    { name = "mad_rules",      path = "~/lab/madness_interactive/.cursorrules" },
+    { name = "swarmonomicon",  path = "~/lab/madness_interactive/projects/common/swarmonomicon/.cursorrules" },
+    -- { name = "pycharm keybindings", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/keymaps/JetSetStudio.xml"},
+    -- { name = "pycharm templates", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/templates/Python.xml"},
 }
 local selectedFile = nil
 local fileChooser = nil
@@ -39,6 +40,8 @@ local projects_list = {
     { name = "regressiontestkit", path = "~/lab/regressiontestkit"},
     { name = "OculusTestKit", path = "~/lab/regressiontestkit/OculusTestKit" },
     { name = "hs", path = "~/.hammerspoon" },
+    { name = "madness_interactive", path = "~/lab/madness_interactive" },
+    { name = "swarmonomicon",       path = "~/lab/madness_interactive/projects/common/swarmonomicon" },
 
 }
 

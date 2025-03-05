@@ -503,12 +503,14 @@ function miniShuffle()
     counter = (counter + 1) % #miniLayouts
 end
 
+local colCounter = 0
+local rowCounter = 0
 
-function halfShuffle(isHorizontal, numSections)
-    log.i('Half shuffle called:', {horizontal = isHorizontal, sections = numSections})
+function halfShuffle(numRows, numCols)
+    log.i('Half shuffle called:', { rows = numRows, cols = numCols })
 
-    isHorizontal = isHorizontal or false
-    numSections = numSections or 6
+    numRows = numRows or 3
+    numCols = numCols or 2
 
     local win = hs.window.focusedWindow()
     if not win then
@@ -523,37 +525,25 @@ function halfShuffle(isHorizontal, numSections)
     log.d('Current window frame:', hs.inspect(f))
     log.d('Screen frame:', hs.inspect(max))
 
-    if isHorizontal then
-        log.d('Calculating horizontal sections')
-        local sectionWidth = max.w / numSections
-        local sectionHeight = max.h * 0.98
+    local sectionWidth = max.w / numCols
+    local sectionHeight = max.h / numRows
 
-        local x = max.x + (counter * sectionWidth)
-        local y = max.y + (max.h * 0.01)
+    local x = max.x + (colCounter * sectionWidth)
+    local y = max.y + (rowCounter * sectionHeight)
 
-        f.x = x
-        f.y = y
-        f.w = sectionWidth
-        f.h = sectionHeight
-    else
-        log.d('Calculating vertical sections')
-        local sectionWidth = max.w * 0.33
-        local sectionHeight = max.h / numSections
-
-        local x = max.x + (max.w * 0.01)
-        local y = max.y + (counter * sectionHeight)
-
-        f.x = x
-        f.y = y
-        f.w = sectionWidth
-        f.h = sectionHeight
-    end
+    f.x = x
+    f.y = y
+    f.w = sectionWidth
+    f.h = sectionHeight
 
     log.d('New window frame:', hs.inspect(f))
     win:setFrame(f)
 
-    counter = (counter + 1) % numSections
-    log.d('Counter updated to:', counter)
+    rowCounter = (rowCounter + 1) % numRows
+    if rowCounter == 0 then
+        colCounter = (colCounter + 1) % numCols
+    end
+    log.d('Row counter:', rowCounter, 'Col counter:', colCounter)
 end
 
 function half2Shuffle()
@@ -1288,8 +1278,8 @@ hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "F11", nil, function() moveWindowOneSpace("left", false) end)
 hs.hotkey.bind(_hyper, "F12", nil, function() moveWindowOneSpace("right", false) end)
 hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)
-hs.hotkey.bind(hammer, "0", function() halfShuffle(false, 4) end)
-hs.hotkey.bind(_hyper, "0", function() halfShuffle(true, 3) end)
+hs.hotkey.bind(hammer, "0", function() halfShuffle(4, 3) end)
+hs.hotkey.bind(_hyper, "0", function() halfShuffle(12, 3) end)
 hs.hotkey.bind(hammer, "3", function() fullScreen() end)
 hs.hotkey.bind(_hyper, "3", function() nearlyFullScreen() end)
 hs.hotkey.bind(hammer, "4", function() moveWindow95By72FromLeftSide() end)
@@ -1374,3 +1364,214 @@ hs.hotkey.bind(_hyper, "down", function() tempFunction() end)
 -- hs.hotkey.bind(hammer, "7", tempFunction) -- hammer 7
 -- hs.hotkey.bind(hammer, "8", tempFunction) -- hammer 8
 -- hs.hotkey.bind(hammer, "9", tempFunction) -- hammer 9
+
+-- Dragon Grid implementation
+local dragonGridCanvas = nil
+local isSecondLevel = false
+local firstLevelSelection = nil
+local gridSize = 3
+
+function createDragonGrid()
+    -- Clean up any existing grid
+    if dragonGridCanvas then
+        destroyDragonGrid()
+    end
+
+    isSecondLevel = false
+    local screen = hs.screen.mainScreen()
+    local screenFrame = screen:frame()
+
+    dragonGridCanvas = hs.canvas.new(screenFrame)
+    dragonGridCanvas:behavior(hs.canvas.windowBehaviors.canJoinAllSpaces)
+    dragonGridCanvas:level(hs.canvas.windowLevels.overlay)
+
+    -- Add semi-transparent background
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0, green = 0, blue = 0, alpha = 0.3 },
+        frame = { x = 0, y = 0, w = screenFrame.w, h = screenFrame.h }
+    })
+
+    -- Create the grid cells
+    local cellWidth = screenFrame.w / gridSize
+    local cellHeight = screenFrame.h / gridSize
+
+    for row = 0, gridSize - 1 do
+        for col = 0, gridSize - 1 do
+            local cellNum = row * gridSize + col + 1
+            local x = col * cellWidth
+            local y = row * cellHeight
+
+            -- Add cell border
+            dragonGridCanvas:appendElements({
+                type = "rectangle",
+                action = "stroke",
+                strokeColor = { white = 1, alpha = 0.8 },
+                strokeWidth = 2,
+                frame = { x = x, y = y, w = cellWidth, h = cellHeight }
+            })
+
+            -- Add cell number
+            dragonGridCanvas:appendElements({
+                type = "text",
+                action = "fill",
+                frame = { x = x + cellWidth / 2 - 20, y = y + cellHeight / 2 - 20, w = 40, h = 40 },
+                text = tostring(cellNum),
+                textSize = 30,
+                textColor = { white = 1 },
+                textAlignment = "center"
+            })
+        end
+    end
+
+    -- Show the grid
+    dragonGridCanvas:show()
+
+    -- Set up click handler for the entire canvas
+    dragonGridCanvas:clickCallback(function(canvas, event, id, x, y)
+        if event == "mouseUp" then
+            handleGridClick(x, y, screenFrame)
+        end
+    end)
+end
+
+function handleGridClick(x, y, screenFrame)
+    local cellWidth = screenFrame.w / gridSize
+    local cellHeight = screenFrame.h / gridSize
+
+    -- Calculate which cell was clicked
+    local col = math.floor(x / cellWidth)
+    local row = math.floor(y / cellHeight)
+    local cellNum = row * gridSize + col + 1
+
+    if not isSecondLevel then
+        -- First level selection
+        firstLevelSelection = {
+            row = row,
+            col = col,
+            x = col * cellWidth,
+            y = row * cellHeight,
+            w = cellWidth,
+            h = cellHeight
+        }
+        createSecondLevelGrid(firstLevelSelection)
+    else
+        -- Second level selection (final)
+        local firstX = firstLevelSelection.x
+        local firstY = firstLevelSelection.y
+        local firstW = firstLevelSelection.w
+        local firstH = firstLevelSelection.h
+
+        -- Calculate precise position within the cell
+        local secondCellWidth = firstW / gridSize
+        local secondCellHeight = firstH / gridSize
+
+        local secondCol = math.floor((x - firstX) / secondCellWidth)
+        local secondRow = math.floor((y - firstY) / secondCellHeight)
+
+        -- Calculate the exact position to move the mouse to
+        local finalX = firstX + secondCol * secondCellWidth + secondCellWidth / 2
+        local finalY = firstY + secondRow * secondCellHeight + secondCellHeight / 2
+
+        -- Move the mouse cursor to the selected position
+        hs.mouse.absolutePosition({ x = finalX, y = finalY })
+
+        -- Destroy the grid
+        destroyDragonGrid()
+    end
+end
+
+function createSecondLevelGrid(cell)
+    -- Switch to second level mode
+    isSecondLevel = true
+
+    -- Clear the canvas
+    dragonGridCanvas:deleteSections()
+
+    -- Add semi-transparent overlay for areas outside the selected cell
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0, green = 0, blue = 0, alpha = 0.5 },
+        frame = { x = 0, y = 0, w = cell.x, h = cell.y + cell.h }
+    })
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0, green = 0, blue = 0, alpha = 0.5 },
+        frame = { x = cell.x + cell.w, y = 0, w = hs.screen.mainScreen():frame().w - (cell.x + cell.w), h = cell.y + cell.h }
+    })
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0, green = 0, blue = 0, alpha = 0.5 },
+        frame = { x = 0, y = cell.y + cell.h, w = hs.screen.mainScreen():frame().w, h = hs.screen.mainScreen():frame().h - (cell.y + cell.h) }
+    })
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0, green = 0, blue = 0, alpha = 0.5 },
+        frame = { x = 0, y = 0, w = hs.screen.mainScreen():frame().w, h = cell.y }
+    })
+
+    -- Create a second level grid inside the selected cell
+    local secondCellWidth = cell.w / gridSize
+    local secondCellHeight = cell.h / gridSize
+
+    -- Add highlight for the selected cell
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0.2, green = 0.3, blue = 0.4, alpha = 0.4 },
+        frame = { x = cell.x, y = cell.y, w = cell.w, h = cell.h }
+    })
+
+    for row = 0, gridSize - 1 do
+        for col = 0, gridSize - 1 do
+            local cellNum = row * gridSize + col + 1
+            local x = cell.x + col * secondCellWidth
+            local y = cell.y + row * secondCellHeight
+
+            -- Add cell border
+            dragonGridCanvas:appendElements({
+                type = "rectangle",
+                action = "stroke",
+                strokeColor = { red = 1, green = 1, blue = 1, alpha = 0.8 },
+                strokeWidth = 1,
+                frame = { x = x, y = y, w = secondCellWidth, h = secondCellHeight }
+            })
+
+            -- Add cell number
+            dragonGridCanvas:appendElements({
+                type = "text",
+                action = "fill",
+                frame = { x = x + secondCellWidth / 2 - 15, y = y + secondCellHeight / 2 - 15, w = 30, h = 30 },
+                text = tostring(cellNum),
+                textSize = 20,
+                textColor = { white = 1 },
+                textAlignment = "center"
+            })
+        end
+    end
+end
+
+function destroyDragonGrid()
+    if dragonGridCanvas then
+        dragonGridCanvas:delete()
+        dragonGridCanvas = nil
+    end
+    isSecondLevel = false
+    firstLevelSelection = nil
+end
+
+function toggleDragonGrid()
+    if dragonGridCanvas then
+        destroyDragonGrid()
+    else
+        createDragonGrid()
+    end
+end
+
+-- Bind Dragon Grid to a hotkey
+hs.hotkey.bind(hammer, "d", toggleDragonGrid)

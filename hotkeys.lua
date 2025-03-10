@@ -43,7 +43,7 @@ local projects_list = {
     { name = "hs", path = "~/.hammerspoon" },
     { name = "madness_interactive", path = "~/lab/madness_interactive" },
     { name = "swarmonomicon",       path = "~/lab/madness_interactive/projects/common/swarmonomicon" },
-
+    { name = "Cogwyrm",             path = "~/lab/madness_interactive/projects/mobile/Cogwyrm" },
 }
 
     -- { name = "pycharm settings", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/options/"},

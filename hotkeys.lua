@@ -11,6 +11,8 @@ _hyper = { "cmd", "shift", "ctrl", "alt" }
 -- _hyper = table.insert(table.shallow_copy(hammer), "shift")  -- Dynamically adds shift to hammer's modifiers
 _meta = { "cmd", "shift", "alt" }
 
+-- Enable multi-window selector for applications with multiple windows
+local enableMultiWindowSelector = true
 -- Set default editor
 local editor = "cursor"
 -- local editor = "nvim"
@@ -1154,58 +1156,23 @@ end
 -- Bind the hotkey to display available windows in a GUI window
 --hs.hotkey.bind(_hyper, "p", toggleWindowList)
 --hs.hotkey.bind(_hyper, "p", toggleClipLogger)
-function open_github()
-    hs.application.launchOrFocus("GitHub Desktop")
-end
-
-function open_slack()
-    hs.application.launchOrFocus("Slack")
-end
-
-function open_arc()
-    hs.application.launchOrFocus("Arc")
-end
-
-function open_chrome()
-    hs.application.launchOrFocus("Google Chrome")
-end
-
-function open_pycharm()
-    hs.application.launchOrFocus("PyCharm Community Edition")
-end
-
-function open_anythingllm()
-    hs.application.launchOrFocus("AnythingLLM")
-end
-
-function open_mongodb()
-    hs.application.launchOrFocus("MongoDB Compass")
-end
-
-function open_logi()
-    hs.application.launchOrFocus("logioptionsplus")
-end
-
-function open_system()
-    hs.application.launchOrFocus("System Preferences")
-end
-
-function open_vscode()
-    hs.application.launchOrFocus("Visual Studio Code")
-end
-
-function open_cursor()
-    local cursorApp = hs.application.find("cursor")
-
-    if not cursorApp then
-        hs.application.launchOrFocus("cursor")
+function launchOrFocusWithWindowSelection(appName)
+    if not enableMultiWindowSelector then
+        hs.application.launchOrFocus(appName)
         return
     end
 
-    local windows = cursorApp:allWindows()
+    local app = hs.application.find(appName)
+
+    if not app then
+        hs.application.launchOrFocus(appName)
+        return
+    end
+
+    local windows = app:allWindows()
 
     if #windows == 0 then
-        hs.application.launchOrFocus("cursor")
+        hs.application.launchOrFocus(appName)
         return
     end
 
@@ -1219,7 +1186,7 @@ function open_cursor()
         local title = win:title()
         table.insert(choices, {
             text = title,
-            subText = "Focus this Cursor window",
+            subText = "Focus this " .. appName .. " window",
             window = win
         })
     end
@@ -1233,16 +1200,59 @@ function open_cursor()
     chooser:show()
 end
 
+function open_github()
+    launchOrFocusWithWindowSelection("GitHub Desktop")
+end
+
+function open_slack()
+    launchOrFocusWithWindowSelection("Slack")
+end
+
+function open_arc()
+    launchOrFocusWithWindowSelection("Arc")
+end
+
+function open_chrome()
+    launchOrFocusWithWindowSelection("Google Chrome")
+end
+
+function open_pycharm()
+    launchOrFocusWithWindowSelection("PyCharm Community Edition")
+end
+
+function open_anythingllm()
+    launchOrFocusWithWindowSelection("AnythingLLM")
+end
+
+function open_mongodb()
+    launchOrFocusWithWindowSelection("MongoDB Compass")
+end
+
+function open_logi()
+    launchOrFocusWithWindowSelection("logioptionsplus")
+end
+
+function open_system()
+    launchOrFocusWithWindowSelection("System Preferences")
+end
+
+function open_vscode()
+    launchOrFocusWithWindowSelection("Visual Studio Code")
+end
+
+function open_cursor()
+    launchOrFocusWithWindowSelection("cursor")
+end
 function open_barrier()
     hs.execute("open -a 'Barrier'")
 end
 
 function open_mission_control()
-    hs.application.launchOrFocus("Mission Control.app")
+    launchOrFocusWithWindowSelection("Mission Control.app")
 end
 
 function open_launchpad()
-    hs.application.launchOrFocus("Launchpad")
+    launchOrFocusWithWindowSelection("Launchpad")
 end
 
 -- @formatter:off
@@ -1293,7 +1303,7 @@ hs.hotkey.bind(hammer, "t", function() hs.execute("open -a '" .. editor .. "' ~/
 hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)
 hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)
 hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)
-hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)
+hs.hotkey.bind(_hyper, "F1", function() launchOrFocusWithWindowSelection("Console") end)
 hs.hotkey.bind(hammer, "F2", function() hs.execute("open -a 'post P9 var=:=Task beep'") end)
 --hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Marta") end)
 hs.hotkey.bind(_hyper, "F2", function() hs.execute("marta ~/lab") end)

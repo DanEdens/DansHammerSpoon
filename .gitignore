@@ -1,7 +1,12 @@
-
 .vscode/*
 *.xml
 .idea/*
 /logs
 *.out
 /.specstory
+
+# Secrets files
+.secrets
+.env
+*.pem
+*.key

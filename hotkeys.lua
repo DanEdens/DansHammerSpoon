@@ -1195,7 +1195,42 @@ function open_vscode()
 end
 
 function open_cursor()
-    hs.application.launchOrFocus("cursor")
+    local cursorApp = hs.application.find("cursor")
+
+    if not cursorApp then
+        hs.application.launchOrFocus("cursor")
+        return
+    end
+
+    local windows = cursorApp:allWindows()
+
+    if #windows == 0 then
+        hs.application.launchOrFocus("cursor")
+        return
+    end
+
+    if #windows == 1 then
+        windows[1]:focus()
+        return
+    end
+
+    local choices = {}
+    for i, win in ipairs(windows) do
+        local title = win:title()
+        table.insert(choices, {
+            text = title,
+            subText = "Focus this Cursor window",
+            window = win
+        })
+    end
+
+    local chooser = hs.chooser.new(function(choice)
+        if choice then
+            choice.window:focus()
+        end
+    end)
+    chooser:choices(choices)
+    chooser:show()
 end
 
 function open_barrier()

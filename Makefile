@@ -2,7 +2,7 @@
 # This file provides examples and shortcuts for interacting with the MCP todo server
 
 # Default variables
-SERVER_URL ?= http://localhost:8000
+SERVER_URL ?= http://$(AWSIP):$(MCP_PORT)
 TODO_ID ?= replace_with_todo_id
 LESSON_ID ?= replace_with_lesson_id
 QUERY ?= example_query
@@ -107,4 +107,4 @@ search-lessons:
 
 get-lesson:
 	@echo "Getting lesson: $(LESSON_ID)"
-	curl -s -X GET "$(SERVER_URL)/lessons/$(LESSON_ID)" | jq 
+	curl -s -X GET "$(SERVER_URL)/lessons/$(LESSON_ID)" | jq

@@ -5,7 +5,7 @@ local M = {}
 
 -- Attempt to load the secrets file
 local function loadSecrets()
-    local secretsPath = hs.configdir .. "/.secrets"
+    local secretsPath = hs.configdir .. "/.env"
     local f = io.open(secretsPath, "r")
     if not f then
         hs.alert.show("Warning: .secrets file not found")

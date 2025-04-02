@@ -9,6 +9,12 @@ require("hs.ipc")
 
 -- Load HammerGhost
 hs.loadSpoon("HammerGhost")
+
+local secrets = require("load_secrets")
+local AWSIP = secrets.get("AWSIP", "localhost")
+local AWSIP2 = secrets.get("AWSIP2", "localhost")
+local MCP_PORT = secrets.get("MCP_PORT", "8000")
+
 spoon.HammerGhost:bindHotkeys({
     toggle = {{"cmd", "alt", "ctrl"}, "M"}  -- Use Cmd+Alt+Ctrl+G to toggle HammerGhost
 })

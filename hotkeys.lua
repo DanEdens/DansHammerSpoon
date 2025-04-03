@@ -1,3 +1,4 @@
+---@diagnostic disable: lowercase-global, undefined-global
 local log = hs.logger.new('WindowManager','debug')
 log.i('Initializing window management system')
 
@@ -10,6 +11,8 @@ _hyper = { "cmd", "shift", "ctrl", "alt" }
 -- _hyper = table.insert(table.shallow_copy(hammer), "shift")  -- Dynamically adds shift to hammer's modifiers
 _meta = { "cmd", "shift", "alt" }
 
+-- Enable multi-window selector for applications with multiple windows
+local enableMultiWindowSelector = true
 -- Set default editor
 local editor = "cursor"
 -- local editor = "nvim"
@@ -23,13 +26,14 @@ local fileList = {
     { name = "zshenv", path = "~/.zshenv"},
     { name = "zshrc", path = "~/.zshrc"},
     { name = "bash_aliases", path = "~/.bash_aliases"},
+    { name = "goosehints",     path = "~/.config/goose/.goosehints" },
     { name = "tasks", path = "~/lab/regressiontestkit/tasks.py"},
     { name = "ssh config", path = "~/.ssh/config"},
-    { name = "RTK.cursorrules", path = "~/lab/regressiontestkit/regressiontest/.cursorrules"},
-    { name = "cursor keybindings", path = "~/Library/Application Support/Cursor/User/keybindings.json"},
-    { name = "cursor settings", path = "~/Library/Application Support/Cursor/User/settings.json"},
-    { name = "pycharm keybindings", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/keymaps/JetSetStudio.xml"},
-    { name = "pycharm templates", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/templates/Python.xml"},
+    { name = "RTK_rules",      path = "~/lab/regressiontestkit/regressiontest/.cursorrules" },
+    { name = "mad_rules",      path = "~/lab/madness_interactive/.cursorrules" },
+    { name = "swarmonomicon",  path = "~/lab/madness_interactive/projects/common/swarmonomicon/.cursorrules" },
+    -- { name = "pycharm keybindings", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/keymaps/JetSetStudio.xml"},
+    -- { name = "pycharm templates", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/templates/Python.xml"},
 }
 local selectedFile = nil
 local fileChooser = nil
@@ -39,7 +43,9 @@ local projects_list = {
     { name = "regressiontestkit", path = "~/lab/regressiontestkit"},
     { name = "OculusTestKit", path = "~/lab/regressiontestkit/OculusTestKit" },
     { name = "hs", path = "~/.hammerspoon" },
-
+    { name = "madness_interactive", path = "~/lab/madness_interactive" },
+    { name = "swarmonomicon",       path = "~/lab/madness_interactive/projects/common/swarmonomicon" },
+    { name = "Cogwyrm",             path = "~/lab/madness_interactive/projects/mobile/Cogwyrm" },
 }
 
     -- { name = "pycharm settings", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/options/"},
@@ -499,12 +505,14 @@ function miniShuffle()
     counter = (counter + 1) % #miniLayouts
 end
 
+local colCounter = 0
+local rowCounter = 0
 
-function halfShuffle(isHorizontal, numSections)
-    log.i('Half shuffle called:', {horizontal = isHorizontal, sections = numSections})
+function halfShuffle(numRows, numCols)
+    log.i('Half shuffle called:', { rows = numRows, cols = numCols })
 
-    isHorizontal = isHorizontal or false
-    numSections = numSections or 6
+    numRows = numRows or 3
+    numCols = numCols or 2
 
     local win = hs.window.focusedWindow()
     if not win then
@@ -519,37 +527,25 @@ function halfShuffle(isHorizontal, numSections)
     log.d('Current window frame:', hs.inspect(f))
     log.d('Screen frame:', hs.inspect(max))
 
-    if isHorizontal then
-        log.d('Calculating horizontal sections')
-        local sectionWidth = max.w / numSections
-        local sectionHeight = max.h * 0.98
+    local sectionWidth = max.w / numCols
+    local sectionHeight = max.h / numRows
 
-        local x = max.x + (counter * sectionWidth)
-        local y = max.y + (max.h * 0.01)
+    local x = max.x + (colCounter * sectionWidth)
+    local y = max.y + (rowCounter * sectionHeight)
 
-        f.x = x
-        f.y = y
-        f.w = sectionWidth
-        f.h = sectionHeight
-    else
-        log.d('Calculating vertical sections')
-        local sectionWidth = max.w * 0.33
-        local sectionHeight = max.h / numSections
-
-        local x = max.x + (max.w * 0.01)
-        local y = max.y + (counter * sectionHeight)
-
-        f.x = x
-        f.y = y
-        f.w = sectionWidth
-        f.h = sectionHeight
-    end
+    f.x = x
+    f.y = y
+    f.w = sectionWidth
+    f.h = sectionHeight
 
     log.d('New window frame:', hs.inspect(f))
     win:setFrame(f)
 
-    counter = (counter + 1) % numSections
-    log.d('Counter updated to:', counter)
+    rowCounter = (rowCounter + 1) % numRows
+    if rowCounter == 0 then
+        colCounter = (colCounter + 1) % numCols
+    end
+    log.d('Row counter:', rowCounter, 'Col counter:', colCounter)
 end
 
 function half2Shuffle()
@@ -1160,81 +1156,210 @@ end
 -- Bind the hotkey to display available windows in a GUI window
 --hs.hotkey.bind(_hyper, "p", toggleWindowList)
 --hs.hotkey.bind(_hyper, "p", toggleClipLogger)
+function launchOrFocusWithWindowSelection(appName)
+    if not enableMultiWindowSelector then
+        hs.application.launchOrFocus(appName)
+        return
+    end
+
+    local app = hs.application.find(appName)
+
+    if not app then
+        hs.application.launchOrFocus(appName)
+        return
+    end
+
+    local windows = app:allWindows()
+
+    if #windows == 0 then
+        hs.application.launchOrFocus(appName)
+        return
+    end
+
+    if #windows == 1 then
+        windows[1]:focus()
+        return
+    end
+
+    local choices = {}
+    for i, win in ipairs(windows) do
+        local title = win:title()
+        table.insert(choices, {
+            text = title,
+            subText = "Focus this " .. appName .. " window",
+            window = win
+        })
+    end
+
+    local chooser = hs.chooser.new(function(choice)
+        if choice then
+            choice.window:focus()
+        end
+    end)
+    chooser:choices(choices)
+    chooser:show()
+end
+
+function open_github()
+    launchOrFocusWithWindowSelection("GitHub Desktop")
+end
+
+function open_slack()
+    launchOrFocusWithWindowSelection("Slack")
+end
+
+function open_arc()
+    launchOrFocusWithWindowSelection("Arc")
+end
+
+function open_chrome()
+    launchOrFocusWithWindowSelection("Google Chrome")
+end
+
+function open_pycharm()
+    launchOrFocusWithWindowSelection("PyCharm Community Edition")
+end
+
+function open_anythingllm()
+    launchOrFocusWithWindowSelection("AnythingLLM")
+end
+
+function open_mongodb()
+    launchOrFocusWithWindowSelection("MongoDB Compass")
+end
+
+function open_logi()
+    launchOrFocusWithWindowSelection("logioptionsplus")
+end
+
+function open_system()
+    launchOrFocusWithWindowSelection("System Preferences")
+end
+
+function open_vscode()
+    launchOrFocusWithWindowSelection("Visual Studio Code")
+end
+
+function open_cursor()
+    launchOrFocusWithWindowSelection("cursor")
+end
+function open_barrier()
+    hs.execute("open -a 'Barrier'")
+end
+
+function open_mission_control()
+    launchOrFocusWithWindowSelection("Mission Control.app")
+end
+
+function open_launchpad()
+    launchOrFocusWithWindowSelection("Launchpad")
+end
 
 -- @formatter:off
 
+function clock()
+    spoon.AClock:toggleShow()
+end
+
+function top_left()
+    moveToCorner("topLeft")
+end
+
+function top_right()
+    moveToCorner("topRight")
+end
+
+function bottom_left()
+    moveToCorner("bottomLeft")
+end
+
+function bottom_right()
+    moveToCorner("bottomRight")
+end
 
 
 hs.hotkey.bind(hammer, "i", openMostRecentImage)
-hs.hotkey.bind(_hyper, "w", function() spoon.AClock:toggleShow() end)                                            -- _hyper W     -- Aclock Show
-hs.hotkey.bind(hammer, "p", function() hs.application.launchOrFocus("PyCharm Community Edition") end)            -- hammer P     -- Pycharm
-hs.hotkey.bind(_hyper, "p", function() hs.application.launchOrFocus("cursor") end)                               -- _hyper P     -- scrcpy
-hs.hotkey.bind(hammer, "b", function() hs.application.launchOrFocus("Arc") end)                                  -- hammer B     -- Arc
-hs.hotkey.bind(_hyper, "b", function() hs.application.launchOrFocus("Google Chrome") end)                        -- _hyper B     -- Chrome
-hs.hotkey.bind(hammer, "d", function() hs.application.launchOrFocus("AnythingLLM") end)                          -- hammer D     -- AnythingLLM
-hs.hotkey.bind(_hyper, "d", function() hs.application.launchOrFocus("MongoDB Compass") end)                      -- _hyper D     -- MongoDB Compass
-hs.hotkey.bind(hammer, "y", function() CountDown:startFor(3) end)                                                -- hammer Y     -- Countdown Timer
-hs.hotkey.bind(hammer, "l", function() hs.application.launchOrFocus("logioptionsplus") end)                      -- hammer L     -- Logi Options+
-hs.hotkey.bind(_hyper, "l", function() hs.application.launchOrFocus("System Preferences") end)                   -- _hyper L     -- System Preferences
-hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy -S'") end)                                                -- hammer F     -- scrcpy
--- hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY', true):post() end)             -- hammer M     -- Play/Pause
-hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper M     -- Edit zshrc
-hs.hotkey.bind(hammer, "s", function() hs.application.launchOrFocus("Slack") end)                                -- hammer S     -- Slack
-hs.hotkey.bind(hammer, "g", function() hs.application.launchOrFocus("GitHub Desktop") end)                       -- hammer G     -- GitHub Desktop
---hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)                   -- hammer E     -- Edit zshenv
-hs.hotkey.bind(hammer, "e", function() showFileMenu() end)                                                       -- hammer E     -- Edit file menu
-hs.hotkey.bind(_hyper, "e", function() showEditorMenu() end)                                                     -- _hyper E     -- editor menu
---hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotkeys.lua") end)  -- _hyper E     -- Edit hotkeys.lua
-hs.hotkey.bind(hammer, "t", function() hs.execute("open -a '" .. editor .. "' ~/lab/tasks.py") end)              -- hammer z open $Jobdir/tasks.py
-hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)             -- hammer Z     -- Edit bash_aliases
-hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)                    -- _hyper Z     -- Edit zshrc
-hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)                                                  -- hammer F1    -- Toggle HammerSpoon Console
-hs.hotkey.bind(_hyper, "F1", function() hs.application.launchOrFocus("Console") end)                             -- _hyper F1    -- Open Console.app
-hs.hotkey.bind(hammer, "F2", function() hs.execute("open -a 'post S22 var=:=Task nexus_cycle_character'") end)   -- hammer F2    -- Post S22
---hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Marta") end)                              -- hammer F2    -- Open Marta
-hs.hotkey.bind(_hyper, "F2", function() hs.execute("marta ~/lab") end)                                           -- _hyper F2    -- Open ~/lab
-hs.hotkey.bind(hammer, "F3", function() toggleUSBLogging() end)                                                  -- hammer F3    -- Toggle USB Logging
-hs.hotkey.bind(_hyper, "F3", shuffleLayouts)                                                                     -- hammer s -- Shuffle window layouts
---hs.hotkey.bind(_hyper, "F3", function() tempFunction() end)                                                      -- _hyper F3    -- Temporary Function
-hs.hotkey.bind(hammer, "F4", function() toggleKeyLogging() end)                                                  -- hammer F4    -- Toggle Key Logging
-hs.hotkey.bind(_hyper, "F4", function() tempFunction() end)                                                      -- _hyper F4    -- Temporary Function
-hs.hotkey.bind(hammer, "F5", function() hs.reload() end)                                                         -- hammer F5    -- Reload HammerSpoon
-hs.hotkey.bind(_hyper, "F5", function() tempFunction() end)                                                      -- _hyper F5    -- Temporary Function
-hs.hotkey.bind(hammer, "F6", saveWindowPosition)                                                                 -- hammer F6    -- Save current window position
-hs.hotkey.bind(_hyper, "F6", saveAllWindowPositions)                                                             -- Hyper F6     -- hyper + F6 to save the positions of all windows
-hs.hotkey.bind(hammer, "F7", restoreWindowPosition)                                                              -- hammer F7    -- Restore last saved window position
-hs.hotkey.bind(_hyper, "F7", restoreAllWindowPositions)                                                          -- hyper  F7    -- restore the positions of all windows
-hs.hotkey.bind(hammer, "F8", function() setTargetWindow() end)                                                   -- hammer F8    -- Set target window
-hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)                                                  -- _hyper F8    -- Show window titles
-hs.hotkey.bind(_hyper, "F11", nil, function() moveWindowOneSpace("left", false) end)                             -- _hyper F11   -- Move window one space left
-hs.hotkey.bind(_hyper, "F12", nil, function() moveWindowOneSpace("right", false) end)                            -- _hyper F12   -- Move window one space right
-hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)                           -- shift F13    -- Open Screenshots folder
-hs.hotkey.bind(hammer, "0", function() halfShuffle(false, 4) end)    -- _hyper 4  -- Mini Shuffle (6 horizontal sections)
-hs.hotkey.bind(_hyper, "0", function() halfShuffle(true, 3) end)   -- hammer 4  -- Mini Shuffle (8 vertical sections)hs.hotkey.bind(hammer, "1", function() leftTopCorner() end)                                                      -- hammer 1     -- Move window to Left Top Corner
-hs.hotkey.bind(hammer, "3", function() fullScreen() end)                                                         -- hammer 3     -- Full Screen
-hs.hotkey.bind(_hyper, "3", function() nearlyFullScreen() end)                                                   -- _hyper 3     -- Nearly Full Screen (80% centered)
-hs.hotkey.bind(hammer, "4", function() moveWindow95By72FromLeftSide() end)                                       -- hammer 4     -- Move window 95 by 72 from left side
-hs.hotkey.bind(_hyper, "4", function() miniShuffle() end)                                                        -- _hyper 4     -- Mini Shuffle (95 by 30 from right side)
-hs.hotkey.bind(hammer, "5", function() tempFunction() end)                                                       -- hammer 5     -- Temporary Function
-hs.hotkey.bind(_hyper, "5", function() tempFunction() end)                                                       -- _hyper 5     -- Temporary Function
-spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()                                                    -- hammer 8     -- Layouts Menu
-hs.hotkey.bind(_hyper, "8", function() tempFunction() end)                                                       -- _hyper 8     -- Temporary Function
-hs.hotkey.bind(hammer, "9", function() moveWindowMouseCenter() end)                                              -- hammer 9     -- Move window to mouse as center
-hs.hotkey.bind(_hyper, "9", function() openSelectedFile() end)                                              -- _hyper 9     -- Move window to cursor as top-left corner
-hs.hotkey.bind(hammer, "Space", function() showHammerList() end)                                                     -- hammer -     -- Flash list of hammer options
-hs.hotkey.bind(_hyper, "Space", function() showHyperList() end)                                                      -- _hyper -     -- Flash list of hyper options
-hs.hotkey.bind(hammer, "`", function() hs.application.launchOrFocus("cursor") end)                   -- hammer `     -- Vscode
-hs.hotkey.bind(_hyper, "`", function() hs.application.launchOrFocus("Visual Studio Code") end)                   -- hammer `     -- Vscode
-hs.hotkey.bind(hammer, "Tab", function() hs.application.launchOrFocus("Mission Control.app") end)                -- hammer Tab   -- Mission Control
-hs.hotkey.bind(_hyper, "Tab", function() hs.application.launchOrFocus("Launchpad") end)                          -- _hyper Tab   -- Launchpad
-hs.hotkey.bind(hammer, "t", function() hs.execute("open -a 'Barrier'") end)                                      -- hammer T     -- Barrier
---hs.hotkey.bind(hammer, "H", function () showavailableHotkey() end)                                               -- hammer H     -- List setup hotkeys
+hs.hotkey.bind(_hyper, "w", clock)
+hs.hotkey.bind(hammer, "p", open_pycharm)
+hs.hotkey.bind(_hyper, "p", open_cursor)
+hs.hotkey.bind(hammer, "b", open_arc)
+hs.hotkey.bind(_hyper, "b", open_chrome)
+hs.hotkey.bind(hammer, "d", open_anythingllm)
+hs.hotkey.bind(_hyper, "d", open_mongodb)
+hs.hotkey.bind(hammer, "y", tempFunction)
+hs.hotkey.bind(hammer, "l", open_logi)
+hs.hotkey.bind(_hyper, "l", open_system)
+hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy -S'") end)
+-- hs.hotkey.bind(hammer, "m", function() hs.eventtap.event.newSystemKeyEvent('PLAY', true):post() end)
+hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)
+hs.hotkey.bind(hammer, "s", open_slack)
+hs.hotkey.bind(hammer, "g", open_github)
+hs.hotkey.bind("cmd", "F3", open_github)
+--hs.hotkey.bind(hammer, "e", function() hs.execute("open -a '" .. editor .. "' ~/.zshenv") end)
+hs.hotkey.bind(hammer, "e", function() showFileMenu() end)
+hs.hotkey.bind(_hyper, "e", function() showEditorMenu() end)
+--hs.hotkey.bind(_hyper, "e", function() hs.execute("open -a '" .. editor .. "' ~/.hammerspoon/hotke
+hs.hotkey.bind(hammer, "t", function() hs.execute("open -a '" .. editor .. "' ~/lab/tasks.py") end)
+hs.hotkey.bind(hammer, "z", function() hs.execute("open -a '" .. editor .. "' ~/.bash_aliases") end)
+hs.hotkey.bind(_hyper, "z", function() hs.execute("open -a '" .. editor .. "' ~/.zshrc") end)
+hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)
+hs.hotkey.bind(_hyper, "F1", function() launchOrFocusWithWindowSelection("Console") end)
+hs.hotkey.bind(hammer, "F2", function() hs.execute("open -a 'post P9 var=:=Task beep'") end)
+--hs.hotkey.bind(hammer, "F2", function() hs.application.launchOrFocus("Marta") end)
+hs.hotkey.bind(_hyper, "F2", function() hs.execute("marta ~/lab") end)
+hs.hotkey.bind(hammer, "F3", function() toggleUSBLogging() end)
+hs.hotkey.bind(_hyper, "F3", shuffleLayouts)
+--hs.hotkey.bind(_hyper, "F3", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F4", function() toggleKeyLogging() end)
+hs.hotkey.bind(_hyper, "F4", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F5", function() hs.reload() end)
+hs.hotkey.bind(_hyper, "F5", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F6", saveWindowPosition)
+hs.hotkey.bind(_hyper, "F6", saveAllWindowPositions)
+hs.hotkey.bind(hammer, "F7", restoreWindowPosition)
+hs.hotkey.bind(_hyper, "F7", restoreAllWindowPositions)
+hs.hotkey.bind(hammer, "F8", function() setTargetWindow() end)
+hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "F11", nil, function() moveWindowOneSpace("left", false) end)
+hs.hotkey.bind(_hyper, "F12", nil, function() moveWindowOneSpace("right", false) end)
+hs.hotkey.bind("shift", "F13", function() hs.execute("open ~/Pictures/Greenshot") end)
+hs.hotkey.bind(hammer, "0", function() halfShuffle(4, 3) end)
+hs.hotkey.bind(_hyper, "0", function() halfShuffle(12, 3) end)
+hs.hotkey.bind(hammer, "3", function() fullScreen() end)
+hs.hotkey.bind(_hyper, "3", function() nearlyFullScreen() end)
+hs.hotkey.bind(hammer, "4", function() moveWindow95By72FromLeftSide() end)
+hs.hotkey.bind(_hyper, "4", function() miniShuffle() end)
+hs.hotkey.bind(hammer, "5", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "5", function() tempFunction() end)
+spoon.Layouts:bindHotKeys({ choose = {hammer, "8"} }):start()
+hs.hotkey.bind(_hyper, "8", function() tempFunction() end)
+hs.hotkey.bind(hammer, "9", function() moveWindowMouseCenter() end)
+hs.hotkey.bind(_hyper, "9", function() openSelectedFile() end)
+hs.hotkey.bind(hammer, "Space", function() showHammerList() end)
+hs.hotkey.bind(_hyper, "Space", function() showHyperList() end)
+hs.hotkey.bind(hammer, "`", open_cursor)
+hs.hotkey.bind(_hyper, "`", open_vscode)
+hs.hotkey.bind(hammer, "Tab", open_mission_control)
+hs.hotkey.bind(_hyper, "Tab", open_launchpad)
+hs.hotkey.bind(hammer, "t", open_barrier)
+--hs.hotkey.bind(hammer, "H", function () showavailableHotkey() end)
+
+
 
 -- Corner bindings
-hs.hotkey.bind(hammer, "1", function() moveToCorner("topLeft") end)
-hs.hotkey.bind(_hyper, "1", function() moveToCorner("bottomLeft") end)
-hs.hotkey.bind(hammer, "2", function() moveToCorner("topRight") end)
-hs.hotkey.bind(_hyper, "2", function() moveToCorner("bottomRight") end)
+hs.hotkey.bind(hammer, "1", top_left)
+hs.hotkey.bind(_hyper, "1", bottom_left)
+hs.hotkey.bind(hammer, "2", top_right)
+hs.hotkey.bind(_hyper, "2", bottom_right)
+
+function move_left()
+    moveSide("left", true)
+end
+
+function move_right()
+    moveSide("right", true)
+end
+
 
 -- Side bindings
 hs.hotkey.bind(hammer, "6", function() moveSide("left", true) end)
@@ -1251,3 +1376,247 @@ hs.hotkey.bind(hammer, "up", function() moveWindow("up") end)
 hs.hotkey.bind(_hyper, "up", function() tempFunction() end)
 hs.hotkey.bind(hammer, "down", function() moveWindow("down") end)
 hs.hotkey.bind(_hyper, "down", function() tempFunction() end)
+
+-- Add bindings for remaining keys
+-- hs.hotkey.bind(hammer, "a", tempFunction) -- hammer A
+-- hs.hotkey.bind(hammer, "s", tempFunction) -- hammer S
+-- hs.hotkey.bind(hammer, "d", tempFunction) -- hammer D
+-- hs.hotkey.bind(hammer, "f", tempFunction) -- hammer F
+-- hs.hotkey.bind(hammer, "g", tempFunction) -- hammer G
+-- hs.hotkey.bind(hammer, "h", tempFunction) -- hammer H
+-- hs.hotkey.bind(hammer, "j", tempFunction) -- hammer J
+-- hs.hotkey.bind(hammer, "k", tempFunction) -- hammer K
+-- hs.hotkey.bind(hammer, "l", tempFunction) -- hammer L
+-- hs.hotkey.bind(hammer, ";", tempFunction) -- hammer ;
+-- hs.hotkey.bind(hammer, "'", tempFunction) -- hammer '
+-- hs.hotkey.bind(hammer, "z", tempFunction) -- hammer Z
+-- hs.hotkey.bind(hammer, "x", tempFunction) -- hammer X
+-- hs.hotkey.bind(hammer, "c", tempFunction) -- hammer C
+-- hs.hotkey.bind(hammer, "v", tempFunction) -- hammer V
+-- hs.hotkey.bind(hammer, "b", tempFunction) -- hammer B
+-- hs.hotkey.bind(hammer, "n", tempFunction) -- hammer N
+-- hs.hotkey.bind(hammer, "m", tempFunction) -- hammer M
+-- hs.hotkey.bind(hammer, ",", tempFunction) -- hammer ,
+-- hs.hotkey.bind(hammer, ".", tempFunction) -- hammer .
+-- hs.hotkey.bind(hammer, "/", tempFunction) -- hammer /
+-- hs.hotkey.bind(hammer, "0", tempFunction) -- hammer 0
+-- hs.hotkey.bind(hammer, "1", tempFunction) -- hammer 1
+-- hs.hotkey.bind(hammer, "2", tempFunction) -- hammer 2
+-- hs.hotkey.bind(hammer, "3", tempFunction) -- hammer 3
+-- hs.hotkey.bind(hammer, "4", tempFunction) -- hammer 4
+-- hs.hotkey.bind(hammer, "5", tempFunction) -- hammer 5
+-- hs.hotkey.bind(hammer, "6", tempFunction) -- hammer 6
+-- hs.hotkey.bind(hammer, "7", tempFunction) -- hammer 7
+-- hs.hotkey.bind(hammer, "8", tempFunction) -- hammer 8
+-- hs.hotkey.bind(hammer, "9", tempFunction) -- hammer 9
+
+-- Dragon Grid implementation
+local dragonGridCanvas = nil
+local isSecondLevel = false
+local firstLevelSelection = nil
+local gridSize = 3
+
+function createDragonGrid()
+    -- Clean up any existing grid
+    if dragonGridCanvas then
+        destroyDragonGrid()
+    end
+
+    isSecondLevel = false
+    local screen = hs.screen.mainScreen()
+    local screenFrame = screen:frame()
+
+    dragonGridCanvas = hs.canvas.new(screenFrame)
+    dragonGridCanvas:behavior(hs.canvas.windowBehaviors.canJoinAllSpaces)
+    dragonGridCanvas:level(hs.canvas.windowLevels.overlay)
+
+    -- Add semi-transparent background
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0, green = 0, blue = 0, alpha = 0.3 },
+        frame = { x = 0, y = 0, w = screenFrame.w, h = screenFrame.h }
+    })
+
+    -- Create the grid cells
+    local cellWidth = screenFrame.w / gridSize
+    local cellHeight = screenFrame.h / gridSize
+
+    for row = 0, gridSize - 1 do
+        for col = 0, gridSize - 1 do
+            local cellNum = row * gridSize + col + 1
+            local x = col * cellWidth
+            local y = row * cellHeight
+
+            -- Add cell border
+            dragonGridCanvas:appendElements({
+                type = "rectangle",
+                action = "stroke",
+                strokeColor = { white = 1, alpha = 0.8 },
+                strokeWidth = 2,
+                frame = { x = x, y = y, w = cellWidth, h = cellHeight }
+            })
+
+            -- Add cell number
+            dragonGridCanvas:appendElements({
+                type = "text",
+                action = "fill",
+                frame = { x = x + cellWidth / 2 - 20, y = y + cellHeight / 2 - 20, w = 40, h = 40 },
+                text = tostring(cellNum),
+                textSize = 30,
+                textColor = { white = 1 },
+                textAlignment = "center"
+            })
+        end
+    end
+
+    -- Show the grid
+    dragonGridCanvas:show()
+
+    -- Set up click handler for the entire canvas
+    dragonGridCanvas:clickCallback(function(canvas, event, id, x, y)
+        if event == "mouseUp" then
+            handleGridClick(x, y, screenFrame)
+        end
+    end)
+end
+
+function handleGridClick(x, y, screenFrame)
+    local cellWidth = screenFrame.w / gridSize
+    local cellHeight = screenFrame.h / gridSize
+
+    -- Calculate which cell was clicked
+    local col = math.floor(x / cellWidth)
+    local row = math.floor(y / cellHeight)
+    local cellNum = row * gridSize + col + 1
+
+    if not isSecondLevel then
+        -- First level selection
+        firstLevelSelection = {
+            row = row,
+            col = col,
+            x = col * cellWidth,
+            y = row * cellHeight,
+            w = cellWidth,
+            h = cellHeight
+        }
+        createSecondLevelGrid(firstLevelSelection)
+    else
+        -- Second level selection (final)
+        local firstX = firstLevelSelection.x
+        local firstY = firstLevelSelection.y
+        local firstW = firstLevelSelection.w
+        local firstH = firstLevelSelection.h
+
+        -- Calculate precise position within the cell
+        local secondCellWidth = firstW / gridSize
+        local secondCellHeight = firstH / gridSize
+
+        local secondCol = math.floor((x - firstX) / secondCellWidth)
+        local secondRow = math.floor((y - firstY) / secondCellHeight)
+
+        -- Calculate the exact position to move the mouse to
+        local finalX = firstX + secondCol * secondCellWidth + secondCellWidth / 2
+        local finalY = firstY + secondRow * secondCellHeight + secondCellHeight / 2
+
+        -- Move the mouse cursor to the selected position
+        hs.mouse.absolutePosition({ x = finalX, y = finalY })
+
+        -- Destroy the grid
+        destroyDragonGrid()
+    end
+end
+
+function createSecondLevelGrid(cell)
+    -- Switch to second level mode
+    isSecondLevel = true
+
+    -- Clear the canvas
+    dragonGridCanvas:deleteSections()
+
+    -- Add semi-transparent overlay for areas outside the selected cell
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0, green = 0, blue = 0, alpha = 0.5 },
+        frame = { x = 0, y = 0, w = cell.x, h = cell.y + cell.h }
+    })
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0, green = 0, blue = 0, alpha = 0.5 },
+        frame = { x = cell.x + cell.w, y = 0, w = hs.screen.mainScreen():frame().w - (cell.x + cell.w), h = cell.y + cell.h }
+    })
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0, green = 0, blue = 0, alpha = 0.5 },
+        frame = { x = 0, y = cell.y + cell.h, w = hs.screen.mainScreen():frame().w, h = hs.screen.mainScreen():frame().h - (cell.y + cell.h) }
+    })
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0, green = 0, blue = 0, alpha = 0.5 },
+        frame = { x = 0, y = 0, w = hs.screen.mainScreen():frame().w, h = cell.y }
+    })
+
+    -- Create a second level grid inside the selected cell
+    local secondCellWidth = cell.w / gridSize
+    local secondCellHeight = cell.h / gridSize
+
+    -- Add highlight for the selected cell
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = { red = 0.2, green = 0.3, blue = 0.4, alpha = 0.4 },
+        frame = { x = cell.x, y = cell.y, w = cell.w, h = cell.h }
+    })
+
+    for row = 0, gridSize - 1 do
+        for col = 0, gridSize - 1 do
+            local cellNum = row * gridSize + col + 1
+            local x = cell.x + col * secondCellWidth
+            local y = cell.y + row * secondCellHeight
+
+            -- Add cell border
+            dragonGridCanvas:appendElements({
+                type = "rectangle",
+                action = "stroke",
+                strokeColor = { red = 1, green = 1, blue = 1, alpha = 0.8 },
+                strokeWidth = 1,
+                frame = { x = x, y = y, w = secondCellWidth, h = secondCellHeight }
+            })
+
+            -- Add cell number
+            dragonGridCanvas:appendElements({
+                type = "text",
+                action = "fill",
+                frame = { x = x + secondCellWidth / 2 - 15, y = y + secondCellHeight / 2 - 15, w = 30, h = 30 },
+                text = tostring(cellNum),
+                textSize = 20,
+                textColor = { white = 1 },
+                textAlignment = "center"
+            })
+        end
+    end
+end
+
+function destroyDragonGrid()
+    if dragonGridCanvas then
+        dragonGridCanvas:delete()
+        dragonGridCanvas = nil
+    end
+    isSecondLevel = false
+    firstLevelSelection = nil
+end
+
+function toggleDragonGrid()
+    if dragonGridCanvas then
+        destroyDragonGrid()
+    else
+        createDragonGrid()
+    end
+end
+
+-- Bind Dragon Grid to a hotkey
+hs.hotkey.bind(hammer, "d", toggleDragonGrid)

@@ -1,6 +1,7 @@
 dofile(hs.configdir .. "/loadConfig.lua")
 dofile(hs.configdir .. "/ExtendedClipboard.lua")
 
+require("hs.ipc")
 -- dofile(hs.configdir .. "/workspace.lua")
 -- dofile(hs.configdir .. "/test_balena_handler.lua")
 
@@ -17,12 +18,19 @@ local hammerghost = spoon.HammerGhost:init()
 if hammerghost then
     -- Bind hotkeys for HammerGhost
     hammerghost:bindHotkeys({
-        toggle = { {"cmd", "alt", "ctrl"}, "H" }
+        toggle = { { "cmd", "alt", "ctrl" }, "H" }
     })
     hs.logger.new("init.lua"):i("HammerGhost spoon loaded successfully.")
 else
     hs.logger.new("init.lua"):e("Failed to load HammerGhost spoon.")
 end
+
+local secrets = require("load_secrets")
+local AWSIP = secrets.get("AWSIP", "localhost")
+local AWSIP2 = secrets.get("AWSIP2", "localhost")
+local MCP_PORT = secrets.get("MCP_PORT", "8000")
+
+
 
 -- Configure Console Dark Mode
 local darkMode = {
@@ -60,32 +68,32 @@ end)
 -- Create and configure console toolbar
 local toolbar = require("hs.webview.toolbar")
 local consoleTB = toolbar.new("myConsole", {
-    {
-        id = "editConfig",
-        label = "Edit Config",
-        image = hs.image.imageFromName("NSEditTemplate"),
-        fn = function()
-            local editor = "cursor"  -- Use cursor as the editor
-            local configFile = hs.configdir .. "/init.lua"
-            if hs.fs.attributes(configFile) then
-                hs.task.new("/usr/bin/open", nil, {"-a", editor, configFile}):start()
-            else
-                hs.alert.show("Could not find config file")
+        {
+            id = "editConfig",
+            label = "Edit Config",
+            image = hs.image.imageFromName("NSEditTemplate"),
+            fn = function()
+                local editor = "cursor" -- Use cursor as the editor
+                local configFile = hs.configdir .. "/init.lua"
+                if hs.fs.attributes(configFile) then
+                    hs.task.new("/usr/bin/open", nil, { "-a", editor, configFile }):start()
+                else
+                    hs.alert.show("Could not find config file")
+                end
             end
-        end
-    },
-    {
-        id = "reloadConfig",
-        label = "Reload",
-        image = hs.image.imageFromName("NSRefreshTemplate"),
-        fn = function()
-            hs.reload()
-            hs.alert.show("Config reloaded")
-        end
-    }
-})
-:canCustomize(true)
-:autosaves(true)
+        },
+        {
+            id = "reloadConfig",
+            label = "Reload",
+            image = hs.image.imageFromName("NSRefreshTemplate"),
+            fn = function()
+                hs.reload()
+                hs.alert.show("Config reloaded")
+            end
+        }
+    })
+    :canCustomize(true)
+    :autosaves(true)
 
 -- Apply the toolbar after a short delay
 hs.timer.doAfter(0.2, function()
@@ -155,12 +163,18 @@ local macroTree = {
                 {
                     name = "Center Window",
                     icon = "NSCenterTextAlignment",
-                    fn = function() local win = hs.window.focusedWindow(); if win then win:centerOnScreen() end end
+                    fn = function()
+                        local win = hs.window.focusedWindow(); if win then win:centerOnScreen() end
+                    end
                 },
                 {
                     name = "Full Screen",
                     icon = "NSEnterFullScreenTemplate",
-                    fn = function() local win = hs.window.focusedWindow(); if win then local f = win:screen():frame(); win:setFrame(f) end end
+                    fn = function()
+                        local win = hs.window.focusedWindow(); if win then
+                            local f = win:screen():frame(); win:setFrame(f)
+                        end
+                    end
                 },
                 {
                     name = "Save Position",
@@ -260,14 +274,16 @@ local macroTree = {
                         local editor = "cursor"
                         local configFile = hs.configdir .. "/init.lua"
                         if hs.fs.attributes(configFile) then
-                            hs.task.new("/usr/bin/open", nil, {"-a", editor, configFile}):start()
+                            hs.task.new("/usr/bin/open", nil, { "-a", editor, configFile }):start()
                         end
                     end
                 },
                 {
                     name = "Reload Config",
                     icon = "NSRefreshTemplate",
-                    fn = function() hs.reload(); hs.alert.show("Config reloaded") end
+                    fn = function()
+                        hs.reload(); hs.alert.show("Config reloaded")
+                    end
                 }
             }
         }
@@ -332,11 +348,11 @@ function showCurrentLevel()
         if category.icon then
             if category.icon:len() <= 2 then
                 -- For emoji/text icons, create an attributed string
-                img = hs.styledtext.new(category.icon, {font = {size = 16}})
+                img = hs.styledtext.new(category.icon, { font = { size = 16 } })
             else
                 -- For system icons, use imageFromName
                 img = hs.image.imageFromName(category.icon) or
-                      hs.image.imageFromName("NSActionTemplate")
+                    hs.image.imageFromName("NSActionTemplate")
             end
         end
 
@@ -430,9 +446,9 @@ lightseagreen = hs.drawing.color.x11.lightseagreen
 purple = hs.drawing.color.x11.purple
 royalblue = hs.drawing.color.x11.royalblue
 sandybrown = hs.drawing.color.x11.sandybrown
-black50 = {red=0,blue=0,green=0,alpha=0.5}
-darkblue = {red=24/255,blue=195/255,green=145/255,alpha=1}
-gray = {red=246/255,blue=246/255,green=246/255,alpha=0.3}
+black50 = { red = 0, blue = 0, green = 0, alpha = 0.5 }
+darkblue = { red = 24 / 255, blue = 195 / 255, green = 145 / 255, alpha = 1 }
+gray = { red = 246 / 255, blue = 246 / 255, green = 246 / 255, alpha = 0.3 }
 
 
 
@@ -870,5 +886,5 @@ end
 -- end
 
 -- After loading macros
-self.macroTree, self.lastId = config.loadMacros(self.configPath)  -- Use config module
-self.currentSelection = nil  -- Ensure there is no initial selection
+self.macroTree, self.lastId = config.loadMacros(self.configPath) -- Use config module
+self.currentSelection = nil                                      -- Ensure there is no initial selection

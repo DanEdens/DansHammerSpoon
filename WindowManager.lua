@@ -1,0 +1,363 @@
+local log = hs.logger.new('WindowManager', 'debug')
+log.i('Initializing window management system')
+
+local window = require "hs.window"
+local spaces = require "hs.spaces"
+
+local WindowManager = {}
+
+-- Configuration
+local gap = 5
+local cols = 4
+local counter = 0
+local layoutCounter = 0
+
+-- Layouts
+local miniLayouts = {
+    { -- Layout 1
+        x = function(max) return max.x + (max.w * 0.72) end,
+        y = function(max) return max.y + (max.h * 0.01) + 25 end,
+        w = function(max) return max.w * 0.26 end,
+        h = function(max) return max.h * 0.97 end
+    },
+    { -- Layout 2
+        x = function(max) return max.x + (max.w * 0.76) end,
+        y = function(max) return max.y + (max.h * 0.01) - 25 end,
+        w = function(max) return max.w * 0.24 end,
+        h = function(max) return max.h * 0.97 end
+    },
+    { -- Layout 3
+        x = function(max) return max.x + (max.w * 0.7) end,
+        y = function(max) return max.y + (max.h * 0.01) - 30 end,
+        w = function(max) return max.w * 0.5 end,
+        h = function(max) return max.h * 0.9 end
+    },
+    { -- Layout 4
+        x = function(max) return max.x + (max.w * 0.5) end,
+        y = function(max) return max.y + (max.h * 0.01) end,
+        w = function(max) return max.w * 0.5 end,
+        h = function(max) return max.h * 0.9 end
+    }
+}
+
+local standardLayouts = {
+    fullScreen = { -- Full screen
+        x = function(max) return max.x end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w end,
+        h = function(max) return max.h end
+    },
+    nearlyFull = { -- 80% centered
+        x = function(max) return max.x + (max.w * 0.1) end,
+        y = function(max) return max.y + (max.h * 0.1) end,
+        w = function(max) return max.w * 0.8 end,
+        h = function(max) return max.h * 0.8 end
+    },
+    leftHalf = { -- Left half
+        x = function(max) return max.x end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h end
+    },
+    rightHalf = { -- Right half
+        x = function(max) return max.x + (max.w / 2) end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h end
+    },
+    leftSmall = { -- Small left side
+        x = function(max) return max.x end,
+        y = function(max) return max.y + (max.h * 0.1) end,
+        w = function(max) return max.w * 0.4 end,
+        h = function(max) return max.h * 0.8 end
+    },
+    rightSmall = { -- Small right side
+        x = function(max) return max.x + (max.w * 0.6) end,
+        y = function(max) return max.y + (max.h * 0.1) end,
+        w = function(max) return max.w * 0.4 end,
+        h = function(max) return max.h * 0.8 end
+    },
+    topLeft = { -- Top left corner
+        x = function(max) return max.x end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h / 2 end
+    },
+    topRight = { -- Top right corner
+        x = function(max) return max.x + (max.w / 2) end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h / 2 end
+    },
+    bottomLeft = { -- Bottom left corner
+        x = function(max) return max.x end,
+        y = function(max) return max.y + (max.h / 2) end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h / 2 end
+    },
+    bottomRight = { -- Bottom right corner
+        x = function(max) return max.x + (max.w / 2) end,
+        y = function(max) return max.y + (max.h / 2) end,
+        w = function(max) return max.w / 2 end,
+        h = function(max) return max.h / 2 end
+    },
+    leftWide = { -- 72% left side
+        x = function(max) return max.x + 30 end,
+        y = function(max) return max.y + (max.h * 0.01) end,
+        w = function(max) return max.w * 0.72 - 30 end,
+        h = function(max) return max.h * 0.98 end
+    },
+    rightNarrow = { -- 27% right side
+        x = function(max) return max.x + (max.w * 0.73) end,
+        y = function(max) return max.y + (max.h * 0.01) end,
+        w = function(max) return max.w * 0.27 end,
+        h = function(max) return max.h * 0.98 end
+    }
+}
+
+-- Helper Functions
+local function getGoodFocusedWindow(nofull)
+    local win = window.focusedWindow()
+    if not win or not win:isStandard() then
+        return
+    end
+    if nofull and win:isFullScreen() then
+        return
+    end
+    return win
+end
+
+local function flashScreen(screen)
+    local flash = hs.canvas.new(screen:fullFrame()):appendElements({
+        action = "fill",
+        fillColor = { alpha = 0.25, red = 1 },
+        type = "rectangle"
+    })
+    flash:show()
+    hs.timer.doAfter(.15, function()
+        flash:delete()
+    end)
+end
+
+local function calculatePosition(counter, max, rows)
+    local row = math.floor(counter / cols)
+    local col = counter % cols
+    local x = max.x + (col * (max.w / cols + gap))
+    local y = max.y + (row * (max.h / rows + gap))
+    return x, y
+end
+
+-- Window Management Functions
+function WindowManager.miniShuffle()
+    local win = hs.window.focusedWindow()
+    if not win then return end
+
+    local screen = win:screen()
+    local max = screen:frame()
+
+    -- Get current layout based on counter
+    local layout = miniLayouts[(counter % #miniLayouts) + 1]
+
+    -- Create new frame using layout functions
+    local newFrame = {
+        x = layout.x(max),
+        y = layout.y(max),
+        w = layout.w(max),
+        h = layout.h(max)
+    }
+
+    -- Apply the frame
+    win:setFrame(newFrame)
+
+    -- Increment counter
+    counter = (counter + 1) % #miniLayouts
+end
+
+function WindowManager.halfShuffle(numRows, numCols)
+    log.i('Half shuffle called:', { rows = numRows, cols = numCols })
+
+    numRows = numRows or 3
+    numCols = numCols or 2
+
+    local win = hs.window.focusedWindow()
+    if not win then
+        log.w('No focused window found')
+        return
+    end
+
+    local f = win:frame()
+    local screen = win:screen()
+    local max = screen:frame()
+
+    local sectionWidth = max.w / numCols
+    local sectionHeight = max.h / numRows
+
+    local x = max.x + (colCounter * sectionWidth)
+    local y = max.y + (rowCounter * sectionHeight)
+
+    f.x = x
+    f.y = y
+    f.w = sectionWidth
+    f.h = sectionHeight
+
+    win:setFrame(f)
+
+    rowCounter = (rowCounter + 1) % numRows
+    if rowCounter == 0 then
+        colCounter = (colCounter + 1) % numCols
+    end
+end
+
+function WindowManager.applyLayout(layoutName)
+    local win = hs.window.focusedWindow()
+    if not win then
+        log.w('No focused window found')
+        return
+    end
+
+    local layout = standardLayouts[layoutName]
+    if not layout then
+        log.e('Invalid layout name:', layoutName)
+        return
+    end
+
+    local screen = win:screen()
+    local max = screen:frame()
+    local f = win:frame()
+
+    -- Apply the layout functions
+    f.x = layout.x(max)
+    f.y = layout.y(max)
+    f.w = layout.w(max)
+    f.h = layout.h(max)
+
+    win:setFrame(f)
+    log.i('Applied layout:', layoutName)
+end
+
+function WindowManager.moveToCorner(position)
+    WindowManager.applyLayout(position)
+end
+
+function WindowManager.moveSide(side, isSmall)
+    if side == "left" then
+        if isSmall then
+            WindowManager.applyLayout('leftSmall')
+        else
+            WindowManager.applyLayout('leftHalf')
+        end
+    else
+        if isSmall then
+            WindowManager.applyLayout('rightSmall')
+        else
+            WindowManager.applyLayout('rightHalf')
+        end
+    end
+end
+
+function WindowManager.moveToScreen(direction, position)
+    local win = hs.window.focusedWindow()
+    local screen = win:screen()
+    local nextScreen = (direction == "next") and screen:next() or screen:previous()
+    local f = win:frame()
+    local max = nextScreen:frame()
+
+    if position == "left" then
+        f.x = max.x
+        f.y = max.y
+    else
+        f.x = max.x + (max.w / 2)
+        f.y = max.y
+        f.w = max.w / 2
+        f.h = max.h / 2
+    end
+
+    win:setFrame(f)
+    win:moveToScreen(nextScreen)
+end
+
+function WindowManager.moveWindow(direction)
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    local moveStep = 150
+
+    local movements = {
+        left = { x = -moveStep, y = 0 },
+        right = { x = moveStep, y = 0 },
+        up = { x = 0, y = -moveStep },
+        down = { x = 0, y = moveStep }
+    }
+
+    local move = movements[direction]
+    f.x = f.x + move.x
+    f.y = f.y + move.y
+
+    win:setFrame(f)
+end
+
+function WindowManager.moveWindowMouseCenter()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    local mouse = hs.mouse.absolutePosition()
+    f.x = mouse.x - (f.w / 2)
+    f.y = mouse.y - (f.h / 2)
+    win:setFrame(f)
+end
+
+function WindowManager.moveWindowMouseCorner()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+    local mouse = hs.mouse.absolutePosition()
+    f.x = mouse.x
+    f.y = mouse.y
+    win:setFrame(f)
+end
+
+-- Window Position Save/Restore
+local lastWindowPosition = {}
+local lastWindowPositions = {}
+
+function WindowManager.saveWindowPosition()
+    log.i('Saving window position')
+    local win = hs.window.focusedWindow()
+    if win then
+        lastWindowPosition[win:id()] = win:frame()
+        log.d('Saved position for window:', win:id(), hs.inspect(win:frame()))
+        hs.alert.show("Window position saved")
+    else
+        log.w('No focused window to save position')
+    end
+end
+
+function WindowManager.restoreWindowPosition()
+    log.i('Restoring window position')
+    local win = hs.window.focusedWindow()
+    if win and lastWindowPosition[win:id()] then
+        log.d('Restoring position for window:', win:id(), hs.inspect(lastWindowPosition[win:id()]))
+        win:setFrame(lastWindowPosition[win:id()])
+        hs.alert.show("Window position restored")
+    else
+        log.w('No saved position found for window:', win and win:id() or 'no window focused')
+    end
+end
+
+function WindowManager.saveAllWindowPositions()
+    local wins = hs.window.allWindows()
+    for _, win in ipairs(wins) do
+        lastWindowPositions[win:id()] = win:frame()
+    end
+    hs.alert.show("All window positions saved")
+end
+
+function WindowManager.restoreAllWindowPositions()
+    local wins = hs.window.allWindows()
+    for _, win in ipairs(wins) do
+        local savedPosition = lastWindowPositions[win:id()]
+        if savedPosition then
+            win:setFrame(savedPosition)
+        end
+    end
+    hs.alert.show("All window positions restored")
+end
+
+return WindowManager

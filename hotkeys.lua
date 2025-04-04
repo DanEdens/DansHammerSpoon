@@ -32,8 +32,6 @@ local fileList = {
     { name = "RTK_rules",      path = "~/lab/regressiontestkit/regressiontest/.cursorrules" },
     { name = "mad_rules",      path = "~/lab/madness_interactive/.cursorrules" },
     { name = "swarmonomicon",  path = "~/lab/madness_interactive/projects/common/swarmonomicon/.cursorrules" },
-    -- { name = "pycharm keybindings", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/keymaps/JetSetStudio.xml"},
-    -- { name = "pycharm templates", path = "~/Library/Application Support/JetBrains/PyCharmCE2024.2/templates/Python.xml"},
 }
 local selectedFile = nil
 local fileChooser = nil

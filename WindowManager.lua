@@ -12,8 +12,19 @@ local WindowManager = {
     layoutCounter = 0,
     rowCounter = 0,
     colCounter = 0,
+    moveStep = 150,
     lastWindowPosition = {},
-    lastWindowPositions = {}
+    lastWindowPositions = {},
+
+    -- Current state tracking
+    currentWindow = nil,
+    currentScreen = nil,
+    currentFrame = nil,
+
+    -- Layout state
+    row = 0,
+    sectionWidth = 0,
+    sectionHeight = 0
 }
 
 -- Layouts
@@ -128,6 +139,9 @@ local function getGoodFocusedWindow(nofull)
     if nofull and win:isFullScreen() then
         return
     end
+    WindowManager.currentWindow = win
+    WindowManager.currentScreen = win:screen()
+    WindowManager.currentFrame = win:frame()
     return win
 end
 
@@ -144,18 +158,19 @@ local function flashScreen(screen)
 end
 
 local function calculatePosition(counter, max, rows)
+    WindowManager.row = math.floor(counter / WindowManager.cols)
     local col = counter % WindowManager.cols
     local x = max.x + (col * (max.w / WindowManager.cols + WindowManager.gap))
-    local y = max.y + (row * (max.h / rows + WindowManager.gap))
+    local y = max.y + (WindowManager.row * (max.h / rows + WindowManager.gap))
     return x, y
 end
 
 -- Window Management Functions
 function WindowManager.miniShuffle()
-    local win = hs.window.focusedWindow()
+    local win = getGoodFocusedWindow()
     if not win then return end
 
-    local screen = win:screen()
+    local screen = WindowManager.currentScreen
     local max = screen:frame()
 
     -- Get current layout based on counter
@@ -171,6 +186,7 @@ function WindowManager.miniShuffle()
 
     -- Apply the frame
     win:setFrame(newFrame)
+    WindowManager.currentFrame = newFrame
 
     -- Increment counter
     WindowManager.counter = (WindowManager.counter + 1) % #miniLayouts
@@ -182,29 +198,30 @@ function WindowManager.halfShuffle(numRows, numCols)
     numRows = numRows or 3
     numCols = numCols or 2
 
-    local win = hs.window.focusedWindow()
+    local win = getGoodFocusedWindow()
     if not win then
         log.w('No focused window found')
         return
     end
 
-    local f = win:frame()
-    local screen = win:screen()
+    local f = WindowManager.currentFrame
+    local screen = WindowManager.currentScreen
     local max = screen:frame()
 
-    local sectionWidth = max.w / numCols
-    local sectionHeight = max.h / numRows
+    WindowManager.sectionWidth = max.w / numCols
+    WindowManager.sectionHeight = max.h / numRows
 
     log.d('Current counters:', { row = WindowManager.rowCounter, col = WindowManager.colCounter })
-    local x = max.x + (WindowManager.colCounter * sectionWidth)
-    local y = max.y + (WindowManager.rowCounter * sectionHeight)
+    local x = max.x + (WindowManager.colCounter * WindowManager.sectionWidth)
+    local y = max.y + (WindowManager.rowCounter * WindowManager.sectionHeight)
 
     f.x = x
     f.y = y
-    f.w = sectionWidth
-    f.h = sectionHeight
+    f.w = WindowManager.sectionWidth
+    f.h = WindowManager.sectionHeight
 
     win:setFrame(f)
+    WindowManager.currentFrame = f
     log.d('Set frame:', { x = f.x, y = f.y, w = f.w, h = f.h })
 
     -- Update counters
@@ -284,15 +301,16 @@ function WindowManager.moveToScreen(direction, position)
 end
 
 function WindowManager.moveWindow(direction)
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
-    local moveStep = 150
+    local win = getGoodFocusedWindow()
+    if not win then return end
+
+    local f = WindowManager.currentFrame
 
     local movements = {
-        left = { x = -moveStep, y = 0 },
-        right = { x = moveStep, y = 0 },
-        up = { x = 0, y = -moveStep },
-        down = { x = 0, y = moveStep }
+        left = { x = -WindowManager.moveStep, y = 0 },
+        right = { x = WindowManager.moveStep, y = 0 },
+        up = { x = 0, y = -WindowManager.moveStep },
+        down = { x = 0, y = WindowManager.moveStep }
     }
 
     local move = movements[direction]
@@ -300,24 +318,31 @@ function WindowManager.moveWindow(direction)
     f.y = f.y + move.y
 
     win:setFrame(f)
+    WindowManager.currentFrame = f
 end
 
 function WindowManager.moveWindowMouseCenter()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
+    local win = getGoodFocusedWindow()
+    if not win then return end
+
+    local f = WindowManager.currentFrame
     local mouse = hs.mouse.absolutePosition()
     f.x = mouse.x - (f.w / 2)
     f.y = mouse.y - (f.h / 2)
     win:setFrame(f)
+    WindowManager.currentFrame = f
 end
 
 function WindowManager.moveWindowMouseCorner()
-    local win = hs.window.focusedWindow()
-    local f = win:frame()
+    local win = getGoodFocusedWindow()
+    if not win then return end
+
+    local f = WindowManager.currentFrame
     local mouse = hs.mouse.absolutePosition()
     f.x = mouse.x
     f.y = mouse.y
     win:setFrame(f)
+    WindowManager.currentFrame = f
 end
 
 -- Window Position Save/Restore
@@ -370,5 +395,11 @@ function WindowManager.resetShuffleCounters()
     WindowManager.colCounter = 0
     WindowManager.counter = 0
     WindowManager.layoutCounter = 0
+    WindowManager.row = 0
+    WindowManager.currentWindow = nil
+    WindowManager.currentScreen = nil
+    WindowManager.currentFrame = nil
+    WindowManager.sectionWidth = 0
+    WindowManager.sectionHeight = 0
 end
 return WindowManager

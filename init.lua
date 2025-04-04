@@ -1,5 +1,6 @@
 dofile(hs.configdir .. "/loadConfig.lua")
 dofile(hs.configdir .. "/ExtendedClipboard.lua")
+dofile(hs.configdir .. "/WindowManager.lua")
 
 require("hs.ipc")
 -- dofile(hs.configdir .. "/workspace.lua")

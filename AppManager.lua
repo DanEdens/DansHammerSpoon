@@ -35,7 +35,7 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
     end
 
     local choices = {}
-    local openWindowPaths = {}
+    local openWindowTitles = {}
 
     -- Add existing windows as choices
     for i, win in ipairs(windows) do
@@ -46,7 +46,7 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
             window = win,
             type = "window"
         })
-        openWindowPaths[win:application():path()] = true
+        openWindowTitles[title] = true
     end
 
     -- Add a separator
@@ -59,7 +59,7 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
     -- Add projects list as choices
     local projects_list = FileManager.getProjectsList()
     for _, project in ipairs(projects_list) do
-        if not openWindowPaths[project.path] then
+        if not openWindowTitles[project.name] then
             table.insert(choices, {
                 text = project.name,
                 subText = "Open " .. project.path,

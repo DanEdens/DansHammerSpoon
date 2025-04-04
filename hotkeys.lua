@@ -23,6 +23,7 @@ hs.hotkey.bind(hammer, "2", function() WindowManager.moveToCorner("topRight") en
 hs.hotkey.bind(_hyper, "2", function() WindowManager.moveToCorner("bottomRight") end)
 hs.hotkey.bind(hammer, "0", function() WindowManager.halfShuffle(4, 3) end)
 hs.hotkey.bind(_hyper, "0", function() WindowManager.halfShuffle(12, 3) end)
+hs.hotkey.bind(_hyper, "r", function() WindowManager.resetShuffleCounters() end)
 hs.hotkey.bind(hammer, "3", function() WindowManager.applyLayout('fullScreen') end)
 hs.hotkey.bind(_hyper, "3", function() WindowManager.applyLayout('nearlyFull') end)
 hs.hotkey.bind(hammer, "4", function() WindowManager.applyLayout('leftWide') end)
@@ -139,5 +140,6 @@ function showHyperList()
     -     -- Show This List  \
     `     -- Visual Studio Code  \
     Tab   -- Launchpad  \
+    R     -- Reset Window Shuffle Counters  \
     ")
 end

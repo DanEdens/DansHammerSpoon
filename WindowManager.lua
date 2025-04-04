@@ -4,13 +4,17 @@ log.i('Initializing window management system')
 local window = require "hs.window"
 local spaces = require "hs.spaces"
 
-local WindowManager = {}
-
--- Configuration
-local gap = 5
-local cols = 4
-local counter = 0
-local layoutCounter = 0
+local WindowManager = {
+    -- State variables
+    gap = 5,
+    cols = 4,
+    counter = 0,
+    layoutCounter = 0,
+    rowCounter = 0,
+    colCounter = 0,
+    lastWindowPosition = {},
+    lastWindowPositions = {}
+}
 
 -- Layouts
 local miniLayouts = {
@@ -140,10 +144,9 @@ local function flashScreen(screen)
 end
 
 local function calculatePosition(counter, max, rows)
-    local row = math.floor(counter / cols)
-    local col = counter % cols
-    local x = max.x + (col * (max.w / cols + gap))
-    local y = max.y + (row * (max.h / rows + gap))
+    local col = counter % WindowManager.cols
+    local x = max.x + (col * (max.w / WindowManager.cols + WindowManager.gap))
+    local y = max.y + (row * (max.h / rows + WindowManager.gap))
     return x, y
 end
 
@@ -156,7 +159,7 @@ function WindowManager.miniShuffle()
     local max = screen:frame()
 
     -- Get current layout based on counter
-    local layout = miniLayouts[(counter % #miniLayouts) + 1]
+    local layout = miniLayouts[(WindowManager.counter % #miniLayouts) + 1]
 
     -- Create new frame using layout functions
     local newFrame = {
@@ -170,7 +173,7 @@ function WindowManager.miniShuffle()
     win:setFrame(newFrame)
 
     -- Increment counter
-    counter = (counter + 1) % #miniLayouts
+    WindowManager.counter = (WindowManager.counter + 1) % #miniLayouts
 end
 
 function WindowManager.halfShuffle(numRows, numCols)
@@ -192,8 +195,9 @@ function WindowManager.halfShuffle(numRows, numCols)
     local sectionWidth = max.w / numCols
     local sectionHeight = max.h / numRows
 
-    local x = max.x + (colCounter * sectionWidth)
-    local y = max.y + (rowCounter * sectionHeight)
+    log.d('Current counters:', { row = WindowManager.rowCounter, col = WindowManager.colCounter })
+    local x = max.x + (WindowManager.colCounter * sectionWidth)
+    local y = max.y + (WindowManager.rowCounter * sectionHeight)
 
     f.x = x
     f.y = y
@@ -201,11 +205,14 @@ function WindowManager.halfShuffle(numRows, numCols)
     f.h = sectionHeight
 
     win:setFrame(f)
+    log.d('Set frame:', { x = f.x, y = f.y, w = f.w, h = f.h })
 
-    rowCounter = (rowCounter + 1) % numRows
-    if rowCounter == 0 then
-        colCounter = (colCounter + 1) % numCols
+    -- Update counters
+    WindowManager.rowCounter = (WindowManager.rowCounter + 1) % numRows
+    if WindowManager.rowCounter == 0 then
+        WindowManager.colCounter = (WindowManager.colCounter + 1) % numCols
     end
+    log.d('Updated counters:', { row = WindowManager.rowCounter, col = WindowManager.colCounter })
 end
 
 function WindowManager.applyLayout(layoutName)
@@ -314,14 +321,11 @@ function WindowManager.moveWindowMouseCorner()
 end
 
 -- Window Position Save/Restore
-local lastWindowPosition = {}
-local lastWindowPositions = {}
-
 function WindowManager.saveWindowPosition()
     log.i('Saving window position')
     local win = hs.window.focusedWindow()
     if win then
-        lastWindowPosition[win:id()] = win:frame()
+        WindowManager.lastWindowPosition[win:id()] = win:frame()
         log.d('Saved position for window:', win:id(), hs.inspect(win:frame()))
         hs.alert.show("Window position saved")
     else
@@ -332,9 +336,9 @@ end
 function WindowManager.restoreWindowPosition()
     log.i('Restoring window position')
     local win = hs.window.focusedWindow()
-    if win and lastWindowPosition[win:id()] then
-        log.d('Restoring position for window:', win:id(), hs.inspect(lastWindowPosition[win:id()]))
-        win:setFrame(lastWindowPosition[win:id()])
+    if win and WindowManager.lastWindowPosition[win:id()] then
+        log.d('Restoring position for window:', win:id(), hs.inspect(WindowManager.lastWindowPosition[win:id()]))
+        win:setFrame(WindowManager.lastWindowPosition[win:id()])
         hs.alert.show("Window position restored")
     else
         log.w('No saved position found for window:', win and win:id() or 'no window focused')
@@ -344,7 +348,7 @@ end
 function WindowManager.saveAllWindowPositions()
     local wins = hs.window.allWindows()
     for _, win in ipairs(wins) do
-        lastWindowPositions[win:id()] = win:frame()
+        WindowManager.lastWindowPositions[win:id()] = win:frame()
     end
     hs.alert.show("All window positions saved")
 end
@@ -352,7 +356,7 @@ end
 function WindowManager.restoreAllWindowPositions()
     local wins = hs.window.allWindows()
     for _, win in ipairs(wins) do
-        local savedPosition = lastWindowPositions[win:id()]
+        local savedPosition = WindowManager.lastWindowPositions[win:id()]
         if savedPosition then
             win:setFrame(savedPosition)
         end
@@ -360,4 +364,11 @@ function WindowManager.restoreAllWindowPositions()
     hs.alert.show("All window positions restored")
 end
 
+function WindowManager.resetShuffleCounters()
+    log.i('Resetting shuffle counters')
+    WindowManager.rowCounter = 0
+    WindowManager.colCounter = 0
+    WindowManager.counter = 0
+    WindowManager.layoutCounter = 0
+end
 return WindowManager

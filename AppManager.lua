@@ -35,6 +35,7 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
     end
 
     local choices = {}
+    local openWindowPaths = {}
 
     -- Add existing windows as choices
     for i, win in ipairs(windows) do
@@ -45,6 +46,7 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
             window = win,
             type = "window"
         })
+        openWindowPaths[win:application():path()] = true
     end
 
     -- Add a separator
@@ -57,12 +59,14 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
     -- Add projects list as choices
     local projects_list = FileManager.getProjectsList()
     for _, project in ipairs(projects_list) do
-        table.insert(choices, {
-            text = project.name,
-            subText = "Open " .. project.path,
-            path = project.path,
-            type = "project"
-        })
+        if not openWindowPaths[project.path] then
+            table.insert(choices, {
+                text = project.name,
+                subText = "Open " .. project.path,
+                path = project.path,
+                type = "project"
+            })
+        end
     end
 
     local chooser = hs.chooser.new(function(choice)
@@ -84,13 +88,15 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
     chooser:queryChangedCallback(function(query)
         if query:match("^[~/]") then
             -- If query starts with / or ~, show only one option for custom path
-            local customChoices = table.shallow_copy(choices)
+            local customChoices = {}
+            for k, v in pairs(choices) do customChoices[k] = v end
             table.insert(customChoices, 1, {
                 text = "Open custom path: " .. query,
                 subText = "Enter to open this path with " .. appName,
                 path = query,
                 type = "custom"
             })
+
             chooser:choices(customChoices)
         else
             -- Show normal filtered choices

@@ -18,13 +18,13 @@ obj.license = "MIT - https://opensource.org/licenses/MIT"
 -- hs.hotkey.bind({"alt"}, "1", function()
 --     --  Get Clipboard contents.
 --     local clipboardContent = hs.pasteboard.getContents()
-    
+
 --     --Store the clipboard content in a global variable
 --     _G.clip1 = clipboardContent
-    
---     --Display OSD (On-Screen Display). 
+
+--     --Display OSD (On-Screen Display).
 --     hs.alert.show("1 - " .. clipboardContent)
-    
+
 --     -- Set topic var with rost
 --     hs.execute("rost vars/clip1 " .. clipboardContent)
 -- end)
@@ -160,22 +160,22 @@ obj.license = "MIT - https://opensource.org/licenses/MIT"
 --     -- Clean cliplog file
 --     local cliplog = io.open(os.getenv("HOME") .. "/cliplog.txt", "r")
 --     local lines = {}
-    
+
 --     -- Read each line and remove duplicates
 --     for line in cliplog:lines() do
 --         if not lines[line] then
 --             lines[line] = true
 --         end
 --     end
-    
+
 --     cliplog:close()
-    
+
 --     -- Write cleaned contents back to the file
 --     cliplog = io.open(os.getenv("HOME") .. "/cliplog.txt", "w")
 --     for line, _ in pairs(lines) do
 --         cliplog:write(line .. "\n")
 --     end
-    
+
 --     cliplog:close()
 -- end
 
@@ -204,3 +204,25 @@ obj.license = "MIT - https://opensource.org/licenses/MIT"
 -- end
 
 -- return obj
+
+
+
+--local clipLogger
+--
+--function toggleClipLogger()
+--    if clipLogger then
+--        clipLogger:stop()
+--        clipLogger = nil
+--    else
+--        clipLogger = hs.eventtap.new({ hs.eventtap.event.types.typesChanged }, function(event)
+--            local clipboard = hs.pasteboard.getContents()
+--            if clipboard then
+--                local file = io.open(os.getenv("HOME") .. "/cliplog.txt", "a")
+--                file:write(os.date("%Y-%m-%d %H:%M:%S") .. " - " .. clipboard .. "\n")
+--                file:close()
+--            end
+--        end)
+--        clipLogger:start()
+--    end
+--end
+--

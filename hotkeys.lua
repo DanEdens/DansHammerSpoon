@@ -1111,49 +1111,8 @@ function applyLayout(layoutName)
 end
 
 
--- function arrangeWorkWindows()
---    local slack = hs.application.find("Slack")
---    local chrome = hs.application.find("Google Chrome")
---
---    if slack then
---        local slackWin = slack:mainWindow()
---        slackWin:setFrame(hs.screen.mainScreen():frame():toUnitRect():left(0.5):toAbsolute())
---    end
---
---    if chrome then
---        local chromeWin = chrome:mainWindow()
---        chromeWin:setFrame(hs.screen.mainScreen():frame():toUnitRect():right(0.5):toAbsolute())
---    end
---end
---
---hs.hotkey.bind(hammer, "w", arrangeWorkWindows)  -- hammer w -- Arrange Slack and Chrome
 
-
---local clipLogger
---
---function toggleClipLogger()
---    if clipLogger then
---        clipLogger:stop()
---        clipLogger = nil
---    else
---        clipLogger = hs.eventtap.new({ hs.eventtap.event.types.typesChanged }, function(event)
---            local clipboard = hs.pasteboard.getContents()
---            if clipboard then
---                local file = io.open(os.getenv("HOME") .. "/cliplog.txt", "a")
---                file:write(os.date("%Y-%m-%d %H:%M:%S") .. " - " .. clipboard .. "\n")
---                file:close()
---            end
---        end)
---        clipLogger:start()
---    end
---end
---
-
-
-
--- Bind the hotkey to display available windows in a GUI window
---hs.hotkey.bind(_hyper, "p", toggleWindowList)
---hs.hotkey.bind(_hyper, "p", toggleClipLogger)
+-- Display available windows in a GUI window
 function launchOrFocusWithWindowSelection(appName)
     if not enableMultiWindowSelector then
         hs.application.launchOrFocus(appName)

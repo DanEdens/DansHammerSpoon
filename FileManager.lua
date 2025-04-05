@@ -34,10 +34,10 @@ local projects_list = {
 }
 
 local editorList = {
-    { name = "Visual Studio Code",        command = "Visual Studio Code" },
+    { name = "Visual Studio Code",        command = "code" },
     { name = "cursor",                    command = "cursor" },
     { name = "nvim",                      command = "nvim" },
-    { name = "PyCharm Community Edition", command = "PyCharm Community Edition" }
+    { name = "PyCharm Community Edition", command = "pycharm" }
 }
 
 -- State

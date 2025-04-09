@@ -8,7 +8,7 @@
 
 ## Redundancy and Overlap Issues
 - [ ] Consolidate duplicate window management functions between WindowManager.lua and init.lua
-- [ ] Examine possible overlap between ClipboardTool.spoon and ExtendedClipboard.lua
+- [ ] Document and improve integration between ExtendedClipboard.lua (hotkey slots) and ClipboardTool.spoon (history)
 - [ ] Review redundant functionality between custom grid layouts and Layouts.spoon
 - [ ] Standardize alert/notification system across different modules
 

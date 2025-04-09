@@ -15,9 +15,12 @@ This document outlines the recommended priority order for implementing improveme
    - Extract UI customization to a separate module
 
 3. **Consolidate clipboard functionality** (Moderate, Medium Impact)
-   - Decide between ExtendedClipboard.lua and ClipboardTool.spoon
-   - Migrate all functionality to the chosen solution
-   - Remove redundant code
+   - Maintain both clipboard tools as they serve different purposes:
+     * ExtendedClipboard.lua - Hotkey-based clipboard management (10 clipboard slots)
+     * ClipboardTool.spoon - Clipboard history and search functionality
+   - Add clear documentation about the purpose of each tool
+   - Ensure the tools don't interfere with each other
+   - Consider adding a unified interface/API for clipboard operations
 
 4. **Implement basic configuration system** (Moderate, High Impact)
    - Create a user_config.lua file for customization
@@ -103,4 +106,4 @@ This document outlines the recommended priority order for implementing improveme
 | Add testing framework | Complex | Medium |
 | Plugin system | Complex | Low |
 | Remote control capabilities | Complex | Low |
-| Advanced automation features | Complex | Low | 
+| Advanced automation features | Complex | Low |

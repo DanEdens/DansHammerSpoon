@@ -20,7 +20,9 @@ The codebase lacks proper modularity, with init.lua containing too much function
 
 Several areas have redundant implementations:
 
-- **Clipboard Management**: Both ExtendedClipboard.lua and ClipboardTool.spoon provide clipboard functionality
+- **Clipboard Management**: Two complementary clipboard tools serve different purposes:
+  * ExtendedClipboard.lua provides hotkey-based clipboard management with 10 dedicated slots
+  * ClipboardTool.spoon provides clipboard history and search functionality
 - **Window Management**: Functions are split between init.lua and WindowManager.lua
 - **Layout Management**: Custom layout functions may overlap with Layouts.spoon
 

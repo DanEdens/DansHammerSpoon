@@ -6,6 +6,14 @@ local FileManager = {}
 -- Configuration
 local editor = "cursor"
 
+-- State
+local selectedFile = nil
+local fileChooser = nil
+local lastSelected = {
+    file = nil,
+    project = nil,
+    editor = nil
+}
 -- File Lists
 local fileList = {
     { name = "init.lua",       path = "~/.hammerspoon/init.lua" },
@@ -29,6 +37,16 @@ local projects_list = {
     { name = "OculusTestKit",       path = "~/lab/regressiontestkit/OculusTestKit" },
     { name = ".hammerspoon",        path = "~/.hammerspoon" },
     { name = "madness_interactive", path = "~/lab/madness_interactive" },
+    -- RegressionTestKit ecosystem
+    { name = "phoenix",             path = "~/lab/regressiontestkit/phoenix" },
+    { name = "rust_ingest",         path = "~/lab/regressiontestkit/rust_ingest" },
+    { name = "rtk-docs-host",       path = "~/lab/regressiontestkit/rtk-docs-host" },
+    { name = "gateway_metrics",     path = "~/lab/regressiontestkit/gateway_metrics" },
+    { name = "http-dump-server",    path = "~/lab/regressiontestkit/http-dump-server" },
+    { name = "teltonika_wrapper",   path = "~/lab/regressiontestkit/teltonika_wrapper" },
+    { name = "ohmura-firmware",     path = "~/lab/regressiontestkit/ohmura-firmware" },
+    { name = "saws",                path = "~/lab/regressiontestkit/saws" },
+    { name = "prod-ed-configs",     path = "~/lab/regressiontestkit/prod-ed-configs" },
     -- Project root directories
     { name = "projects-root",       path = "~/lab/madness_interactive/projects" },
     { name = "common-projects",     path = "~/lab/madness_interactive/projects/common" },
@@ -99,10 +117,6 @@ local editorList = {
     { name = "PyCharm Community Edition", command = "pycharm" }
 }
 
--- State
-local selectedFile = nil
-local fileChooser = nil
-
 -- Helper Functions
 function FileManager.getEditor()
     return editor
@@ -110,15 +124,20 @@ end
 
 function FileManager.setEditor(newEditor)
     editor = newEditor
+    lastSelected.editor = newEditor
 end
 
 function FileManager.getProjectsList()
     return projects_list
 end
 
+function FileManager.getLastSelected()
+    return lastSelected
+end
 -- File Management Functions
 function FileManager.openSelectedFile()
     if selectedFile ~= nil then
+        lastSelected.file = selectedFile
         hs.execute("open -a '" .. editor .. "' " .. selectedFile.path)
     else
         FileManager.showFileMenu()
@@ -139,6 +158,7 @@ function FileManager.showFileMenu()
         fileChooser = hs.chooser.new(function(choice)
             if choice then
                 selectedFile = choice
+                lastSelected.file = choice
                 FileManager.openSelectedFile()
                 fileChooser:hide()
             end
@@ -161,6 +181,7 @@ function FileManager.showEditorMenu()
     local chooser = hs.chooser.new(function(choice)
         if choice then
             editor = choice.command
+            lastSelected.editor = choice
             hs.alert.show("Editor set to: " .. editor)
             chooser:hide()
         end
@@ -174,6 +195,7 @@ function FileManager.openMostRecentImage()
     local filePath = hs.execute("ls -t " .. desktopPath .. "/*.png | head -n 1")
     print("filePath: " .. filePath)
     if filePath ~= "" then
+        lastSelected.file = { name = "recent_image", path = filePath }
         hs.execute("open " .. filePath)
     else
         hs.alert.show("No recent image found on the desktop")

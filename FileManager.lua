@@ -32,12 +32,15 @@ local fileList = {
 
 local projects_list = {
     -- Core projects
-    { name = "lab",                 path = "~/lab" },
+    { name = "New Project",         path = "~" },
     { name = "regressiontestkit",   path = "~/lab/regressiontestkit" },
-    { name = "OculusTestKit",       path = "~/lab/regressiontestkit/OculusTestKit" },
-    { name = ".hammerspoon",        path = "~/.hammerspoon" },
     { name = "madness_interactive", path = "~/lab/madness_interactive" },
+    { name = "Swarmonomicon",       path = "~/lab/madness_interactive/projects/common/Swarmonomicon" },
+    { name = "Omnispindle",         path = "~/lab/madness_interactive/projects/python/Omnispindle" },
+    { name = "lab",                 path = "~/lab" },
+    { name = ".hammerspoon",        path = "~/.hammerspoon" },
     -- RegressionTestKit ecosystem
+    { name = "OculusTestKit",       path = "~/lab/regressiontestkit/OculusTestKit" },
     { name = "phoenix",             path = "~/lab/regressiontestkit/phoenix" },
     { name = "rust_ingest",         path = "~/lab/regressiontestkit/rust_ingest" },
     { name = "rtk-docs-host",       path = "~/lab/regressiontestkit/rtk-docs-host" },
@@ -46,47 +49,48 @@ local projects_list = {
     { name = "teltonika_wrapper",   path = "~/lab/regressiontestkit/teltonika_wrapper" },
     { name = "ohmura-firmware",     path = "~/lab/regressiontestkit/ohmura-firmware" },
     { name = "saws",                path = "~/lab/regressiontestkit/saws" },
-    { name = "prod-ed-configs",     path = "~/lab/regressiontestkit/prod-ed-configs" },
+    -- { name = "prod-ed-configs",     path = "~/lab/regressiontestkit/prod-ed-configs" },
+
+    -- Swarmonomicon ecosystem
+    -- { name = "swarm-browser-agent", path = "~/lab/madness_interactive/projects/common/Swarmonomicon/browser-agent" },
+    -- { name = "swarm-todo-server",   path = "~/lab/madness_interactive/projects/common/Swarmonomicon/Omnispindle" },
+    -- { name = "swarm-projects",      path = "~/lab/madness_interactive/projects/common/Swarmonomicon/projects" },
+    -- { name = "lego-vision",         path = "~/lab/madness_interactive/projects/common/Swarmonomicon/projects/python/lego-vision" },
+
+    -- Other major projects
+    { name = "Cogwyrm",             path = "~/lab/madness_interactive/projects/mobile/Cogwyrm" },
+    -- Rust projects
+    { name = "Tinker",              path = "~/lab/madness_interactive/projects/rust/Tinker" },
+    { name = "EventGhost-Rust",     path = "~/lab/madness_interactive/projects/rust/EventGhost-Rust" },
+
+    -- Python projects
+    -- { name = "fastmcp-balena-cli",  path = "~/lab/madness_interactive/projects/python/fastmcp-balena-cli" },
+    { name = "mcp-personal-jira",   path = "~/lab/madness_interactive/projects/python/mcp-personal-jira" },
+    -- { name = "LegoScry",            path = "~/lab/madness_interactive/projects/python/LegoScry" },
+    -- { name = "local-ai",            path = "~/lab/madness_interactive/projects/python/local-ai" },
+    -- { name = "simple-mqtt-server",  path = "~/lab/madness_interactive/projects/python/simple-mqtt-server-agent" },
+    { name = "mqtt-get-var",        path = "~/lab/madness_interactive/projects/python/mqtt-get-var" },
+    { name = "dvtTestKit",          path = "~/lab/madness_interactive/projects/python/dvtTestKit" },
+    -- { name = "SeleniumPageUtils",   path = "~/lab/madness_interactive/projects/python/SeleniumPageUtilities" },
+    -- { name = "MqttLogger",          path = "~/lab/madness_interactive/projects/python/MqttLogger" },
+    { name = "EventGhost-py",       path = "~/lab/madness_interactive/projects/python/EventGhost" },
+    -- { name = "py-games",            path = "~/lab/madness_interactive/projects/python/games" },
+    -- { name = "snowball-snowman",    path = "~/lab/madness_interactive/projects/python/games/snowball_snowman" },
+
     -- Project root directories
     { name = "projects-root",       path = "~/lab/madness_interactive/projects" },
     { name = "common-projects",     path = "~/lab/madness_interactive/projects/common" },
     { name = "mobile-projects",     path = "~/lab/madness_interactive/projects/mobile" },
     { name = "python-projects",     path = "~/lab/madness_interactive/projects/python" },
-    { name = "nodeJS-projects",     path = "~/lab/madness_interactive/projects/nodeJS" },
+    -- { name = "nodeJS-projects",     path = "~/lab/madness_interactive/projects/nodeJS" },
     { name = "lua-projects",        path = "~/lab/madness_interactive/projects/lua" },
     { name = "powershell-projects", path = "~/lab/madness_interactive/projects/powershell" },
-    { name = "OS-projects",         path = "~/lab/madness_interactive/projects/OS" },
+    -- { name = "OS-projects",         path = "~/lab/madness_interactive/projects/OS" },
     { name = "rust-projects",       path = "~/lab/madness_interactive/projects/rust" },
     { name = "tasker-projects",     path = "~/lab/madness_interactive/projects/tasker" },
 
-    -- Swarmonomicon ecosystem
-    { name = "Swarmonomicon",       path = "~/lab/madness_interactive/projects/common/Swarmonomicon" },
-    { name = "swarm-browser-agent", path = "~/lab/madness_interactive/projects/common/Swarmonomicon/browser-agent" },
-    { name = "swarm-todo-server",   path = "~/lab/madness_interactive/projects/common/Swarmonomicon/fastmcp-todo-server" },
-    { name = "swarm-projects",      path = "~/lab/madness_interactive/projects/common/Swarmonomicon/projects" },
-    { name = "lego-vision",         path = "~/lab/madness_interactive/projects/common/Swarmonomicon/projects/python/lego-vision" },
-
-    -- Other major projects
-    { name = "Omnispindle",         path = "~/lab/madness_interactive/projects/common/Omnispindle" },
-    { name = "Cogwyrm",             path = "~/lab/madness_interactive/projects/mobile/Cogwyrm" },
-    { name = "fastmcp-todo-server", path = "~/lab/madness_interactive/projects/python/fastmcp-todo-server" },
-
-    -- Python projects
-    { name = "fastmcp-balena-cli",  path = "~/lab/madness_interactive/projects/python/fastmcp-balena-cli" },
-    { name = "mcp-personal-jira",   path = "~/lab/madness_interactive/projects/python/mcp-personal-jira" },
-    { name = "LegoScry",            path = "~/lab/madness_interactive/projects/python/LegoScry" },
-    { name = "local-ai",            path = "~/lab/madness_interactive/projects/python/local-ai" },
-    { name = "simple-mqtt-server",  path = "~/lab/madness_interactive/projects/python/simple-mqtt-server-agent" },
-    { name = "mqtt-get-var",        path = "~/lab/madness_interactive/projects/python/mqtt-get-var" },
-    { name = "dvtTestKit",          path = "~/lab/madness_interactive/projects/python/dvtTestKit" },
-    { name = "SeleniumPageUtils",   path = "~/lab/madness_interactive/projects/python/SeleniumPageUtilities" },
-    { name = "MqttLogger",          path = "~/lab/madness_interactive/projects/python/MqttLogger" },
-    { name = "EventGhost-py",       path = "~/lab/madness_interactive/projects/python/EventGhost" },
-    { name = "py-games",            path = "~/lab/madness_interactive/projects/python/games" },
-    { name = "snowball-snowman",    path = "~/lab/madness_interactive/projects/python/games/snowball_snowman" },
-
     -- Lua projects
-    { name = "LGS_script_template", path = "~/lab/madness_interactive/projects/lua/LGS_script_template" },
+    -- { name = "LGS_script_template", path = "~/lab/madness_interactive/projects/lua/LGS_script_template" },
     { name = "hammerspoon-proj",    path = "~/lab/madness_interactive/projects/lua/hammerspoon" },
 
     -- PowerShell projects
@@ -94,10 +98,6 @@ local projects_list = {
 
     -- OS projects
     { name = "DisplayPhotoTime",    path = "~/lab/madness_interactive/projects/OS/windows/DisplayPhotoTime" },
-
-    -- Rust projects
-    { name = "Tinker",              path = "~/lab/madness_interactive/projects/rust/Tinker" },
-    { name = "EventGhost-Rust",     path = "~/lab/madness_interactive/projects/rust/EventGhost-Rust" },
 
     -- Tasker projects
     { name = "Verbatex",            path = "~/lab/madness_interactive/projects/tasker/Verbatex" },

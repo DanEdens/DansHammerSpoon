@@ -75,6 +75,16 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
         if choice.type == "window" then
             -- Focus the selected window
             choice.window:focus()
+        elseif choice.type == "project" and choice.text == "New Project" then
+            -- Handle New Project creation
+            -- local home = os.getenv("HOME")
+            -- local timestamp = os.date("%Y%m%d_%H%M%S")
+            -- local newProjectPath = home .. "/lab/new_project_" .. timestamp
+            -- -- Create the directory and open it
+            -- hs.execute("mkdir -p '" .. newProjectPath .. "'")
+            -- hs.execute("open -a '" .. appName .. "' '" .. newProjectPath .. "'")
+            -- -- Alert the user
+            hs.alert.show("TODO: Implement new project creation")
         elseif choice.type == "project" then
             -- Open the selected project with the application
             hs.execute("open -a '" .. appName .. "' " .. choice.path)

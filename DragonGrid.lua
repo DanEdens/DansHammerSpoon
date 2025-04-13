@@ -11,6 +11,7 @@ local modalKey = nil -- Will hold the modal key instance
 local dragMode = false
 local dragStart = nil
 local windowMode = false -- Full screen or window-only mode
+local gridHotkeys = {}   -- Table to hold hotkey bindings
 
 -- Initialize with default configuration
 local config = {
@@ -102,12 +103,23 @@ function DragonGrid.createDragonGrid()
             })
         end
     end
-    -- Add help text at the bottom
+    -- Add help text at the bottom for keyboard commands
     dragonGridCanvas:appendElements({
         type = "text",
         action = "fill",
         frame = { x = 10, y = frame.h - 30, w = frame.w - 20, h = 20 },
-        text = "Keys: 1-9=Select | Space=Click | Esc=Cancel | U=Undo | W=Toggle Mode | Shift+M=Mark for Drag",
+        text = "Use modifier keys: ⌘⇧⌥1-9=Select | ⌘⇧⌥Space=Click | ⌘⇧⌥Esc=Cancel | ⌘⇧⌥U=Undo | ⌘⇧⌥W=Toggle Mode",
+        textSize = 12,
+        textColor = { white = 1, alpha = 0.7 },
+        textAlignment = "center"
+    })
+
+    -- Add additional help text for mouse
+    dragonGridCanvas:appendElements({
+        type = "text",
+        action = "fill",
+        frame = { x = 10, y = frame.h - 50, w = frame.w - 20, h = 20 },
+        text = "Or click directly on cells with your mouse",
         textSize = 12,
         textColor = { white = 1, alpha = 0.7 },
         textAlignment = "center"
@@ -117,16 +129,113 @@ function DragonGrid.createDragonGrid()
     dragonGridCanvas:show()
 
     -- Set up click handler for the entire canvas
-    dragonGridCanvas:clickCallback(function(canvas, event, id, x, y)
+    dragonGridCanvas:mouseCallback(function(canvas, event, id, x, y)
         if event == "mouseUp" then
             DragonGrid.handleGridClick(x, y, frame)
         end
     end)
-    -- Setup keyboard modal
-    DragonGrid.setupKeyHandler()
+    -- Set up keyboard hotkeys with hammer modifier
+    -- We'll use the hammer modifiers (cmd+ctrl+alt) for all grid operations
+    -- This ensures they won't conflict with normal keyboard input
+
+    -- Clean up any existing hotkeys
+    DragonGrid.unbindHotkeys()
+
+    -- Define our hammer modifiers
+    local mods = { "cmd", "shift", "alt" }
+
+    -- Number keys for grid selection
+    for i = 1, 9 do
+        local hotkey = hs.hotkey.bind(mods, tostring(i), function()
+            DragonGrid.handleNumberKey(i)
+        end)
+        table.insert(gridHotkeys, hotkey)
+    end
+
+    -- Action keys
+    local escapeKey = hs.hotkey.bind(mods, "escape", function()
+        DragonGrid.destroyDragonGrid()
+    end)
+    table.insert(gridHotkeys, escapeKey)
+
+    local returnKey = hs.hotkey.bind(mods, "return", function()
+        DragonGrid.destroyDragonGrid()
+    end)
+    table.insert(gridHotkeys, returnKey)
+
+    local undoKey = hs.hotkey.bind(mods, "u", function()
+        if isSecondLevel then
+            isSecondLevel = false
+            DragonGrid.createDragonGrid()
+        else
+            DragonGrid.destroyDragonGrid()
+        end
+    end)
+    table.insert(gridHotkeys, undoKey)
+
+    -- Mouse actions
+    local spaceKey = hs.hotkey.bind(mods, "space", function()
+        local pos = hs.mouse.absolutePosition()
+        hs.eventtap.leftClick(pos)
+        DragonGrid.destroyDragonGrid()
+    end)
+    table.insert(gridHotkeys, spaceKey)
+
+    local rightClickKey = hs.hotkey.bind(mods, "r", function()
+        local pos = hs.mouse.absolutePosition()
+        hs.eventtap.rightClick(pos)
+        DragonGrid.destroyDragonGrid()
+    end)
+    table.insert(gridHotkeys, rightClickKey)
+
+    -- Mode toggle
+    local modeKey = hs.hotkey.bind(mods, "w", function()
+        windowMode = not windowMode
+        if windowMode then
+            hs.alert.show("Window mode")
+        else
+            hs.alert.show("Screen mode")
+        end
+
+        if isSecondLevel then
+            isSecondLevel = false
+        end
+
+        DragonGrid.createDragonGrid()
+    end)
+    table.insert(gridHotkeys, modeKey)
+
+    -- Mark for drag
+    local markKey = hs.hotkey.bind(mods, "m", function()
+        dragMode = true
+        dragStart = nil
+        hs.alert.show("Drag mode activated")
+    end)
+    table.insert(gridHotkeys, markKey)
+
+    -- Complete drag
+    local dragKey = hs.hotkey.bind(mods, "d", function()
+        if dragStart then
+            local pos = hs.mouse.absolutePosition()
+            hs.eventtap.leftMouseDown(dragStart)
+            hs.timer.doAfter(0.1, function()
+                hs.mouse.absolutePosition(pos)
+                hs.timer.doAfter(0.1, function()
+                    hs.eventtap.leftMouseUp()
+                    dragMode = false
+                    dragStart = nil
+                    DragonGrid.destroyDragonGrid()
+                end)
+            end)
+        else
+            hs.alert.show("Set mark position first with ⌘⇧⌥M")
+        end
+    end)
+    table.insert(gridHotkeys, dragKey)
 end
 
 function DragonGrid.handleGridClick(x, y, frame)
+    log.d("Grid click at x:" .. x .. ", y:" .. y)
     local cellWidth = frame.w / gridSize
     local cellHeight = frame.h / gridSize
 
@@ -134,6 +243,7 @@ function DragonGrid.handleGridClick(x, y, frame)
     local col = math.floor(x / cellWidth)
     local row = math.floor(y / cellHeight)
     local cellNum = row * gridSize + col + 1
+    log.d("Clicked on cell " .. cellNum .. " at row " .. row .. ", col " .. col)
 
     DragonGrid.handleNumberKey(cellNum)
 end
@@ -144,6 +254,7 @@ function DragonGrid.handleNumberKey(num)
         return
     end
 
+    log.d("Grid number selected: " .. num .. ", isSecondLevel: " .. tostring(isSecondLevel))
     local row = math.floor((num - 1) / gridSize)
     local col = (num - 1) % gridSize
 
@@ -163,6 +274,7 @@ function DragonGrid.handleNumberKey(num)
     local cellHeight = frame.h / gridSize
     if not isSecondLevel then
         -- First level selection
+        log.d("Creating first level selection for cell at row " .. row .. ", col " .. col)
         firstLevelSelection = {
             row = row,
             col = col,
@@ -218,9 +330,16 @@ end
 function DragonGrid.createSecondLevelGrid(cell)
     -- Switch to second level mode
     isSecondLevel = true
+    log.d("Creating second level grid for cell at x:" ..
+        cell.x .. ", y:" .. cell.y .. ", w:" .. cell.w .. ", h:" .. cell.h)
 
-    -- Clear the canvas
-    dragonGridCanvas:deleteSections()
+    -- Delete the current canvas and create a new one
+    if dragonGridCanvas then
+        dragonGridCanvas:delete()
+    end
+
+    -- Unbind existing hotkeys
+    DragonGrid.unbindHotkeys()
 
     local frame
     if windowMode then
@@ -233,6 +352,9 @@ function DragonGrid.createSecondLevelGrid(cell)
     else
         frame = hs.screen.mainScreen():frame()
     end
+    dragonGridCanvas = hs.canvas.new(frame)
+    dragonGridCanvas:behavior(hs.canvas.windowBehaviors.canJoinAllSpaces)
+    dragonGridCanvas:level(hs.canvas.windowLevels.overlay)
     -- Add semi-transparent overlay for areas outside the selected cell
     dragonGridCanvas:appendElements({
         type = "rectangle",
@@ -267,10 +389,29 @@ function DragonGrid.createSecondLevelGrid(cell)
     dragonGridCanvas:appendElements({
         type = "rectangle",
         action = "fill",
-        fillColor = config.colors.selectedCell,
+        fillColor = { red = 0.2, green = 0.5, blue = 0.8, alpha = 0.6 },
         frame = { x = cell.x, y = cell.y, w = cell.w, h = cell.h }
     })
-    
+
+    -- Add a distinctive border for the selected cell
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "stroke",
+        strokeColor = { red = 1, green = 1, blue = 0.2, alpha = 0.9 },
+        strokeWidth = 4,
+        frame = { x = cell.x, y = cell.y, w = cell.w, h = cell.h }
+    })
+
+    -- Add a second-level indicator text
+    dragonGridCanvas:appendElements({
+        type = "text",
+        action = "fill",
+        frame = { x = 10, y = 40, w = 300, h = 30 },
+        text = "SECOND LEVEL - Make final selection",
+        textSize = 16,
+        textColor = { red = 1, green = 0.8, blue = 0.2, alpha = 1.0 },
+        textAlignment = "left"
+    })
     -- Add status indicators
     local modeText = windowMode and "WINDOW MODE" or "SCREEN MODE"
     local stateText = dragMode and "DRAG MODE - Select Target" or "PRECISION MODE"
@@ -289,7 +430,8 @@ function DragonGrid.createSecondLevelGrid(cell)
             local cellNum = row * gridSize + col + 1
             local x = cell.x + col * secondCellWidth
             local y = cell.y + row * secondCellHeight
-
+            
+            log.d("Second level cell " .. cellNum .. " at x:" .. x .. ", y:" .. y)
             -- Add cell border
             dragonGridCanvas:appendElements({
                 type = "rectangle",
@@ -316,7 +458,7 @@ function DragonGrid.createSecondLevelGrid(cell)
         type = "text",
         action = "fill",
         frame = { x = 10, y = frame.h - 30, w = frame.w - 20, h = 20 },
-        text = "Keys: 1-9=Final Select | Space=Click | Esc=Cancel | U=Back | D=Complete Drag",
+        text = "Keys: ⌘⇧⌥1-9=Final Select | ⌘⇧⌥Space=Click | ⌘⇧⌥Esc=Cancel | ⌘⇧⌥U=Back | ⌘⇧⌥D=Complete Drag",
         textSize = 12,
         textColor = { white = 1, alpha = 0.7 },
         textAlignment = "center"
@@ -331,96 +473,66 @@ function DragonGrid.createSecondLevelGrid(cell)
             frame = { x = dragStart.x - 10, y = dragStart.y - 10, w = 20, h = 20 }
         })
     end
-end
+    -- Show the grid
+    dragonGridCanvas:show()
 
-function DragonGrid.destroyDragonGrid()
-    if modalKey then
-        modalKey:exit()
-    end
-    if dragonGridCanvas then
-        dragonGridCanvas:delete()
-        dragonGridCanvas = nil
-    end
-    
-    isSecondLevel = false
-    firstLevelSelection = nil
-    dragMode = false
-    dragStart = nil
-end
+    -- Set up click handler for the second level grid
+    dragonGridCanvas:mouseCallback(function(canvas, event, id, x, y)
+        if event == "mouseUp" then
+            DragonGrid.handleGridClick(x, y, frame)
+        end
+    end)
 
-function DragonGrid.setupKeyHandler()
-    if modalKey then
-        modalKey:exit()
-    end
-
-    modalKey = hs.hotkey.modal.new()
+    -- Set up keyboard hotkeys with modifier keys
+    -- Define our modifiers
+    local mods = { "cmd", "shift", "alt" }
 
     -- Number keys for grid selection
     for i = 1, 9 do
-        modalKey:bind({}, tostring(i), function()
+        local hotkey = hs.hotkey.bind(mods, tostring(i), function()
             DragonGrid.handleNumberKey(i)
         end)
+        table.insert(gridHotkeys, hotkey)
     end
 
     -- Action keys
-    modalKey:bind({}, 'escape', function()
+    local escapeKey = hs.hotkey.bind(mods, "escape", function()
         DragonGrid.destroyDragonGrid()
     end)
+    table.insert(gridHotkeys, escapeKey)
 
-    modalKey:bind({}, 'return', function()
-        -- "Go" command - just close the grid
+    local returnKey = hs.hotkey.bind(mods, "return", function()
         DragonGrid.destroyDragonGrid()
     end)
+    table.insert(gridHotkeys, returnKey)
 
-    modalKey:bind({}, 'u', function()
-        -- Undo the last action
+    local undoKey = hs.hotkey.bind(mods, "u", function()
         if isSecondLevel then
             isSecondLevel = false
             DragonGrid.createDragonGrid()
         else
-            -- If we're already at the first level, just cancel
             DragonGrid.destroyDragonGrid()
         end
     end)
+    table.insert(gridHotkeys, undoKey)
 
     -- Mouse actions
-    modalKey:bind({}, 'space', function()
-        -- Left click
+    local spaceKey = hs.hotkey.bind(mods, "space", function()
         local pos = hs.mouse.absolutePosition()
         hs.eventtap.leftClick(pos)
         DragonGrid.destroyDragonGrid()
     end)
+    table.insert(gridHotkeys, spaceKey)
 
-    modalKey:bind({ 'alt' }, 'space', function()
-        -- Right click
+    local rightClickKey = hs.hotkey.bind(mods, "r", function()
         local pos = hs.mouse.absolutePosition()
         hs.eventtap.rightClick(pos)
         DragonGrid.destroyDragonGrid()
     end)
+    table.insert(gridHotkeys, rightClickKey)
 
-    modalKey:bind({ 'shift' }, 'space', function()
-        -- Middle click
-        local pos = hs.mouse.absolutePosition()
-        hs.eventtap.middleClick(pos)
-        DragonGrid.destroyDragonGrid()
-    end)
-
-    modalKey:bind({ 'ctrl' }, 'space', function()
-        -- Double click
-        local pos = hs.mouse.absolutePosition()
-        hs.eventtap.doubleClick(pos)
-        DragonGrid.destroyDragonGrid()
-    end)
-
-    modalKey:bind({ 'shift' }, 'm', function()
-        -- Mark for drag
-        dragMode = true
-        dragStart = nil
-        hs.alert.show("Drag mode activated")
-    end)
-
-    modalKey:bind({}, 'd', function()
-        -- Drag operation
+    -- Complete drag
+    local dragKey = hs.hotkey.bind(mods, "d", function()
         if dragStart then
             local pos = hs.mouse.absolutePosition()
             hs.eventtap.leftMouseDown(dragStart)
@@ -434,27 +546,35 @@ function DragonGrid.setupKeyHandler()
                 end)
             end)
         else
-            hs.alert.show("Set mark position first with Shift+M")
+            hs.alert.show("Set mark position first with ⌘⇧⌥M")
         end
     end)
+    table.insert(gridHotkeys, dragKey)
+end
 
-    -- Window or screen mode toggle
-    modalKey:bind({}, 'w', function()
-        windowMode = not windowMode
-        if windowMode then
-            hs.alert.show("Window mode")
-        else
-            hs.alert.show("Screen mode")
-        end
+function DragonGrid.destroyDragonGrid()
+    -- Unbind all hotkeys
+    DragonGrid.unbindHotkeys()
+    if modalKey then
+        modalKey:exit()
+    end
 
-        if isSecondLevel then
-            isSecondLevel = false
-        end
+    if dragonGridCanvas then
+        dragonGridCanvas:delete()
+        dragonGridCanvas = nil
+    end
 
-        DragonGrid.createDragonGrid()
-    end)
+    isSecondLevel = false
+    firstLevelSelection = nil
+    dragMode = false
+    dragStart = nil
+end
 
-    modalKey:enter()
+function DragonGrid.unbindHotkeys()
+    for _, hotkey in ipairs(gridHotkeys) do
+        hotkey:delete()
+    end
+    gridHotkeys = {}
 end
 
 function DragonGrid.toggleDragonGrid()

@@ -142,7 +142,9 @@ function DragonGrid.createDragonGrid()
     DragonGrid.unbindHotkeys()
 
     -- Define our hammer modifiers
-    local mods = { "cmd", "shift", "alt" }
+    -- local mods = { "cmd", "shift", "alt" }
+    -- local mods = { "shift" }
+    local mods = { "cmd" }
 
     -- Number keys for grid selection
     for i = 1, 9 do
@@ -430,7 +432,7 @@ function DragonGrid.createSecondLevelGrid(cell)
             local cellNum = row * gridSize + col + 1
             local x = cell.x + col * secondCellWidth
             local y = cell.y + row * secondCellHeight
-            
+
             log.d("Second level cell " .. cellNum .. " at x:" .. x .. ", y:" .. y)
             -- Add cell border
             dragonGridCanvas:appendElements({
@@ -485,7 +487,8 @@ function DragonGrid.createSecondLevelGrid(cell)
 
     -- Set up keyboard hotkeys with modifier keys
     -- Define our modifiers
-    local mods = { "cmd", "shift", "alt" }
+    -- local mods = { "cmd" }
+    local mods = { "cmd" }
 
     -- Number keys for grid selection
     for i = 1, 9 do

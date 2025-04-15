@@ -13,6 +13,7 @@ local dragMode = false
 local dragStart = nil
 local windowMode = false -- Full screen or window-only mode
 local gridHotkeys = {}   -- Table to hold hotkey bindings
+local menubar = nil      -- Menubar object for settings
 
 -- Initialize with default configuration
 local config = {
@@ -753,6 +754,162 @@ function DragonGrid.toggleDragonGrid()
     end
 end
 
+-- Show settings menu for DragonGrid
+function DragonGrid.showSettingsMenu()
+    if menubar then
+        menubar:delete()
+        menubar = nil
+        return
+    end
+
+    menubar = hs.menubar.new()
+    menubar:setTitle("⊞") -- Grid symbol
+
+    local function updateMenu()
+        local menu = {
+            { title = "DragonGrid Settings", disabled = true },
+            { title = "-" },
+            {
+                title = "Grid Size",
+                menu = {
+                    {
+                        title = "2x2",
+                        checked = gridSize == 2,
+                        fn = function()
+                            DragonGrid.setConfig({ gridSize = 2 }); updateMenu()
+                        end
+                    },
+                    {
+                        title = "3x3",
+                        checked = gridSize == 3,
+                        fn = function()
+                            DragonGrid.setConfig({ gridSize = 3 }); updateMenu()
+                        end
+                    },
+                    {
+                        title = "4x4",
+                        checked = gridSize == 4,
+                        fn = function()
+                            DragonGrid.setConfig({ gridSize = 4 }); updateMenu()
+                        end
+                    },
+                    {
+                        title = "5x5",
+                        checked = gridSize == 5,
+                        fn = function()
+                            DragonGrid.setConfig({ gridSize = 5 }); updateMenu()
+                        end
+                    }
+                }
+            },
+            {
+                title = "Precision Layers",
+                menu = {
+                    {
+                        title = "1 Layer",
+                        checked = maxLayers == 1,
+                        fn = function()
+                            DragonGrid.setConfig({ maxLayers = 1 }); updateMenu()
+                        end
+                    },
+                    {
+                        title = "2 Layers",
+                        checked = maxLayers == 2,
+                        fn = function()
+                            DragonGrid.setConfig({ maxLayers = 2 }); updateMenu()
+                        end
+                    },
+                    {
+                        title = "3 Layers",
+                        checked = maxLayers == 3,
+                        fn = function()
+                            DragonGrid.setConfig({ maxLayers = 3 }); updateMenu()
+                        end
+                    }
+                }
+            },
+            { title = "-" },
+            {
+                title = "Mode",
+                menu = {
+                    {
+                        title = "Screen Mode",
+                        checked = not windowMode,
+                        fn = function()
+                            windowMode = false; updateMenu()
+                        end
+                    },
+                    {
+                        title = "Window Mode",
+                        checked = windowMode,
+                        fn = function()
+                            windowMode = true; updateMenu()
+                        end
+                    }
+                }
+            },
+            { title = "-" },
+            {
+                title = "Background Opacity",
+                menu = {
+                    {
+                        title = "10%",
+                        checked = config.colors.background.alpha == 0.1,
+                        fn = function()
+                            config.colors.background.alpha = 0.1
+                            updateMenu()
+                        end
+                    },
+                    {
+                        title = "20%",
+                        checked = config.colors.background.alpha == 0.2,
+                        fn = function()
+                            config.colors.background.alpha = 0.2
+                            updateMenu()
+                        end
+                    },
+                    {
+                        title = "30%",
+                        checked = config.colors.background.alpha == 0.3,
+                        fn = function()
+                            config.colors.background.alpha = 0.3
+                            updateMenu()
+                        end
+                    },
+                    {
+                        title = "50%",
+                        checked = config.colors.background.alpha == 0.5,
+                        fn = function()
+                            config.colors.background.alpha = 0.5
+                            updateMenu()
+                        end
+                    }
+                }
+            },
+            { title = "-" },
+            {
+                title = "Launch Grid",
+                fn = function()
+                    DragonGrid.toggleDragonGrid()
+                end
+            },
+            { title = "-" },
+            {
+                title = "Close Menu",
+                fn = function()
+                    if menubar then
+                        menubar:delete()
+                        menubar = nil
+                    end
+                end
+            }
+        }
+
+        menubar:setMenu(menu)
+    end
+
+    updateMenu()
+end
 -- Bind to hotkey directly (you can change this as needed)
 function DragonGrid.bindHotkeys(mapping)
     local spec = {
@@ -762,7 +919,8 @@ function DragonGrid.bindHotkeys(mapping)
         end,
         screen = function()
             windowMode = false; DragonGrid.createDragonGrid()
-        end
+        end,
+        settings = DragonGrid.showSettingsMenu
     }
 
     hs.spoons.bindHotkeysToSpec(spec, mapping)

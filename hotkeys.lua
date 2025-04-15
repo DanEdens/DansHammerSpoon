@@ -103,9 +103,7 @@ hs.hotkey.bind(_hyper, "e", function() FileManager.showEditorMenu() end)
 
 -- Dragon Grid
 hs.hotkey.bind(hammer, "x", function() DragonGrid.toggleDragonGrid() end)
-hs.hotkey.bind(_hyper, "x", function()
-    windowMode = true; DragonGrid.createDragonGrid()
-end)
+hs.hotkey.bind(_hyper, "x", function() DragonGrid.showSettingsMenu() end)
 
 -- Misc
 hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy -S'") end)

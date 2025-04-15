@@ -4,8 +4,9 @@ log.i('Initializing DragonGrid module')
 local DragonGrid = {}
 
 local dragonGridCanvas = nil
-local isSecondLevel = false
-local firstLevelSelection = nil
+local currentLevel = 0
+local maxLayers = 2         -- Default number of layers
+local selectionHistory = {} -- Will store all selections at each level
 local gridSize = 3
 local modalKey = nil -- Will hold the modal key instance
 local dragMode = false
@@ -16,6 +17,7 @@ local gridHotkeys = {}   -- Table to hold hotkey bindings
 -- Initialize with default configuration
 local config = {
     gridSize = 3,
+    maxLayers = 2, -- Default to 2 layers, 1st for rough positioning, 2nd for fine positioning
     colors = {
         background = { red = 0, green = 0, blue = 0, alpha = 0.3 },
         cellBorder = { white = 1, alpha = 0.8 },
@@ -31,7 +33,8 @@ function DragonGrid.createDragonGrid()
         DragonGrid.destroyDragonGrid()
     end
 
-    isSecondLevel = false
+    currentLevel = 1
+    selectionHistory = {}
     dragMode = false
     dragStart = nil
 
@@ -166,9 +169,10 @@ function DragonGrid.createDragonGrid()
     table.insert(gridHotkeys, returnKey)
 
     local undoKey = hs.hotkey.bind(mods, "u", function()
-        if isSecondLevel then
-            isSecondLevel = false
-            DragonGrid.createDragonGrid()
+        if currentLevel > 1 then
+            currentLevel = currentLevel - 1
+            selectionHistory[currentLevel] = nil
+            DragonGrid.createNextLevelGrid()
         else
             DragonGrid.destroyDragonGrid()
         end
@@ -197,10 +201,6 @@ function DragonGrid.createDragonGrid()
             hs.alert.show("Window mode")
         else
             hs.alert.show("Screen mode")
-        end
-
-        if isSecondLevel then
-            isSecondLevel = false
         end
 
         DragonGrid.createDragonGrid()
@@ -256,7 +256,7 @@ function DragonGrid.handleNumberKey(num)
         return
     end
 
-    log.d("Grid number selected: " .. num .. ", isSecondLevel: " .. tostring(isSecondLevel))
+    log.d("Grid number selected: " .. num .. ", currentLevel: " .. currentLevel)
     local row = math.floor((num - 1) / gridSize)
     local col = (num - 1) % gridSize
 
@@ -274,10 +274,9 @@ function DragonGrid.handleNumberKey(num)
 
     local cellWidth = frame.w / gridSize
     local cellHeight = frame.h / gridSize
-    if not isSecondLevel then
-        -- First level selection
-        log.d("Creating first level selection for cell at row " .. row .. ", col " .. col)
-        firstLevelSelection = {
+    if currentLevel < maxLayers then
+        -- Store this selection in history
+        local selection = {
             row = row,
             col = col,
             x = frame.x + col * cellWidth,
@@ -285,21 +284,16 @@ function DragonGrid.handleNumberKey(num)
             w = cellWidth,
             h = cellHeight
         }
-        DragonGrid.createSecondLevelGrid(firstLevelSelection)
+
+        selectionHistory[currentLevel] = selection
+        log.d("Storing selection at level " .. currentLevel)
+
+        -- Move to next level
+        currentLevel = currentLevel + 1
+        DragonGrid.createNextLevelGrid()
     else
-        -- Second level selection (final)
-        local firstX = firstLevelSelection.x
-        local firstY = firstLevelSelection.y
-        local firstW = firstLevelSelection.w
-        local firstH = firstLevelSelection.h
-
-        -- Calculate precise position within the cell
-        local secondCellWidth = firstW / gridSize
-        local secondCellHeight = firstH / gridSize
-
-        -- Calculate the exact position to move the mouse to
-        local finalX = firstX + col * secondCellWidth + secondCellWidth / 2
-        local finalY = firstY + row * secondCellHeight + secondCellHeight / 2
+        -- Final level selection (perform action)
+        local finalX, finalY = DragonGrid.calculateFinalPosition(row, col)
 
         if dragMode and dragStart == nil then
             -- We're in drag mode and this is the first point
@@ -329,12 +323,48 @@ function DragonGrid.handleNumberKey(num)
     end
 end
 
-function DragonGrid.createSecondLevelGrid(cell)
-    -- Switch to second level mode
-    isSecondLevel = true
-    log.d("Creating second level grid for cell at x:" ..
-        cell.x .. ", y:" .. cell.y .. ", w:" .. cell.w .. ", h:" .. cell.h)
+-- Calculate the final mouse position based on all selections
+function DragonGrid.calculateFinalPosition(finalRow, finalCol)
+    local frame
+    if windowMode then
+        local win = hs.window.focusedWindow()
+        if not win then
+            frame = hs.screen.mainScreen():frame()
+        else
+            frame = win:frame()
+        end
+    else
+        frame = hs.screen.mainScreen():frame()
+    end
 
+    -- Start with full screen
+    local currentX = frame.x
+    local currentY = frame.y
+    local currentWidth = frame.w
+    local currentHeight = frame.h
+
+    -- Apply each level of selection to narrow down the position
+    for i = 1, #selectionHistory do
+        local selection = selectionHistory[i]
+        local cellWidth = currentWidth / gridSize
+        local cellHeight = currentHeight / gridSize
+
+        currentX = currentX + selection.col * cellWidth
+        currentY = currentY + selection.row * cellHeight
+        currentWidth = cellWidth
+        currentHeight = cellHeight
+    end
+
+    -- Apply the final selection
+    local finalCellWidth = currentWidth / gridSize
+    local finalCellHeight = currentHeight / gridSize
+    local finalX = currentX + finalCol * finalCellWidth + finalCellWidth / 2
+    local finalY = currentY + finalRow * finalCellHeight + finalCellHeight / 2
+
+    return finalX, finalY
+end
+
+function DragonGrid.createNextLevelGrid()
     -- Delete the current canvas and create a new one
     if dragonGridCanvas then
         dragonGridCanvas:delete()
@@ -354,45 +384,30 @@ function DragonGrid.createSecondLevelGrid(cell)
     else
         frame = hs.screen.mainScreen():frame()
     end
+
     dragonGridCanvas = hs.canvas.new(frame)
     dragonGridCanvas:behavior(hs.canvas.windowBehaviors.canJoinAllSpaces)
     dragonGridCanvas:level(hs.canvas.windowLevels.overlay)
+    -- Get the currently selected region
+    local currentSelection = selectionHistory[currentLevel - 1]
     -- Add semi-transparent overlay for areas outside the selected cell
     dragonGridCanvas:appendElements({
         type = "rectangle",
         action = "fill",
         fillColor = config.colors.outsideArea,
-        frame = { x = 0, y = 0, w = cell.x, h = cell.y + cell.h }
-    })
-    dragonGridCanvas:appendElements({
-        type = "rectangle",
-        action = "fill",
-        fillColor = config.colors.outsideArea,
-        frame = { x = cell.x + cell.w, y = 0, w = frame.w - (cell.x + cell.w), h = cell.y + cell.h }
-    })
-    dragonGridCanvas:appendElements({
-        type = "rectangle",
-        action = "fill",
-        fillColor = config.colors.outsideArea,
-        frame = { x = 0, y = cell.y + cell.h, w = frame.w, h = frame.h - (cell.y + cell.h) }
-    })
-    dragonGridCanvas:appendElements({
-        type = "rectangle",
-        action = "fill",
-        fillColor = config.colors.outsideArea,
-        frame = { x = 0, y = 0, w = frame.w, h = cell.y }
+        frame = { x = 0, y = 0, w = frame.w, h = frame.h }
     })
 
-    -- Create a second level grid inside the selected cell
-    local secondCellWidth = cell.w / gridSize
-    local secondCellHeight = cell.h / gridSize
+    -- Create next level grid inside the selected cell
+    local cellWidth = currentSelection.w / gridSize
+    local cellHeight = currentSelection.h / gridSize
 
     -- Add highlight for the selected cell
     dragonGridCanvas:appendElements({
         type = "rectangle",
         action = "fill",
         fillColor = { red = 0.2, green = 0.5, blue = 0.8, alpha = 0.6 },
-        frame = { x = cell.x, y = cell.y, w = cell.w, h = cell.h }
+        frame = { x = currentSelection.x, y = currentSelection.y, w = currentSelection.w, h = currentSelection.h }
     })
 
     -- Add a distinctive border for the selected cell
@@ -401,19 +416,20 @@ function DragonGrid.createSecondLevelGrid(cell)
         action = "stroke",
         strokeColor = { red = 1, green = 1, blue = 0.2, alpha = 0.9 },
         strokeWidth = 4,
-        frame = { x = cell.x, y = cell.y, w = cell.w, h = cell.h }
+        frame = { x = currentSelection.x, y = currentSelection.y, w = currentSelection.w, h = currentSelection.h }
     })
 
-    -- Add a second-level indicator text
+    -- Add a level indicator text
     dragonGridCanvas:appendElements({
         type = "text",
         action = "fill",
         frame = { x = 10, y = 40, w = 300, h = 30 },
-        text = "SECOND LEVEL - Make final selection",
+        text = "LEVEL " .. currentLevel .. " OF " .. maxLayers .. " - Make selection",
         textSize = 16,
         textColor = { red = 1, green = 0.8, blue = 0.2, alpha = 1.0 },
         textAlignment = "left"
     })
+
     -- Add status indicators
     local modeText = windowMode and "WINDOW MODE" or "SCREEN MODE"
     local stateText = dragMode and "DRAG MODE - Select Target" or "PRECISION MODE"
@@ -427,27 +443,29 @@ function DragonGrid.createSecondLevelGrid(cell)
         textColor = dragMode and { red = 1, green = 0.6, blue = 0.2, alpha = 0.9 } or { white = 1, alpha = 0.8 },
         textAlignment = "left"
     })
+    -- Draw grid cells
     for row = 0, gridSize - 1 do
         for col = 0, gridSize - 1 do
             local cellNum = row * gridSize + col + 1
-            local x = cell.x + col * secondCellWidth
-            local y = cell.y + row * secondCellHeight
+            local x = currentSelection.x + col * cellWidth
+            local y = currentSelection.y + row * cellHeight
 
-            log.d("Second level cell " .. cellNum .. " at x:" .. x .. ", y:" .. y)
+            log.d("Level " .. currentLevel .. " cell " .. cellNum .. " at x:" .. x .. ", y:" .. y)
+
             -- Add cell border
             dragonGridCanvas:appendElements({
                 type = "rectangle",
                 action = "stroke",
                 strokeColor = config.colors.cellBorder,
                 strokeWidth = 1,
-                frame = { x = x, y = y, w = secondCellWidth, h = secondCellHeight }
+                frame = { x = x, y = y, w = cellWidth, h = cellHeight }
             })
 
             -- Add cell number
             dragonGridCanvas:appendElements({
                 type = "text",
                 action = "fill",
-                frame = { x = x + secondCellWidth / 2 - 15, y = y + secondCellHeight / 2 - 15, w = 30, h = 30 },
+                frame = { x = x + cellWidth / 2 - 15, y = y + cellHeight / 2 - 15, w = 30, h = 30 },
                 text = tostring(cellNum),
                 textSize = 20,
                 textColor = config.colors.cellText,
@@ -455,12 +473,13 @@ function DragonGrid.createSecondLevelGrid(cell)
             })
         end
     end
+
     -- Add help text at the bottom
     dragonGridCanvas:appendElements({
         type = "text",
         action = "fill",
         frame = { x = 10, y = frame.h - 30, w = frame.w - 20, h = 20 },
-        text = "Keys: ⌘⇧⌥1-9=Final Select | ⌘⇧⌥Space=Click | ⌘⇧⌥Esc=Cancel | ⌘⇧⌥U=Back | ⌘⇧⌥D=Complete Drag",
+        text = "Keys: ⌘1-9=Select | ⌘Space=Click | ⌘Esc=Cancel | ⌘U=Back | ⌘D=Complete Drag",
         textSize = 12,
         textColor = { white = 1, alpha = 0.7 },
         textAlignment = "center"
@@ -475,10 +494,11 @@ function DragonGrid.createSecondLevelGrid(cell)
             frame = { x = dragStart.x - 10, y = dragStart.y - 10, w = 20, h = 20 }
         })
     end
+
     -- Show the grid
     dragonGridCanvas:show()
 
-    -- Set up click handler for the second level grid
+    -- Set up click handler for the grid
     dragonGridCanvas:mouseCallback(function(canvas, event, id, x, y)
         if event == "mouseUp" then
             DragonGrid.handleGridClick(x, y, frame)
@@ -487,7 +507,6 @@ function DragonGrid.createSecondLevelGrid(cell)
 
     -- Set up keyboard hotkeys with modifier keys
     -- Define our modifiers
-    -- local mods = { "cmd" }
     local mods = { "cmd" }
 
     -- Number keys for grid selection
@@ -510,9 +529,10 @@ function DragonGrid.createSecondLevelGrid(cell)
     table.insert(gridHotkeys, returnKey)
 
     local undoKey = hs.hotkey.bind(mods, "u", function()
-        if isSecondLevel then
-            isSecondLevel = false
-            DragonGrid.createDragonGrid()
+        if currentLevel > 1 then
+            currentLevel = currentLevel - 1
+            selectionHistory[currentLevel] = nil
+            DragonGrid.createNextLevelGrid()
         else
             DragonGrid.destroyDragonGrid()
         end
@@ -549,10 +569,17 @@ function DragonGrid.createSecondLevelGrid(cell)
                 end)
             end)
         else
-            hs.alert.show("Set mark position first with ⌘⇧⌥M")
+            hs.alert.show("Set mark position first with ⌘M")
         end
     end)
     table.insert(gridHotkeys, dragKey)
+    -- Mark for drag
+    local markKey = hs.hotkey.bind(mods, "m", function()
+        dragMode = true
+        dragStart = nil
+        hs.alert.show("Drag mode activated")
+    end)
+    table.insert(gridHotkeys, markKey)
 end
 
 function DragonGrid.destroyDragonGrid()
@@ -567,8 +594,8 @@ function DragonGrid.destroyDragonGrid()
         dragonGridCanvas = nil
     end
 
-    isSecondLevel = false
-    firstLevelSelection = nil
+    currentLevel = 0
+    selectionHistory = {}
     dragMode = false
     dragStart = nil
 end
@@ -619,6 +646,10 @@ function DragonGrid.setConfig(newConfig)
     -- Update grid size if provided
     if newConfig.gridSize then
         gridSize = newConfig.gridSize
+    end
+    -- Update max layers if provided
+    if newConfig.maxLayers then
+        maxLayers = newConfig.maxLayers
     end
 
     return self

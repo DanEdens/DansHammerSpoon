@@ -64,3 +64,25 @@ When contributing to this project:
 2. Follow the existing code style (or the new one if defined)
 3. Add proper documentation for all changes
 4. Test thoroughly before submitting 
+
+# DragonGrid for Hammerspoon
+
+## Extended Hotkey Support for Larger Grids
+
+We've added extended hotkey support for larger grid sizes:
+
+- `⌘+1-9` selects cells 1-9
+- `⌘+Shift+1-9` selects cells 10-18
+- `⌘+Shift+Alt+1-9` selects cells 19-27
+
+This allows for larger grid sizes (up to 5x5 = 25 cells) while maintaining keyboard accessibility.
+
+The help text in the grid interface has been updated to show these new keyboard shortcuts.
+
+## Features
+
+- Grid-based mouse positioning with multiple precision layers
+- Window mode or screen mode
+- Drag and drop support
+- Keyboard and mouse control
+- Configurable grid size and layers 

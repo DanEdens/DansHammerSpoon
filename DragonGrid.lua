@@ -252,11 +252,11 @@ end
 
 function DragonGrid.handleGridClick(x, y)
     log.d("Grid click at x:" .. x .. ", y:" .. y)
-    
+
     if currentLevel > 1 then
         -- We're in a higher level grid
         local currentSelection = selectionHistory[currentLevel - 1]
-        
+
         -- Check if the click is within the current selection
         if x < currentSelection.x or x > (currentSelection.x + currentSelection.w) or
             y < currentSelection.y or y > (currentSelection.y + currentSelection.h) then
@@ -264,15 +264,15 @@ function DragonGrid.handleGridClick(x, y)
             log.d("Click outside current grid area - ignoring")
             return
         end
-        
+
         -- Calculate which cell was clicked within the current selection
         local cellWidth = currentSelection.w / gridSize
         local cellHeight = currentSelection.h / gridSize
-        
+
         local col = math.floor((x - currentSelection.x) / cellWidth)
         local row = math.floor((y - currentSelection.y) / cellHeight)
         local cellNum = row * gridSize + col + 1
-        
+
         log.d("Clicked on level " .. currentLevel .. " cell " .. cellNum ..
             " at row " .. row .. ", col " .. col)
         DragonGrid.handleNumberKey(cellNum)
@@ -331,22 +331,22 @@ function DragonGrid.handleGridClick(x, y)
             log.d("Click outside screen bounds - ignoring")
             return
         end
-        
+
         local cellWidth = frame.w / gridSize
         local cellHeight = frame.h / gridSize
-        
+
         -- Calculate which cell was clicked
         local col = math.floor((x - frame.x) / cellWidth)
         local row = math.floor((y - frame.y) / cellHeight)
-        
+
         -- Check bounds
         if col < 0 or col >= gridSize or row < 0 or row >= gridSize then
             log.d("Click outside grid bounds - ignoring")
             return
         end
-        
+
         local cellNum = row * gridSize + col + 1
-        
+
         log.d("Clicked on first level cell " .. cellNum .. " at row " .. row .. ", col " .. col)
         DragonGrid.handleNumberKey(cellNum)
     end
@@ -466,15 +466,14 @@ function DragonGrid.createNextLevelGrid()
     -- Unbind existing hotkeys
     DragonGrid.unbindHotkeys()
 
-    -- Get the screen frame for absolute positioning
-    -- Determine which screen contains our current selection
+    -- Get the current selection (which represents our grid area)
     local currentSelection = selectionHistory[currentLevel - 1]
+    -- Find the screen containing the selection center point
     local selectionCenter = {
         x = currentSelection.x + currentSelection.w / 2,
         y = currentSelection.y + currentSelection.h / 2
     }
-
-    -- Find the screen containing the selection center point
+    
     local currentScreen = nil
     for _, screen in pairs(hs.screen.allScreens()) do
         local screenFrame = screen:frame()
@@ -492,132 +491,48 @@ function DragonGrid.createNextLevelGrid()
         currentScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
     end
 
-    local screenFrame = currentScreen:frame()
-
     log.d("Using screen: " .. (currentScreen:name() or "unnamed") ..
         " for level " .. currentLevel .. " grid")
 
     log.d("Creating level " .. currentLevel .. " grid at x=" ..
         currentSelection.x .. ", y=" .. currentSelection.y ..
         ", w=" .. currentSelection.w .. ", h=" .. currentSelection.h)
-    -- Create a new canvas covering the entire screen
-    dragonGridCanvas = hs.canvas.new(screenFrame)
+    
+    -- Create a new canvas with the exact dimensions of the selection area
+    -- This is the key change - use the selection bounds directly instead of the full screen
+    dragonGridCanvas = hs.canvas.new({
+        x = currentSelection.x,
+        y = currentSelection.y,
+        w = currentSelection.w,
+        h = currentSelection.h
+    })
     dragonGridCanvas:behavior(hs.canvas.windowBehaviors.canJoinAllSpaces)
     dragonGridCanvas:level(hs.canvas.windowLevels.overlay)
     
-    -- Add semi-transparent overlay for areas outside the selected cell
-    -- Top area (everything above selection)
-    if currentSelection.y > screenFrame.y then
-        dragonGridCanvas:appendElements({
-            type = "rectangle",
-            action = "fill",
-            fillColor = config.colors.outsideArea,
-            frame = {
-                x = screenFrame.x,
-                y = screenFrame.y,
-                w = screenFrame.w,
-                h = currentSelection.y - screenFrame.y
-            }
-        })
-    end
-    
-    -- Bottom area (everything below selection)
-    local bottomY = currentSelection.y + currentSelection.h
-    if bottomY < (screenFrame.y + screenFrame.h) then
-        dragonGridCanvas:appendElements({
-            type = "rectangle",
-            action = "fill",
-            fillColor = config.colors.outsideArea,
-            frame = {
-                x = screenFrame.x,
-                y = bottomY,
-                w = screenFrame.w,
-                h = (screenFrame.y + screenFrame.h) - bottomY
-            }
-        })
-    end
-    
-    -- Left area (to the left of selection at its height)
-    if currentSelection.x > screenFrame.x then
-        dragonGridCanvas:appendElements({
-            type = "rectangle",
-            action = "fill",
-            fillColor = config.colors.outsideArea,
-            frame = {
-                x = screenFrame.x,
-                y = currentSelection.y,
-                w = currentSelection.x - screenFrame.x,
-                h = currentSelection.h
-            }
-        })
-    end
-    
-    -- Right area (to the right of selection at its height)
-    local rightX = currentSelection.x + currentSelection.w
-    if rightX < (screenFrame.x + screenFrame.w) then
-        dragonGridCanvas:appendElements({
-            type = "rectangle",
-            action = "fill",
-            fillColor = config.colors.outsideArea,
-            frame = {
-                x = rightX,
-                y = currentSelection.y,
-                w = (screenFrame.x + screenFrame.w) - rightX,
-                h = currentSelection.h
-            }
-        })
-    end
-    
-    -- Calculate cell dimensions for this level
-    local cellWidth = currentSelection.w / gridSize
-    local cellHeight = currentSelection.h / gridSize
-
-    -- Add highlight for the selected cell
+    -- Add semi-transparent background
     dragonGridCanvas:appendElements({
         type = "rectangle",
         action = "fill",
         fillColor = { red = 0.2, green = 0.5, blue = 0.8, alpha = 0.6 },
-        frame = {
-            x = currentSelection.x,
-            y = currentSelection.y,
-            w = currentSelection.w,
-            h = currentSelection.h
-        }
+        frame = { x = 0, y = 0, w = currentSelection.w, h = currentSelection.h }
     })
     
-    -- Add a distinctive border for the selected cell
+    -- Add a distinctive border for the current grid
     dragonGridCanvas:appendElements({
         type = "rectangle",
         action = "stroke",
         strokeColor = { red = 1, green = 1, blue = 0.2, alpha = 0.9 },
         strokeWidth = 4,
-        frame = {
-            x = currentSelection.x,
-            y = currentSelection.y,
-            w = currentSelection.w,
-            h = currentSelection.h
-        }
+        frame = { x = 0, y = 0, w = currentSelection.w, h = currentSelection.h }
     })
     
-    -- Add a level indicator text
-    dragonGridCanvas:appendElements({
-        type = "text",
-        action = "fill",
-        frame = { x = 10, y = 40, w = 300, h = 30 },
-        text = "LEVEL " .. currentLevel .. " OF " .. maxLayers .. " - Make selection",
-        textSize = 16,
-        textColor = { red = 1, green = 0.8, blue = 0.2, alpha = 1.0 },
-        textAlignment = "left"
-    })
-
-    -- Add status indicators
+    -- Add status indicators at the top
     local modeText = windowMode and "WINDOW MODE" or "SCREEN MODE"
     local stateText = dragMode and "DRAG MODE - Select Target" or "PRECISION MODE"
-
     dragonGridCanvas:appendElements({
         type = "text",
         action = "fill",
-        frame = { x = 10, y = 10, w = 300, h = 30 },
+        frame = { x = 10, y = 10, w = currentSelection.w - 20, h = 30 },
         text = modeText .. " | " .. stateText .. " | POS=" ..
             math.floor(currentSelection.x) .. "," .. math.floor(currentSelection.y),
         textSize = 16,
@@ -625,12 +540,27 @@ function DragonGrid.createNextLevelGrid()
             or { white = 1, alpha = 0.8 },
         textAlignment = "left"
     })
-    -- Draw grid cells inside the current selection
+
+    -- Add a level indicator text
+    dragonGridCanvas:appendElements({
+        type = "text",
+        action = "fill",
+        frame = { x = 10, y = 40, w = currentSelection.w - 20, h = 30 },
+        text = "LEVEL " .. currentLevel .. " OF " .. maxLayers .. " - Make selection",
+        textSize = 16,
+        textColor = { red = 1, green = 0.8, blue = 0.2, alpha = 1.0 },
+        textAlignment = "left"
+    })
+    -- Calculate cell dimensions for this level
+    local cellWidth = currentSelection.w / gridSize
+    local cellHeight = currentSelection.h / gridSize
+
+    -- Draw grid cells
     for row = 0, gridSize - 1 do
         for col = 0, gridSize - 1 do
             local cellNum = row * gridSize + col + 1
-            local x = currentSelection.x + col * cellWidth
-            local y = currentSelection.y + row * cellHeight
+            local x = col * cellWidth
+            local y = row * cellHeight
             
             log.d("Level " .. currentLevel .. " cell " .. cellNum ..
                 " at x:" .. x .. ", y:" .. y .. ", w:" .. cellWidth .. ", h:" .. cellHeight)
@@ -666,7 +596,7 @@ function DragonGrid.createNextLevelGrid()
     dragonGridCanvas:appendElements({
         type = "text",
         action = "fill",
-        frame = { x = 10, y = screenFrame.h - 30, w = screenFrame.w - 20, h = 20 },
+        frame = { x = 10, y = currentSelection.h - 30, w = currentSelection.w - 20, h = 20 },
         text = "Keys: ⌘1-9=Select | ⌘Space=Click | ⌘Esc=Cancel | ⌘U=Back | ⌘D=Complete Drag",
         textSize = 12,
         textColor = { white = 1, alpha = 0.7 },
@@ -675,21 +605,35 @@ function DragonGrid.createNextLevelGrid()
 
     -- If in drag mode and we have a start point, show it
     if dragMode and dragStart then
-        dragonGridCanvas:appendElements({
-            type = "circle",
-            action = "fill",
-            fillColor = { red = 1, green = 0.4, blue = 0.1, alpha = 0.7 },
-            frame = { x = dragStart.x - 10, y = dragStart.y - 10, w = 20, h = 20 }
-        })
+        -- Convert from absolute coordinates to canvas-relative coordinates
+        local dragStartRelative = {
+            x = dragStart.x - currentSelection.x,
+            y = dragStart.y - currentSelection.y
+        }
+
+        -- Only show the drag start point if it's within our canvas area
+        if dragStartRelative.x >= 0 and dragStartRelative.x <= currentSelection.w and
+            dragStartRelative.y >= 0 and dragStartRelative.y <= currentSelection.h then
+            dragonGridCanvas:appendElements({
+                type = "circle",
+                action = "fill",
+                fillColor = { red = 1, green = 0.4, blue = 0.1, alpha = 0.7 },
+                frame = { x = dragStartRelative.x - 10, y = dragStartRelative.y - 10, w = 20, h = 20 }
+            })
+        end
     end
     
     -- Show the grid
     dragonGridCanvas:show()
 
-    -- Set up click handler for the grid
+    -- Fix for click handling - we need to adjust the mouse callback to handle coordinates
+    -- relative to the canvas position
     dragonGridCanvas:mouseCallback(function(canvas, event, id, x, y)
         if event == "mouseUp" then
-            DragonGrid.handleGridClick(x, y)
+            -- Convert canvas-relative coordinates to absolute screen coordinates
+            local absX = x + currentSelection.x
+            local absY = y + currentSelection.y
+            DragonGrid.handleGridClick(absX, absY)
         end
     end)
 

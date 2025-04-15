@@ -9,6 +9,7 @@ DragonGrid is a mouse positioning grid system for [Hammerspoon](https://www.hamm
 - **Click Actions**: Perform various mouse clicks (left, right, middle, double)
 - **Drag Operations**: Easily perform drag operations by setting start and end points
 - **Window or Screen Mode**: Choose to operate on the current window or the entire screen
+- **Multi-Screen Support**: Seamlessly use DragonGrid across multiple displays with proper coordinate handling
 
 ## Usage
 
@@ -66,6 +67,18 @@ DragonGrid uses a multi-level approach to precise mouse positioning:
 4. **Final Level**: Upon final selection, the mouse is positioned at the center of the chosen cell
 
 This allows for exponentially increasing precision with each level. With a 3x3 grid and 3 levels, you can position the mouse at one of 27 (3³) distinct positions.
+
+## Multi-Screen Capabilities
+
+DragonGrid fully supports multi-screen setups with the following features:
+
+- **Automatic Screen Detection**: Determines which screen contains the mouse cursor
+- **Click-Based Screen Selection**: Click on any screen to activate the grid there
+- **Proper Coordinate Handling**: Maintains accurate positioning across screens of different sizes
+- **Visual Position Indicators**: Displays current screen coordinates in the grid header
+- **Cross-Screen Drag Operations**: Start a drag on one screen and complete it on another
+
+For more detailed information about multi-screen functionality, see the [DragonGrid Multi-Screen documentation](docs/DragonGrid-MultiScreen.md).
 
 ## Installation
 

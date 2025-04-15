@@ -30,6 +30,10 @@ When the grid is active:
 - **⌘M**: Mark position for drag
 - **⌘D**: Complete drag operation
 
+Global shortcuts:
+- **hammer+X** (⌘+Ctrl+Alt+X): Toggle DragonGrid on/off
+- **hyper+X** (⌘+Shift+Ctrl+Alt+X): Open DragonGrid settings menu
+
 ## Configuration
 
 You can configure DragonGrid in your Hammerspoon init.lua file:
@@ -45,9 +49,22 @@ dragonGrid:setConfig({
 
 -- Bind hotkeys
 dragonGrid:bindHotkeys({
-    toggle = {{"cmd"}, "x"}
+    toggle = {{"cmd"}, "x"},
+    settings = {{"cmd", "shift", "ctrl", "alt"}, "x"}
 })
 ```
+
+### Settings Menu
+
+DragonGrid now includes a settings menu that can be accessed by pressing **hyper+X**. This menu allows you to:
+
+- Adjust grid size (2x2 to 5x5)
+- Change precision layers (1-3)
+- Toggle between window and screen modes
+- Adjust background opacity
+- Launch the grid directly
+
+For more details, see the [DragonGrid Settings documentation](docs/DragonGrid-Settings.md).
 
 ### Configuration Options
 

@@ -53,7 +53,7 @@ dragonGrid:bindHotkeys({
 | Option | Default | Description |
 |--------|---------|-------------|
 | gridSize | 3 | Grid dimension (3x3, 4x4, etc.) |
-| maxLayers | 2 | Number of grid levels for precision |
+| maxLayers | 3 | Number of grid levels for precision |
 | colors | (predefined) | Color configuration for visual elements |
 
 ## How It Works
@@ -61,8 +61,9 @@ dragonGrid:bindHotkeys({
 DragonGrid uses a multi-level approach to precise mouse positioning:
 
 1. **First Level**: Divides the screen or window into a grid (default 3x3)
-2. **Next Levels**: Each selected cell becomes another grid at the next level
-3. **Final Level**: Upon final selection, the mouse is positioned at the center of the chosen cell
+2. **Second Level**: Each selected cell becomes another grid with 9 more cells
+3. **Third Level**: Allows for even finer selection within the second level cell
+4. **Final Level**: Upon final selection, the mouse is positioned at the center of the chosen cell
 
 This allows for exponentially increasing precision with each level. With a 3x3 grid and 3 levels, you can position the mouse at one of 27 (3³) distinct positions.
 

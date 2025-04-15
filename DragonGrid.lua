@@ -5,7 +5,7 @@ local DragonGrid = {}
 
 local dragonGridCanvas = nil
 local currentLevel = 0
-local maxLayers = 2         -- Default number of layers
+local maxLayers = 3         -- Default number of layers
 local selectionHistory = {} -- Will store all selections at each level
 local gridSize = 3
 local modalKey = nil -- Will hold the modal key instance
@@ -238,16 +238,41 @@ end
 
 function DragonGrid.handleGridClick(x, y, frame)
     log.d("Grid click at x:" .. x .. ", y:" .. y)
-    local cellWidth = frame.w / gridSize
-    local cellHeight = frame.h / gridSize
+    if currentLevel > 1 then
+        -- We're in a higher level grid, so we need to use the current selection area
+        local currentSelection = selectionHistory[currentLevel - 1]
 
-    -- Calculate which cell was clicked
-    local col = math.floor(x / cellWidth)
-    local row = math.floor(y / cellHeight)
-    local cellNum = row * gridSize + col + 1
-    log.d("Clicked on cell " .. cellNum .. " at row " .. row .. ", col " .. col)
+        -- Check if the click is within the current selection
+        if x < currentSelection.x or x > (currentSelection.x + currentSelection.w) or
+            y < currentSelection.y or y > (currentSelection.y + currentSelection.h) then
+            -- Click is outside the current selection area
+            log.d("Click outside current grid area - ignoring")
+            return
+        end
 
-    DragonGrid.handleNumberKey(cellNum)
+        -- Calculate which cell was clicked within the current selection
+        local cellWidth = currentSelection.w / gridSize
+        local cellHeight = currentSelection.h / gridSize
+
+        local col = math.floor((x - currentSelection.x) / cellWidth)
+        local row = math.floor((y - currentSelection.y) / cellHeight)
+        local cellNum = row * gridSize + col + 1
+
+        log.d("Clicked on level " .. currentLevel .. " cell " .. cellNum .. " at row " .. row .. ", col " .. col)
+        DragonGrid.handleNumberKey(cellNum)
+    else
+        -- First level grid
+        local cellWidth = frame.w / gridSize
+        local cellHeight = frame.h / gridSize
+
+        -- Calculate which cell was clicked
+        local col = math.floor(x / cellWidth)
+        local row = math.floor(y / cellHeight)
+        local cellNum = row * gridSize + col + 1
+
+        log.d("Clicked on first level cell " .. cellNum .. " at row " .. row .. ", col " .. col)
+        DragonGrid.handleNumberKey(cellNum)
+    end
 end
 
 function DragonGrid.handleNumberKey(num)
@@ -390,14 +415,55 @@ function DragonGrid.createNextLevelGrid()
     dragonGridCanvas:level(hs.canvas.windowLevels.overlay)
     -- Get the currently selected region
     local currentSelection = selectionHistory[currentLevel - 1]
+    
     -- Add semi-transparent overlay for areas outside the selected cell
+    -- Top area
     dragonGridCanvas:appendElements({
         type = "rectangle",
         action = "fill",
         fillColor = config.colors.outsideArea,
-        frame = { x = 0, y = 0, w = frame.w, h = frame.h }
+        frame = { x = 0, y = 0, w = frame.w, h = currentSelection.y }
     })
 
+    -- Bottom area
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = config.colors.outsideArea,
+        frame = {
+            x = 0,
+            y = currentSelection.y + currentSelection.h,
+            w = frame.w,
+            h = frame.h - (currentSelection.y + currentSelection.h)
+        }
+    })
+
+    -- Left area
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = config.colors.outsideArea,
+        frame = {
+            x = 0,
+            y = currentSelection.y,
+            w = currentSelection.x,
+            h = currentSelection.h
+        }
+    })
+
+    -- Right area
+    dragonGridCanvas:appendElements({
+        type = "rectangle",
+        action = "fill",
+        fillColor = config.colors.outsideArea,
+        frame = {
+            x = currentSelection.x + currentSelection.w,
+            y = currentSelection.y,
+            w = frame.w - (currentSelection.x + currentSelection.w),
+            h = currentSelection.h
+        }
+    })
+    
     -- Create next level grid inside the selected cell
     local cellWidth = currentSelection.w / gridSize
     local cellHeight = currentSelection.h / gridSize

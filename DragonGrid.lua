@@ -5,7 +5,7 @@ local DragonGrid = {}
 
 local dragonGridCanvas = nil
 local currentLevel = 0
-local maxLayers = 3         -- Default number of layers
+local maxLayers = 4         -- Default number of layers
 local selectionHistory = {} -- Will store all selections at each level
 local gridSize = 3
 local modalKey = nil -- Will hold the modal key instance
@@ -121,18 +121,18 @@ function DragonGrid.createDragonGrid()
         type = "text",
         action = "fill",
         frame = { x = 10, y = frame.h - 30, w = frame.w - 20, h = 20 },
-        text = "Use modifier keys: ⌘1-9=Select | ⌘Space=Click | ⌘Esc=Cancel | ⌘U=Undo | ⌘W=Toggle Mode",
+        text = "Use keys: ⌘1-9 (cells 1-9) | ⌘⇧1-9 (cells 10-18) | ⌘⇧⌥1-9 (cells 19-27) | ⌘Space=Click | ⌘Esc=Cancel",
         textSize = 12,
         textColor = { white = 1, alpha = 0.7 },
         textAlignment = "center"
     })
 
-    -- Add additional help text for mouse
+    -- Add second line of help text
     dragonGridCanvas:appendElements({
         type = "text",
         action = "fill",
         frame = { x = 10, y = frame.h - 50, w = frame.w - 20, h = 20 },
-        text = "Or click directly on cells with your mouse",
+        text = "⌘U=Undo | ⌘W=Toggle Mode | ⌘M=Start Drag | ⌘D=Complete Drag | Or click cells directly",
         textSize = 12,
         textColor = { white = 1, alpha = 0.7 },
         textAlignment = "center"
@@ -154,18 +154,11 @@ function DragonGrid.createDragonGrid()
     -- Clean up any existing hotkeys
     DragonGrid.unbindHotkeys()
 
-    -- Define our hammer modifiers
-    -- local mods = { "cmd", "shift", "alt" }
-    -- local mods = { "shift" }
-    local mods = { "cmd" }
+    -- Use our helper function to bind grid selection hotkeys
+    DragonGrid.bindGridHotkeys()
 
-    -- Number keys for grid selection
-    for i = 1, 9 do
-        local hotkey = hs.hotkey.bind(mods, tostring(i), function()
-            DragonGrid.handleNumberKey(i)
-        end)
-        table.insert(gridHotkeys, hotkey)
-    end
+    -- Define our modifiers for action keys
+    local mods = { "cmd" }
 
     -- Action keys
     local escapeKey = hs.hotkey.bind(mods, "escape", function()
@@ -398,11 +391,11 @@ function DragonGrid.handleNumberKey(num)
     -- Calculate the cell dimensions for this level
     local cellWidth = frame.w / gridSize
     local cellHeight = frame.h / gridSize
-    
+
     -- Calculate absolute position of the selected cell
     local cellX = frame.x + col * cellWidth
     local cellY = frame.y + row * cellHeight
-    
+
     log.d("Selected cell: row=" .. row .. ", col=" .. col)
     log.d("Cell position: x=" .. cellX .. ", y=" .. cellY .. ", w=" .. cellWidth .. ", h=" .. cellHeight)
 
@@ -427,7 +420,7 @@ function DragonGrid.handleNumberKey(num)
         -- Final level selection (perform action)
         local finalX = cellX + (cellWidth / 2)
         local finalY = cellY + (cellHeight / 2)
-        
+
         log.d("Final position: x=" .. finalX .. ", y=" .. finalY)
 
         if dragMode and dragStart == nil then
@@ -474,7 +467,7 @@ function DragonGrid.createNextLevelGrid()
         x = currentSelection.x + currentSelection.w / 2,
         y = currentSelection.y + currentSelection.h / 2
     }
-    
+
     local currentScreen = nil
     for _, screen in pairs(hs.screen.allScreens()) do
         local screenFrame = screen:frame()
@@ -498,7 +491,7 @@ function DragonGrid.createNextLevelGrid()
     log.d("Creating level " .. currentLevel .. " grid at x=" ..
         currentSelection.x .. ", y=" .. currentSelection.y ..
         ", w=" .. currentSelection.w .. ", h=" .. currentSelection.h)
-    
+
     -- Create a new canvas with the exact dimensions of the selection area
     -- This is the key change - use the selection bounds directly instead of the full screen
     dragonGridCanvas = hs.canvas.new({
@@ -509,7 +502,7 @@ function DragonGrid.createNextLevelGrid()
     })
     dragonGridCanvas:behavior(hs.canvas.windowBehaviors.canJoinAllSpaces)
     dragonGridCanvas:level(hs.canvas.windowLevels.overlay)
-    
+
     -- Add semi-transparent background
     dragonGridCanvas:appendElements({
         type = "rectangle",
@@ -517,7 +510,7 @@ function DragonGrid.createNextLevelGrid()
         fillColor = { red = 0.2, green = 0.5, blue = 0.8, alpha = 0.6 },
         frame = { x = 0, y = 0, w = currentSelection.w, h = currentSelection.h }
     })
-    
+
     -- Add a distinctive border for the current grid
     dragonGridCanvas:appendElements({
         type = "rectangle",
@@ -526,7 +519,7 @@ function DragonGrid.createNextLevelGrid()
         strokeWidth = 4,
         frame = { x = 0, y = 0, w = currentSelection.w, h = currentSelection.h }
     })
-    
+
     -- Add status indicators at the top
     local modeText = windowMode and "WINDOW MODE" or "SCREEN MODE"
     local stateText = dragMode and "DRAG MODE - Select Target" or "PRECISION MODE"
@@ -562,7 +555,7 @@ function DragonGrid.createNextLevelGrid()
             local cellNum = row * gridSize + col + 1
             local x = col * cellWidth
             local y = row * cellHeight
-            
+
             log.d("Level " .. currentLevel .. " cell " .. cellNum ..
                 " at x:" .. x .. ", y:" .. y .. ", w:" .. cellWidth .. ", h:" .. cellHeight)
 
@@ -592,13 +585,13 @@ function DragonGrid.createNextLevelGrid()
             })
         end
     end
-    
+
     -- Add help text at the bottom
     dragonGridCanvas:appendElements({
         type = "text",
         action = "fill",
         frame = { x = 10, y = currentSelection.h - 30, w = currentSelection.w - 20, h = 20 },
-        text = "Keys: ⌘1-9=Select | ⌘Space=Click | ⌘Esc=Cancel | ⌘U=Back | ⌘D=Complete Drag",
+        text = "Keys: ⌘1-9 (1-9) | ⌘⇧1-9 (10-18) | ⌘⇧⌥1-9 (19-27) | ⌘Space=Click | ⌘Esc=Cancel | ⌘U=Back",
         textSize = 12,
         textColor = { white = 1, alpha = 0.7 },
         textAlignment = "center"
@@ -623,7 +616,7 @@ function DragonGrid.createNextLevelGrid()
             })
         end
     end
-    
+
     -- Show the grid
     dragonGridCanvas:show()
 
@@ -642,13 +635,8 @@ function DragonGrid.createNextLevelGrid()
     -- Define our modifiers
     local mods = { "cmd" }
 
-    -- Number keys for grid selection
-    for i = 1, 9 do
-        local hotkey = hs.hotkey.bind(mods, tostring(i), function()
-            DragonGrid.handleNumberKey(i)
-        end)
-        table.insert(gridHotkeys, hotkey)
-    end
+    -- Use our helper function to bind grid selection hotkeys
+    DragonGrid.bindGridHotkeys()
 
     -- Action keys
     local escapeKey = hs.hotkey.bind(mods, "escape", function()
@@ -711,7 +699,7 @@ function DragonGrid.createNextLevelGrid()
         end
     end)
     table.insert(gridHotkeys, dragKey)
-    
+
     -- Mark for drag
     local markKey = hs.hotkey.bind(mods, "m", function()
         dragMode = true
@@ -824,6 +812,13 @@ function DragonGrid.showSettingsMenu()
                         checked = maxLayers == 3,
                         fn = function()
                             DragonGrid.setConfig({ maxLayers = 3 }); updateMenu()
+                        end
+                    },
+                    {
+                        title = "4 Layers",
+                        checked = maxLayers == 4,
+                        fn = function()
+                            DragonGrid.setConfig({ maxLayers = 4 }); updateMenu()
                         end
                     }
                 }
@@ -949,5 +944,46 @@ function DragonGrid.setConfig(newConfig)
     end
 
     return self
+end
+-- Helper function to bind hotkeys for different cell number ranges
+function DragonGrid.bindGridHotkeys()
+    -- The total number of cells in the grid
+    local totalCells = gridSize * gridSize
+
+    -- Clean up existing hotkeys
+    DragonGrid.unbindHotkeys()
+
+    -- Bind hotkeys for cells 1-9 with cmd only
+    local mods1 = { "cmd" }
+    for i = 1, math.min(9, totalCells) do
+        local hotkey = hs.hotkey.bind(mods1, tostring(i), function()
+            DragonGrid.handleNumberKey(i)
+        end)
+        table.insert(gridHotkeys, hotkey)
+    end
+
+    -- Bind hotkeys for cells 10-18 with cmd+shift
+    if totalCells > 9 then
+        local mods2 = { "cmd", "shift" }
+        for i = 1, math.min(9, totalCells - 9) do
+            local cellNum = i + 9
+            local hotkey = hs.hotkey.bind(mods2, tostring(i), function()
+                DragonGrid.handleNumberKey(cellNum)
+            end)
+            table.insert(gridHotkeys, hotkey)
+        end
+    end
+
+    -- Bind hotkeys for cells 19-27 with cmd+shift+alt
+    if totalCells > 18 then
+        local mods3 = { "cmd", "shift", "alt" }
+        for i = 1, math.min(9, totalCells - 18) do
+            local cellNum = i + 18
+            local hotkey = hs.hotkey.bind(mods3, tostring(i), function()
+                DragonGrid.handleNumberKey(cellNum)
+            end)
+            table.insert(gridHotkeys, hotkey)
+        end
+    end
 end
 return DragonGrid

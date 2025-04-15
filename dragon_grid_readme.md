@@ -80,6 +80,8 @@ DragonGrid fully supports multi-screen setups with the following features:
 
 For more detailed information about multi-screen functionality, see the [DragonGrid Multi-Screen documentation](docs/DragonGrid-MultiScreen.md).
 
+Recent fixes for multi-screen support can be found in the [Multi-Screen Fix documentation](docs/DragonGrid-MultiScreen-Fix.md).
+
 ## Installation
 
 1. Copy the DragonGrid.lua file to your Hammerspoon Spoons directory (~/.hammerspoon/Spoons/)

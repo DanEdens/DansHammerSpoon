@@ -29,6 +29,15 @@ Our analysis of the codebase has identified several areas for improvement:
 - Hardcoded values throughout the codebase
 - Basic secrets management in `load_secrets.lua`
 
+## Recent Improvements
+
+Several improvements have been made to the codebase:
+
+1. **DragonGrid Multi-Screen Support** - Fixed UI issues with the precision grid system when operating across multiple monitors
+   - See [DragonGrid-MultiScreen-Fix.md](docs/DragonGrid-MultiScreen-Fix.md) for details
+   - Enables seamless grid-based mouse positioning across all connected displays
+   - Maintains consistent UI behavior between grid levels
+
 ## Implementation Approach
 
 We recommend a phased approach to improvements:

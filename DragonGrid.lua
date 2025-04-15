@@ -38,19 +38,27 @@ function DragonGrid.createDragonGrid()
     dragMode = false
     dragStart = nil
 
+    -- Get the screen where the mouse cursor is currently located
+    local mousePos = hs.mouse.absolutePosition()
+    local currentScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
+
+    log.d("Mouse position: x=" .. mousePos.x .. ", y=" .. mousePos.y)
+    log.d("Using screen: " .. (currentScreen:name() or "unnamed"))
     local frame
     if windowMode then
         local win = hs.window.focusedWindow()
         if not win then
-            log.w("No focused window found, using full screen")
-            frame = hs.screen.mainScreen():frame()
+            log.w("No focused window found, using current screen")
+            frame = currentScreen:frame()
         else
             frame = win:frame()
         end
     else
-        frame = hs.screen.mainScreen():frame()
+        frame = currentScreen:frame()
     end
 
+    log.d("Creating level 1 grid at x=" .. frame.x .. ", y=" .. frame.y ..
+        ", w=" .. frame.w .. ", h=" .. frame.h)
     dragonGridCanvas = hs.canvas.new(frame)
     dragonGridCanvas:behavior(hs.canvas.windowBehaviors.canJoinAllSpaces)
     dragonGridCanvas:level(hs.canvas.windowLevels.overlay)
@@ -274,25 +282,69 @@ function DragonGrid.handleGridClick(x, y)
         if windowMode then
             local win = hs.window.focusedWindow()
             if not win then
-                frame = hs.screen.mainScreen():frame()
+                -- First find which screen the click is on
+                local clickScreen = nil
+                for _, screen in pairs(hs.screen.allScreens()) do
+                    local screenFrame = screen:frame()
+                    if x >= screenFrame.x and x <= screenFrame.x + screenFrame.w and
+                        y >= screenFrame.y and y <= screenFrame.y + screenFrame.h then
+                        clickScreen = screen
+                        break
+                    end
+                end
+
+                if not clickScreen then
+                    clickScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
+                end
+
+                frame = clickScreen:frame()
+                log.d("Click on screen: " .. (clickScreen:name() or "unnamed"))
             else
                 frame = win:frame()
             end
         else
-            frame = hs.screen.mainScreen():frame()
+            -- First find which screen the click is on
+            local clickScreen = nil
+            for _, screen in pairs(hs.screen.allScreens()) do
+                local screenFrame = screen:frame()
+                if x >= screenFrame.x and x <= screenFrame.x + screenFrame.w and
+                    y >= screenFrame.y and y <= screenFrame.y + screenFrame.h then
+                    clickScreen = screen
+                    break
+                end
+            end
+
+            if not clickScreen then
+                clickScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
+            end
+
+            frame = clickScreen:frame()
+            log.d("Click on screen: " .. (clickScreen:name() or "unnamed"))
         end
+
+        log.d("Screen frame: x=" .. frame.x .. ", y=" .. frame.y ..
+            ", w=" .. frame.w .. ", h=" .. frame.h)
+
+        -- Check if the click is within the screen frame
+        if x < frame.x or x > frame.x + frame.w or
+            y < frame.y or y > frame.y + frame.h then
+            log.d("Click outside screen bounds - ignoring")
+            return
+        end
+        
         local cellWidth = frame.w / gridSize
         local cellHeight = frame.h / gridSize
         
         -- Calculate which cell was clicked
         local col = math.floor((x - frame.x) / cellWidth)
         local row = math.floor((y - frame.y) / cellHeight)
-
+        
         -- Check bounds
         if col < 0 or col >= gridSize or row < 0 or row >= gridSize then
             log.d("Click outside grid bounds - ignoring")
             return
         end
+        
         local cellNum = row * gridSize + col + 1
         
         log.d("Clicked on first level cell " .. cellNum .. " at row " .. row .. ", col " .. col)
@@ -317,13 +369,17 @@ function DragonGrid.handleNumberKey(num)
         if windowMode then
             local win = hs.window.focusedWindow()
             if not win then
-                log.w("No focused window found, using full screen")
-                frame = hs.screen.mainScreen():frame()
+                log.w("No focused window found, using current screen")
+                local mouseScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
+                frame = mouseScreen:frame()
+                log.d("Using screen: " .. (mouseScreen:name() or "unnamed"))
             else
                 frame = win:frame()
             end
         else
-            frame = hs.screen.mainScreen():frame()
+            local mouseScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
+            frame = mouseScreen:frame()
+            log.d("Using screen: " .. (mouseScreen:name() or "unnamed"))
         end
     else
         -- For higher levels, we use the previous selection's dimensions
@@ -341,12 +397,14 @@ function DragonGrid.handleNumberKey(num)
     -- Calculate the cell dimensions for this level
     local cellWidth = frame.w / gridSize
     local cellHeight = frame.h / gridSize
+    
     -- Calculate absolute position of the selected cell
     local cellX = frame.x + col * cellWidth
     local cellY = frame.y + row * cellHeight
-
+    
     log.d("Selected cell: row=" .. row .. ", col=" .. col)
     log.d("Cell position: x=" .. cellX .. ", y=" .. cellY .. ", w=" .. cellWidth .. ", h=" .. cellHeight)
+
     if currentLevel < maxLayers then
         -- Store this selection in history
         local selection = {
@@ -368,7 +426,7 @@ function DragonGrid.handleNumberKey(num)
         -- Final level selection (perform action)
         local finalX = cellX + (cellWidth / 2)
         local finalY = cellY + (cellHeight / 2)
-
+        
         log.d("Final position: x=" .. finalX .. ", y=" .. finalY)
 
         if dragMode and dragStart == nil then
@@ -409,15 +467,39 @@ function DragonGrid.createNextLevelGrid()
     DragonGrid.unbindHotkeys()
 
     -- Get the screen frame for absolute positioning
-    local screenFrame = hs.screen.mainScreen():frame()
-
-    -- Get the currently selected region from history
+    -- Determine which screen contains our current selection
     local currentSelection = selectionHistory[currentLevel - 1]
+    local selectionCenter = {
+        x = currentSelection.x + currentSelection.w / 2,
+        y = currentSelection.y + currentSelection.h / 2
+    }
+
+    -- Find the screen containing the selection center point
+    local currentScreen = nil
+    for _, screen in pairs(hs.screen.allScreens()) do
+        local screenFrame = screen:frame()
+        if selectionCenter.x >= screenFrame.x and
+            selectionCenter.x <= screenFrame.x + screenFrame.w and
+            selectionCenter.y >= screenFrame.y and
+            selectionCenter.y <= screenFrame.y + screenFrame.h then
+            currentScreen = screen
+            break
+        end
+    end
+
+    -- Fallback to the screen with the mouse if we couldn't determine the screen
+    if not currentScreen then
+        currentScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
+    end
+
+    local screenFrame = currentScreen:frame()
+
+    log.d("Using screen: " .. (currentScreen:name() or "unnamed") ..
+        " for level " .. currentLevel .. " grid")
 
     log.d("Creating level " .. currentLevel .. " grid at x=" ..
         currentSelection.x .. ", y=" .. currentSelection.y ..
         ", w=" .. currentSelection.w .. ", h=" .. currentSelection.h)
-
     -- Create a new canvas covering the entire screen
     dragonGridCanvas = hs.canvas.new(screenFrame)
     dragonGridCanvas:behavior(hs.canvas.windowBehaviors.canJoinAllSpaces)

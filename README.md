@@ -86,3 +86,13 @@ The help text in the grid interface has been updated to show these new keyboard 
 - Drag and drop support
 - Keyboard and mouse control
 - Configurable grid size and layers 
+
+## GitHub Desktop Enhancements
+
+GitHub Desktop now always shows a project selection menu when opened through Hammerspoon, rather than just focusing the existing window if one exists. This allows you to:
+
+1. Choose between existing GitHub Desktop windows
+2. Open a different project even if GitHub Desktop is already running
+3. Enter a custom path to open with GitHub Desktop
+
+This feature is implemented through a specialized function that overrides the normal application behavior specifically for GitHub Desktop.

@@ -42,4 +42,26 @@ When you activate DragonGrid (⌘X):
 5. The third level grid will appear within that second level cell
 6. Make your final selection to position the mouse
 
-The grid should now work correctly across all monitors, with each level properly nested inside the previous selection. 
+The grid should now work correctly across all monitors, with each level properly nested inside the previous selection.
+
+## GitHub Desktop Project Selector Enhancement
+
+**Goal**: Modify GitHub Desktop behavior to always show a project selection menu, rather than just focusing the existing window if it's already running.
+
+**Implementation**:
+1. Created a specialized function `launchGitHubWithProjectSelection()` in AppManager.lua
+2. This function overrides the standard `launchOrFocusWithWindowSelection` behavior specifically for GitHub Desktop
+3. Modified the `open_github()` function to use the new specialized function
+4. Updated README.md with documentation about the new feature
+
+**Benefits**:
+- Always presents a choice menu when launching GitHub Desktop
+- Allows selecting between existing GitHub Desktop windows
+- Maintains the ability to open a different project even if GitHub Desktop is already running
+- Preserves the ability to enter custom paths
+
+**Changes**:
+- Added 147 lines to AppManager.lua
+- Added a new section to README.md
+
+The implementation follows the existing pattern for application management and window selection, just making it a forced behavior for GitHub Desktop specifically, without changing how other applications work. 

@@ -106,7 +106,7 @@ hs.hotkey.bind(_hyper, "e", function() FileManager.showEditorMenu() end)
 
 -- Dragon Grid (now using the Spoon)
 hs.hotkey.bind(hammer, "x", function() spoon.DragonGrid:toggleGridDisplay() end)
-hs.hotkey.bind(_hyper, "x", function() end) -- No longer needed as settings are in menubar
+hs.hotkey.bind(_hyper, "x", function() spoon.DragonGrid:showSettingsMenu() end)
 
 -- Misc
 hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy -S'") end)

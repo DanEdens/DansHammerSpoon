@@ -87,6 +87,28 @@ spoon.DragonGrid.config.maxLayers = 2  -- Change max layers (default: 2)
 spoon.DragonGrid:start()
 ```
 
+### Settings Menu
+
+You can also access the settings through a popup menu by calling:
+
+```lua
+spoon.DragonGrid:showSettingsMenu()
+```
+
+Or by binding a hotkey to the settings menu:
+
+```lua
+spoon.DragonGrid:bindHotKeys({
+  show = {{"cmd", "alt", "ctrl"}, "g"},
+  settings = {{"cmd", "alt", "ctrl", "shift"}, "g"}
+})
+```
+
+The settings menu provides options to:
+- Change grid size (2x2 to 5x5)
+- Change number of layers (1-4)
+- Launch DragonGrid directly
+
 ## License
 
 MIT - See LICENSE file for details. 

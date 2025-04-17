@@ -19,7 +19,7 @@ obj.license = "MIT - https://opensource.org/licenses/MIT"
 --- Logger object used within the Spoon. Can be accessed to set the default log level for the
 -- messages coming from the Spoon.
 obj.logger = hs.logger.new('DragonGrid')
-obj.logger.setLogLevel('debug')
+obj.logger.setLogLevel('info')
 
 -- Private variables
 local dragonGridCanvas = nil
@@ -665,6 +665,88 @@ function obj:toggleGridDisplay()
     end
 end
 
+-- Show settings menu for DragonGrid
+function obj:showSettingsMenu()
+    local gridSizeDesc = "Current grid size: " .. gridSize .. "x" .. gridSize
+    local layersDesc = "Current max layers: " .. maxLayers
+
+    local choices = {
+        { title = "-" },
+        { title = "DragonGrid Settings", disabled = true },
+        { title = "-" },
+        { title = gridSizeDesc,          disabled = true },
+        {
+            title = "Set Grid Size: 2x2",
+            fn = function()
+                gridSize = 2
+                self.config.gridSize = 2
+                hs.alert.show("Grid size set to 2x2")
+            end
+        },
+        {
+            title = "Set Grid Size: 3x3",
+            fn = function()
+                gridSize = 3
+                self.config.gridSize = 3
+                hs.alert.show("Grid size set to 3x3")
+            end
+        },
+        {
+            title = "Set Grid Size: 4x4",
+            fn = function()
+                gridSize = 4
+                self.config.gridSize = 4
+                hs.alert.show("Grid size set to 4x4")
+            end
+        },
+        {
+            title = "Set Grid Size: 5x5",
+            fn = function()
+                gridSize = 5
+                self.config.gridSize = 5
+                hs.alert.show("Grid size set to 5x5")
+            end
+        },
+        { title = "-" },
+        { title = layersDesc, disabled = true },
+        {
+            title = "Set Layers to 1",
+            fn = function()
+                maxLayers = 1
+                self.config.maxLayers = 1
+                hs.alert.show("Max layers set to 1")
+            end
+        },
+        {
+            title = "Set Layers to 2",
+            fn = function()
+                maxLayers = 2
+                self.config.maxLayers = 2
+                hs.alert.show("Max layers set to 2")
+            end
+        },
+        {
+            title = "Set Layers to 3",
+            fn = function()
+                maxLayers = 3
+                self.config.maxLayers = 3
+                hs.alert.show("Max layers set to 3")
+            end
+        },
+        {
+            title = "Set Layers to 4",
+            fn = function()
+                maxLayers = 4
+                self.config.maxLayers = 4
+                hs.alert.show("Max layers set to 4")
+            end
+        },
+        { title = "-" },
+        { title = "Launch DragonGrid", fn = function() self:toggleGridDisplay() end }
+    }
+
+    return hs.menubar.new(false):setMenu(choices):popupMenu(hs.mouse.absolutePosition())
+end
 function obj:init()
     -- Initialize the spoon
     self.logger.i("Initializing DragonGrid Spoon")
@@ -741,14 +823,16 @@ end
 --- Parameters:
 ---  * mapping - A table containing hotkey modifier/key details for the following items:
 ---   * show - Show the DragonGrid
+---   * settings - Show the DragonGrid settings menu
 ---
 --- Returns:
 ---  * The DragonGrid object
 function obj:bindHotKeys(mapping)
     local spec = {
-        show = function() self:toggleGridDisplay() end
+        show = function() self:toggleGridDisplay() end,
+        settings = function() self:showSettingsMenu() end
     }
-
+    
     hs.spoons.bindHotkeysToSpec(spec, mapping)
     return self
 end

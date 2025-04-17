@@ -8,6 +8,7 @@
   "notes": "Precision mouse movement and control using a multi-level grid system",
   "docs": {
     "toggleGridDisplay": "Method to show or hide the grid",
+    "showSettingsMenu": "Displays a popup menu with DragonGrid settings",
     "init": "Initialize the spoon",
     "start": "Start the spoon and set up the menubar",
     "stop": "Stop the spoon and clean up",

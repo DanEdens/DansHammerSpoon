@@ -18,8 +18,10 @@ local hyper = { "cmd", "alt", "ctrl", "shift" }
 
 -- Bind hotkeys to activate DragonGrid
 -- In this example, pressing hyper+g will show the grid
+-- and pressing hyper+shift+g will show the settings menu
 spoon.DragonGrid:bindHotKeys({
-    show = { hyper, "g" }
+    show = { hyper, "g" },
+    settings = { hyper, "s" }
 })
 
 -- Start the DragonGrid spoon

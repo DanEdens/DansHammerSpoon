@@ -130,33 +130,6 @@ local standardLayouts = {
     }
 }
 
--- Helper Functions
-local function getGoodFocusedWindow(nofull)
-    local win = window.focusedWindow()
-    if not win or not win:isStandard() then
-        return
-    end
-    if nofull and win:isFullScreen() then
-        return
-    end
-    WindowManager.currentWindow = win
-    WindowManager.currentScreen = win:screen()
-    WindowManager.currentFrame = win:frame()
-    return win
-end
-
-local function flashScreen(screen)
-    local flash = hs.canvas.new(screen:fullFrame()):appendElements({
-        action = "fill",
-        fillColor = { alpha = 0.25, red = 1 },
-        type = "rectangle"
-    })
-    flash:show()
-    hs.timer.doAfter(.15, function()
-        flash:delete()
-    end)
-end
-
 local function calculatePosition(counter, max, rows)
     WindowManager.row = math.floor(counter / WindowManager.cols)
     local col = counter % WindowManager.cols
@@ -167,10 +140,10 @@ end
 
 -- Window Management Functions
 function WindowManager.miniShuffle()
-    local win = getGoodFocusedWindow()
+    local win = hs.window.focusedWindow()
     if not win then return end
 
-    local screen = WindowManager.currentScreen
+    local screen = win:screen()
     local max = screen:frame()
 
     -- Get current layout based on counter
@@ -193,43 +166,43 @@ function WindowManager.miniShuffle()
 end
 
 function WindowManager.halfShuffle(numRows, numCols)
-    log.i('Half shuffle called:', { rows = numRows, cols = numCols })
 
     numRows = numRows or 3
     numCols = numCols or 2
 
-    local win = getGoodFocusedWindow()
-    if not win then
-        log.w('No focused window found')
-        return
-    end
+    local win = hs.window.focusedWindow()
+    if not win then return end
 
-    local f = WindowManager.currentFrame
-    local screen = WindowManager.currentScreen
+    local f = win:frame()
+    local screen = win:screen()
     local max = screen:frame()
 
-    WindowManager.sectionWidth = max.w / numCols
-    WindowManager.sectionHeight = max.h / numRows
+    local sectionWidth = max.w / numCols
+    local sectionHeight = max.h / numRows
 
-    log.d('Current counters:', { row = WindowManager.rowCounter, col = WindowManager.colCounter })
-    local x = max.x + (WindowManager.colCounter * WindowManager.sectionWidth)
-    local y = max.y + (WindowManager.rowCounter * WindowManager.sectionHeight)
+    local colCounter = WindowManager.colCounter
+    local rowCounter = WindowManager.rowCounter
+
+    -- log.d('Current counters:', { row = WindowManager.rowCounter, col = WindowManager.colCounter })
+    local x = max.x + (colCounter * sectionWidth)
+    local y = max.y + (rowCounter * sectionHeight)
 
     f.x = x
     f.y = y
-    f.w = WindowManager.sectionWidth
-    f.h = WindowManager.sectionHeight
+    f.w = sectionWidth
+    f.h = sectionHeight
+    log.i('Half shuffle w/ position: ', rowCounter, colCounter)
 
     win:setFrame(f)
     WindowManager.currentFrame = f
-    log.d('Set frame:', { x = f.x, y = f.y, w = f.w, h = f.h })
+    -- log.d('Set frame:', { x = f.x, y = f.y, w = f.w, h = f.h })
 
     -- Update counters
     WindowManager.rowCounter = (WindowManager.rowCounter + 1) % numRows
     if WindowManager.rowCounter == 0 then
         WindowManager.colCounter = (WindowManager.colCounter + 1) % numCols
     end
-    log.d('Updated counters:', { row = WindowManager.rowCounter, col = WindowManager.colCounter })
+    -- log.d('Updated counters:', { row = WindowManager.rowCounter, col = WindowManager.colCounter })
 end
 
 function WindowManager.applyLayout(layoutName)
@@ -259,25 +232,22 @@ function WindowManager.applyLayout(layoutName)
     log.i('Applied layout:', layoutName)
 end
 
-function WindowManager.moveToCorner(position)
-    WindowManager.applyLayout(position)
-end
-
-function WindowManager.moveSide(side, isSmall)
-    if side == "left" then
-        if isSmall then
-            WindowManager.applyLayout('leftSmall')
-        else
-            WindowManager.applyLayout('leftHalf')
-        end
-    else
-        if isSmall then
-            WindowManager.applyLayout('rightSmall')
-        else
-            WindowManager.applyLayout('rightHalf')
-        end
-    end
-end
+-- found this to be alot slower and buggy. Better to directly apply the layout
+-- function WindowManager.moveSide(side, isSmall)
+--     if side == "left" then
+--         if isSmall then
+--             WindowManager.applyLayout('leftSmall')
+--         else
+--             WindowManager.applyLayout('leftHalf')
+--         end
+--     else
+--         if isSmall then
+--             WindowManager.applyLayout('rightSmall')
+--         else
+--             WindowManager.applyLayout('rightHalf')
+--         end
+--     end
+-- end
 
 function WindowManager.moveToScreen(direction, position)
     local win = hs.window.focusedWindow()
@@ -301,10 +271,10 @@ function WindowManager.moveToScreen(direction, position)
 end
 
 function WindowManager.moveWindow(direction)
-    local win = getGoodFocusedWindow()
+    local win = hs.window.focusedWindow()
     if not win then return end
 
-    local f = WindowManager.currentFrame
+    local f = win:frame()
 
     local movements = {
         left = { x = -WindowManager.moveStep, y = 0 },
@@ -318,31 +288,31 @@ function WindowManager.moveWindow(direction)
     f.y = f.y + move.y
 
     win:setFrame(f)
-    WindowManager.currentFrame = f
+    -- WindowManager.currentFrame = f
 end
 
 function WindowManager.moveWindowMouseCenter()
-    local win = getGoodFocusedWindow()
+    local win = hs.window.focusedWindow()
     if not win then return end
 
-    local f = WindowManager.currentFrame
+    local f = win:frame()
     local mouse = hs.mouse.absolutePosition()
     f.x = mouse.x - (f.w / 2)
     f.y = mouse.y - (f.h / 2)
     win:setFrame(f)
-    WindowManager.currentFrame = f
+    -- WindowManager.currentFrame = f
 end
 
 function WindowManager.moveWindowMouseCorner()
-    local win = getGoodFocusedWindow()
+    local win = hs.window.focusedWindow()
     if not win then return end
 
-    local f = WindowManager.currentFrame
+    local f = win:frame()
     local mouse = hs.mouse.absolutePosition()
     f.x = mouse.x
     f.y = mouse.y
     win:setFrame(f)
-    WindowManager.currentFrame = f
+    --  WindowManager.currentFrame = f
 end
 
 -- Window Position Save/Restore

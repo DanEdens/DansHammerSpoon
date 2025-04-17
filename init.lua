@@ -1,7 +1,6 @@
 dofile(hs.configdir .. "/loadConfig.lua")
 dofile(hs.configdir .. "/ExtendedClipboard.lua")
 dofile(hs.configdir .. "/WindowManager.lua")
-dofile(hs.configdir .. "/DragonGrid.lua")
 
 -- Load HyperLogger for better debugging with clickable log messages
 local HyperLogger = require('HyperLogger')
@@ -860,7 +859,11 @@ log:i('Hammerspoon initialization complete')
 hs.alert.show("Config loaded")
 
 -- Initialize modules
-local DragonGrid = require('DragonGrid')
+-- Load DragonGrid as a Spoon instead of requiring the module
+hs.loadSpoon("DragonGrid")
+spoon.DragonGrid:bindHotKeys({
+    show = { { "cmd", "alt", "ctrl", "shift" }, "x" }
+}):start()
 local AppManager = require('AppManager')
 local FileManager = require('FileManager')
 

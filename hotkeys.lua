@@ -9,7 +9,6 @@ local WindowManager = require('WindowManager')
 local FileManager = require('FileManager')
 local AppManager = require('AppManager')
 local DeviceManager = require('DeviceManager')
-local DragonGrid = require('DragonGrid')
 
 -- Define modifier key combinations
 hammer = { "cmd", "ctrl", "alt" }
@@ -105,9 +104,9 @@ hs.hotkey.bind(_hyper, "e", function() FileManager.showEditorMenu() end)
 
 -- Device Management
 
--- Dragon Grid
-hs.hotkey.bind(hammer, "x", function() DragonGrid.toggleDragonGrid() end)
-hs.hotkey.bind(_hyper, "x", function() DragonGrid.showSettingsMenu() end)
+-- Dragon Grid (now using the Spoon)
+hs.hotkey.bind(hammer, "x", function() spoon.DragonGrid:toggleGridDisplay() end)
+hs.hotkey.bind(_hyper, "x", function() end) -- No longer needed as settings are in menubar
 
 -- Misc
 hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy -S'") end)

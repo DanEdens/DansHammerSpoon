@@ -1,10 +1,13 @@
-local log = hs.logger.new('FileManager', 'debug')
-log.i('Initializing file management system')
+-- Use HyperLogger for clickable debugging logs
+local HyperLogger = require('HyperLogger')
+local log = HyperLogger.new('FileManager', 'debug')
+log:i('Initializing file management system')
 
 local FileManager = {}
 
 -- Configuration
 local editor = "cursor"
+log:d('Default editor set to: ' .. editor)
 
 -- State
 local selectedFile = nil
@@ -119,32 +122,39 @@ local editorList = {
 
 -- Helper Functions
 function FileManager.getEditor()
+    log:d('Getting current editor: ' .. editor)
     return editor
 end
 
 function FileManager.setEditor(newEditor)
+    log:i('Setting editor to: ' .. newEditor)
     editor = newEditor
     lastSelected.editor = newEditor
 end
 
 function FileManager.getProjectsList()
+    log:d('Getting projects list')
     return projects_list
 end
 
 function FileManager.getLastSelected()
+    log:d('Getting last selected item')
     return lastSelected
 end
 -- File Management Functions
 function FileManager.openSelectedFile()
     if selectedFile ~= nil then
+        log:i('Opening selected file: ' .. selectedFile.text .. ' with ' .. editor)
         lastSelected.file = selectedFile
         hs.execute("open -a '" .. editor .. "' " .. selectedFile.path)
     else
+        log:w('No file selected, showing file menu')
         FileManager.showFileMenu()
     end
 end
 
 function FileManager.showFileMenu()
+    log:i('Showing file selection menu')
     local choices = {}
     for _, file in ipairs(fileList) do
         table.insert(choices, {
@@ -155,12 +165,16 @@ function FileManager.showFileMenu()
     end
 
     if not fileChooser then
+        log:d('Creating new file chooser')
         fileChooser = hs.chooser.new(function(choice)
             if choice then
+                log:d('File selected: ' .. choice.text)
                 selectedFile = choice
                 lastSelected.file = choice
                 FileManager.openSelectedFile()
                 fileChooser:hide()
+            else
+                log:d('File selection canceled')
             end
         end)
     end
@@ -169,6 +183,7 @@ function FileManager.showFileMenu()
 end
 
 function FileManager.showEditorMenu()
+    log:i('Showing editor selection menu')
     local choices = {}
     for _, editorOption in ipairs(editorList) do
         table.insert(choices, {
@@ -180,10 +195,13 @@ function FileManager.showEditorMenu()
 
     local chooser = hs.chooser.new(function(choice)
         if choice then
+            log:i('Editor selected: ' .. choice.text)
             editor = choice.command
             lastSelected.editor = choice
             hs.alert.show("Editor set to: " .. editor)
             chooser:hide()
+        else
+            log:d('Editor selection canceled')
         end
     end)
     chooser:choices(choices)
@@ -191,14 +209,18 @@ function FileManager.showEditorMenu()
 end
 
 function FileManager.openMostRecentImage()
+    log:i('Attempting to open most recent image from Desktop')
     local desktopPath = hs.fs.pathToAbsolute(os.getenv("HOME") .. "/Desktop")
+    log:d('Desktop path: ' .. desktopPath)
+
     local filePath = hs.execute("ls -t " .. desktopPath .. "/*.png | head -n 1")
-    print("filePath: " .. filePath)
     if filePath ~= "" then
+        log:i('Opening image: ' .. filePath)
         lastSelected.file = { name = "recent_image", path = filePath }
         hs.execute("open " .. filePath)
     else
-        hs.alert.show("No recent image found on the desktop")
+        log:w('No PNG images found on Desktop')
+        hs.alert.show("No PNG images found on Desktop")
     end
 end
 

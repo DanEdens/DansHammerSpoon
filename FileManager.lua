@@ -21,7 +21,7 @@ local lastSelected = {
 local fileList = {
     { name = "init.lua",       path = "~/.hammerspoon/init.lua" },
     { name = "global hotkeys", path = "~/.hammerspoon/hotkeys.lua" },
-    { name = "hs config",      path = "~/.hammerspoon/config.lua" },
+    { name = "File Manager",      path = "/Users/d.edens/.hammerspoon/FileManager.lua" },
     { name = "zshenv",         path = "~/.zshenv" },
     { name = "zshrc",          path = "~/.zshrc" },
     { name = "bash_aliases",   path = "~/.bash_aliases" },

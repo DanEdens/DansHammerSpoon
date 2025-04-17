@@ -387,7 +387,7 @@ end
 
 -- myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 
-hs.alert.show("Config loaded")
+-- hs.alert.show("Config loaded")
 
 -- hs.eventtap.new(hs.eventtap.event.types.middleMouseUp, function(event)
 
@@ -429,29 +429,6 @@ hs.alert.show("Config loaded")
 
 
 -- hs.loadSpoon('ExtendedClipboard')
-
--- hammer_bright = os.getenv("HAMMER_BRIGHT")
--- # set brightness to max
-hs.brightness.set(100)
-hs.window.animationDuration = 0
-
-white = hs.drawing.color.white
-black = hs.drawing.color.black
-blue = hs.drawing.color.blue
-osx_red = hs.drawing.color.osx_red
-osx_green = hs.drawing.color.osx_green
-osx_yellow = hs.drawing.color.osx_yellow
-tomato = hs.drawing.color.x11.tomato
-dodgerblue = hs.drawing.color.x11.dodgerblue
-firebrick = hs.drawing.color.x11.firebrick
-lawngreen = hs.drawing.color.x11.lawngreen
-lightseagreen = hs.drawing.color.x11.lightseagreen
-purple = hs.drawing.color.x11.purple
-royalblue = hs.drawing.color.x11.royalblue
-sandybrown = hs.drawing.color.x11.sandybrown
-black50 = {red=0,blue=0,green=0,alpha=0.5}
-darkblue = {red=24/255,blue=195/255,green=145/255,alpha=1}
-gray = {red=246/255,blue=246/255,green=246/255,alpha=0.3}
 
 
 
@@ -824,15 +801,15 @@ gray = {red=246/255,blue=246/255,green=246/255,alpha=0.3}
 -- end):start()
 
 -- Load hotkeys module
-log:i('Loading hotkeys module')
+log:d('Loading hotkeys module')
 dofile(hs.configdir .. "/hotkeys.lua")
 
 -- Setup brightness to max
-log:d('Setting screen brightness to maximum')
+-- log:d('Setting screen brightness to maximum')
 hs.brightness.set(100)
 
 -- Disable window animations for performance
-log:d('Disabling window animations')
+-- log:d('Disabling window animations')
 hs.window.animationDuration = 0
 
 -- Setup global color definitions
@@ -876,10 +853,10 @@ hs.console.consoleFont("Menlo")
 -- hs.console.consoleFontSize(14)
 
 -- Logging and testing
-local log = hs.logger.new('Hammerspoon', 'debug')
-local osVersion = hs.host.operatingSystemVersion()
-local osVersionString = table.concat({ osVersion.major, osVersion.minor, osVersion.patch }, ".")
-log.i('Initializing... OS X version is: ' .. osVersionString)
+-- local log = hs.logger.new('Hammerspoon', 'info')
+-- local osVersion = hs.host.operatingSystemVersion()
+-- local osVersionString = table.concat({ osVersion.major, osVersion.minor, osVersion.patch }, ".")
+-- log.i('Initializing... OS X version is: ' .. osVersionString)
 
 local function reloadConfig(files)
     local doReload = false
@@ -895,15 +872,4 @@ end
 
 -- Watch config for changes
 local configFileWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig)
-configFileWatcher:start()
-
--- -- Setup app hotkeys
--- local hyper = { "cmd", "alt", "ctrl", "shift" }
--- hs.hotkey.bind(hyper, "C", AppManager.open_chrome)
--- hs.hotkey.bind(hyper, "S", AppManager.open_slack)
--- hs.hotkey.bind(hyper, "G", AppManager.open_github)
--- hs.hotkey.bind(hyper, "E", AppManager.open_vscode)
--- hs.hotkey.bind(hyper, "F", AppManager.open_finder)
--- hs.hotkey.bind(hyper, "M", AppManager.open_mission_control)
--- hs.hotkey.bind(hyper, "L", AppManager.open_launchpad)
--- hs.hotkey.bind(hyper, "T", AppManager.open_terminal)
+-- configFileWatcher:start()

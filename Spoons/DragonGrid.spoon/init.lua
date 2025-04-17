@@ -340,6 +340,11 @@ function obj:handleGridClick(x, y)
 
         local col = math.floor(relX / cellWidth)
         local row = math.floor(relY / cellHeight)
+        -- Ensure we're within the grid bounds
+        if col < 0 or col >= gridSize or row < 0 or row >= gridSize then
+            self.logger.d("Click outside grid bounds - ignoring")
+            return
+        end
         local cellNum = row * gridSize + col + 1
 
         self.logger.d("Clicked on level 1 cell " .. cellNum .. " at row " .. row .. ", col " .. col)
@@ -480,44 +485,62 @@ end
 function obj:createNextLevelGrid()
     -- Create a new grid based on the selected cell from the previous level
     self.logger.d("Creating level " .. currentLevel .. " grid")
-    if not selectionHistory[currentLevel - 1] then
-        self.logger.e("No previous selection found for level " .. (currentLevel - 1))
-        return
-    end
-
-    -- Get the selection from the previous level
-    local selection = selectionHistory[currentLevel - 1]
-    self.logger.d("Previous selection: x=" .. selection.x .. ", y=" .. selection.y ..
-        ", w=" .. selection.w .. ", h=" .. selection.h)
-
-    -- Clean up the existing grid
+    -- Delete the current canvas and create a new one
     if dragonGridCanvas then
         dragonGridCanvas:delete()
     end
 
-    -- Create a new canvas covering the entire screen
-    local currentScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
-    local frame = currentScreen:frame()
-    dragonGridCanvas = hs.canvas.new(frame)
+    -- Get the current selection (which represents our grid area)
+    local currentSelection = selectionHistory[currentLevel - 1]
+    if not currentSelection then
+        self.logger.e("No previous selection found for level " .. (currentLevel - 1))
+        return
+    end
+    
+    -- Find the screen containing the selection center point
+    local selectionCenter = {
+        x = currentSelection.x + currentSelection.w / 2,
+        y = currentSelection.y + currentSelection.h / 2
+    }
+
+    local currentScreen = nil
+    for _, screen in pairs(hs.screen.allScreens()) do
+        local screenFrame = screen:frame()
+        if selectionCenter.x >= screenFrame.x and selectionCenter.x <= screenFrame.x + screenFrame.w and
+            selectionCenter.y >= screenFrame.y and selectionCenter.y <= screenFrame.y + screenFrame.h then
+            currentScreen = screen
+            break
+        end
+    end
+
+    -- Fallback to the screen with the mouse if we couldn't determine the screen
+    if not currentScreen then
+        currentScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
+    end
+
+    self.logger.d("Using screen: " .. (currentScreen:name() or "unnamed") ..
+        " for level " .. currentLevel .. " grid")
+
+    -- Create a new canvas with the exact dimensions of the selection area
+    -- This is the key change - use the selection bounds directly instead of
+    -- creating a canvas for the whole screen and darkening the outside area
+    dragonGridCanvas = hs.canvas.new({
+        x = currentSelection.x,
+        y = currentSelection.y,
+        w = currentSelection.w,
+        h = currentSelection.h
+    })
     dragonGridCanvas:behavior(hs.canvas.windowBehaviors.canJoinAllSpaces)
     dragonGridCanvas:level(hs.canvas.windowLevels.overlay)
-
-    -- Add semi-transparent background outside the selection area
-    dragonGridCanvas:appendElements({
-        type = "rectangle",
-        action = "fill",
-        fillColor = self.config.colors.outsideArea,
-        frame = { x = 0, y = 0, w = frame.w, h = frame.h }
-    })
-
-    -- Add highlighted background for the selected area
+    
+    -- Add semi-transparent background
     dragonGridCanvas:appendElements({
         type = "rectangle",
         action = "fill",
         fillColor = self.config.colors.background,
-        frame = { x = selection.x, y = selection.y, w = selection.w, h = selection.h }
+        frame = { x = 0, y = 0, w = currentSelection.w, h = currentSelection.h }
     })
-
+    
     -- Add status indicator at the top
     local modeText = windowMode and "WINDOW MODE" or "SCREEN MODE"
     dragonGridCanvas:appendElements({
@@ -525,22 +548,20 @@ function obj:createNextLevelGrid()
         action = "fill",
         frame = { x = 10, y = 10, w = 300, h = 30 },
         text = modeText .. " | LEVEL " .. currentLevel .. " OF " .. maxLayers .. " | POS=" ..
-            math.floor(selection.x) .. "," .. math.floor(selection.y),
+            math.floor(currentSelection.x) .. "," .. math.floor(currentSelection.y),
         textSize = 16,
         textColor = { white = 1, alpha = 0.8 },
         textAlignment = "left"
     })
-
+    
     -- Create the grid cells
-    local cellWidth = selection.w / gridSize
-    local cellHeight = selection.h / gridSize
-
+    local cellWidth = currentSelection.w / gridSize
+    local cellHeight = currentSelection.h / gridSize
     for row = 0, gridSize - 1 do
         for col = 0, gridSize - 1 do
             local cellNum = row * gridSize + col + 1
-            local x = selection.x + (col * cellWidth)
-            local y = selection.y + (row * cellHeight)
-
+            local x = col * cellWidth
+            local y = row * cellHeight
             -- Add cell border
             dragonGridCanvas:appendElements({
                 type = "rectangle",
@@ -549,7 +570,7 @@ function obj:createNextLevelGrid()
                 strokeWidth = 2,
                 frame = { x = x, y = y, w = cellWidth, h = cellHeight }
             })
-
+            
             -- Add cell number
             dragonGridCanvas:appendElements({
                 type = "text",
@@ -562,38 +583,43 @@ function obj:createNextLevelGrid()
             })
         end
     end
-
+    
     -- Add help text at the bottom
     dragonGridCanvas:appendElements({
         type = "text",
         action = "fill",
-        frame = { x = 10, y = frame.h - 30, w = frame.w - 20, h = 20 },
+        frame = { x = 10, y = currentSelection.h - 30, w = currentSelection.w - 20, h = 20 },
         text = "Use keys: ⌘1-9 (cells 1-9) | ⌘⇧1-9 (cells 10-18) | ⌘⇧⌥1-9 (cells 19-27) | ⌘Space=Click | ⌘Esc=Cancel",
         textSize = 12,
         textColor = { white = 1, alpha = 0.7 },
         textAlignment = "center"
     })
-
+    
     -- Add second line of help text
     dragonGridCanvas:appendElements({
         type = "text",
         action = "fill",
-        frame = { x = 10, y = frame.h - 50, w = frame.w - 20, h = 20 },
+        frame = { x = 10, y = currentSelection.h - 50, w = currentSelection.w - 20, h = 20 },
         text = "⌘U=Undo | ⌘W=Toggle Mode | ⌘M=Start Drag | ⌘D=Complete Drag | Or click cells directly",
         textSize = 12,
         textColor = { white = 1, alpha = 0.7 },
         textAlignment = "center"
     })
-
+    
     -- Show the grid
     dragonGridCanvas:show()
-
+    
     -- Set up click handler for the entire canvas
     dragonGridCanvas:mouseCallback(function(canvas, event, id, x, y)
         if event == "mouseUp" then
-            self:handleGridClick(x, y)
+            -- We need to convert the canvas-relative coordinates to absolute screen coordinates
+            local absX = x + currentSelection.x
+            local absY = y + currentSelection.y
+            self:handleGridClick(absX, absY)
         end
     end)
+    -- Bind grid hotkeys
+    self:bindGridHotkeys()
 end
 
 function obj:bindGridHotkeys()

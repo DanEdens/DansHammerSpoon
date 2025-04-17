@@ -3,29 +3,38 @@ dofile(hs.configdir .. "/ExtendedClipboard.lua")
 dofile(hs.configdir .. "/WindowManager.lua")
 dofile(hs.configdir .. "/DragonGrid.lua")
 
-require("hs.ipc")
--- dofile(hs.configdir .. "/workspace.lua")
--- dofile(hs.configdir .. "/test_balena_handler.lua")
-
--- dofile(hs.configdir .. "/temp.lua")
-
 -- Load HyperLogger for better debugging with clickable log messages
 local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new('Main', 'debug')
-log:i('Loading Hammerspoon configuration')
--- Load HammerGhost
-hs.loadSpoon("HammerGhost")
+log:i('Starting Hammerspoon initialization')
 
+-- Load core modules
+require("hs.ipc")
+log:d('Core IPC module loaded')
+-- dofile(hs.configdir .. "/workspace.lua")
+-- dofile(hs.configdir .. "/test_balena_handler.lua")
+-- dofile(hs.configdir .. "/temp.lua")
+
+-- Load secrets management
 local secrets = require("load_secrets")
+log:d('Secrets module loaded')
+
+-- Configure environment variables from secrets
 local AWSIP = secrets.get("AWSIP", "localhost")
 local AWSIP2 = secrets.get("AWSIP2", "localhost")
 local MCP_PORT = secrets.get("MCP_PORT", "8000")
+log:d('Environment variables configured: ' .. AWSIP .. ', ' .. AWSIP2 .. ', ' .. MCP_PORT)
 
+-- Load HammerGhost
+log:i('Loading HammerGhost spoon')
+hs.loadSpoon("HammerGhost")
 spoon.HammerGhost:bindHotkeys({
     toggle = {{"cmd", "alt", "ctrl"}, "M"}  -- Use Cmd+Alt+Ctrl+G to toggle HammerGhost
 })
+log:d('HammerGhost hotkeys bound')
 
 -- Configure Console Dark Mode
+log:i('Configuring console appearance')
 local darkMode = {
     backgroundColor = { white = 0.1 },    -- Dark gray, almost black
     textColor = { white = 0.8 },          -- Light gray
@@ -49,16 +58,22 @@ hs.console.consolePrintColor(darkMode.textColor)
 hs.console.consoleResultColor({ white = 0.7 }) -- Slightly dimmer than regular text
 hs.console.alpha(0.95)                    -- Slightly transparent
 hs.console.titleVisibility("hidden")      -- Hide the title bar for a cleaner look
+log:d('Console appearance configured')
 
 -- Wait a bit for the console window to be ready before setting appearance
 hs.timer.doAfter(0.1, function()
+    log:d('Setting console window appearance')
     local consoleWindow = hs.console.hswindow()
     if consoleWindow and consoleWindow.setAppearance then
         consoleWindow:setAppearance(hs.drawing.windowAppearance.darkAqua)
+        log:d('Console appearance set to darkAqua')
+    else
+        log:w('Failed to set console appearance - window or method not available')
     end
 end)
 
 -- Create and configure console toolbar
+log:i('Creating console toolbar')
 local toolbar = require("hs.webview.toolbar")
 local consoleTB = toolbar.new("myConsole", {
     {
@@ -69,8 +84,10 @@ local consoleTB = toolbar.new("myConsole", {
             local editor = "cursor"  -- Use cursor as the editor
             local configFile = hs.configdir .. "/init.lua"
             if hs.fs.attributes(configFile) then
+                    log:d('Opening config file in editor: ' .. configFile)
                 hs.task.new("/usr/bin/open", nil, {"-a", editor, configFile}):start()
             else
+                    log:e('Config file not found: ' .. configFile)
                 hs.alert.show("Could not find config file")
             end
         end
@@ -80,6 +97,7 @@ local consoleTB = toolbar.new("myConsole", {
         label = "Reload",
         image = hs.image.imageFromName("NSRefreshTemplate"),
         fn = function()
+                log:i('Reloading Hammerspoon configuration')
             hs.reload()
             hs.alert.show("Config reloaded")
         end
@@ -87,9 +105,11 @@ local consoleTB = toolbar.new("myConsole", {
 })
 :canCustomize(true)
 :autosaves(true)
+log:d('Console toolbar created')
 
 -- Apply the toolbar after a short delay to ensure console is ready
 hs.timer.doAfter(0.2, function()
+    log:d('Setting console toolbar')
     hs.console.toolbar(consoleTB)
 end)
 
@@ -804,4 +824,37 @@ gray = {red=246/255,blue=246/255,green=246/255,alpha=0.3}
 --     end
 -- end):start()
 
+-- Load hotkeys module
+log:i('Loading hotkeys module')
 dofile(hs.configdir .. "/hotkeys.lua")
+
+-- Setup brightness to max
+log:d('Setting screen brightness to maximum')
+hs.brightness.set(100)
+
+-- Disable window animations for performance
+log:d('Disabling window animations')
+hs.window.animationDuration = 0
+
+-- Setup global color definitions
+log:d('Setting up global color definitions')
+white = hs.drawing.color.white
+black = hs.drawing.color.black
+blue = hs.drawing.color.blue
+osx_red = hs.drawing.color.osx_red
+osx_green = hs.drawing.color.osx_green
+osx_yellow = hs.drawing.color.osx_yellow
+tomato = hs.drawing.color.x11.tomato
+dodgerblue = hs.drawing.color.x11.dodgerblue
+firebrick = hs.drawing.color.x11.firebrick
+lawngreen = hs.drawing.color.x11.lawngreen
+lightseagreen = hs.drawing.color.x11.lightseagreen
+purple = hs.drawing.color.x11.purple
+royalblue = hs.drawing.color.x11.royalblue
+sandybrown = hs.drawing.color.x11.sandybrown
+black50 = { red = 0, blue = 0, green = 0, alpha = 0.5 }
+darkblue = { red = 24 / 255, blue = 195 / 255, green = 145 / 255, alpha = 1 }
+gray = { red = 246 / 255, blue = 246 / 255, green = 246 / 255, alpha = 0.3 }
+
+log:i('Hammerspoon initialization complete')
+hs.alert.show("Config loaded")

@@ -1,0 +1,25 @@
+{
+  "name": "DragonGrid",
+  "version": "1.0",
+  "author": "D. Edens",
+  "license": "MIT",
+  "homepage": "https://github.com/Hammerspoon/Spoons",
+  "download_url": "https://github.com/Hammerspoon/Spoons/raw/master/Spoons/DragonGrid.spoon.zip",
+  "notes": "Precision mouse movement and control using a multi-level grid system",
+  "docs": {
+    "toggleGridDisplay": "Method to show or hide the grid",
+    "init": "Initialize the spoon",
+    "start": "Start the spoon and set up the menubar",
+    "stop": "Stop the spoon and clean up",
+    "bindHotKeys": "Bind hotkeys for DragonGrid",
+    "config": "Configuration table",
+    "config.gridSize": "Size of the grid (default: 3)",
+    "config.maxLayers": "Maximum number of layers (default: 2)",
+    "config.colors": "Color configuration table",
+    "config.colors.background": "Background color of the grid",
+    "config.colors.cellBorder": "Color of cell borders",
+    "config.colors.cellText": "Color of cell text",
+    "config.colors.selectedCell": "Color of selected cell",
+    "config.colors.outsideArea": "Color of area outside selection"
+  }
+} 

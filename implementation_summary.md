@@ -64,4 +64,35 @@ The grid should now work correctly across all monitors, with each level properly
 - Added 147 lines to AppManager.lua
 - Added a new section to README.md
 
-The implementation follows the existing pattern for application management and window selection, just making it a forced behavior for GitHub Desktop specifically, without changing how other applications work. 
+The implementation follows the existing pattern for application management and window selection, just making it a forced behavior for GitHub Desktop specifically, without changing how other applications work.
+
+## DragonGrid Spoon
+
+DragonGrid is now available as a standalone Spoon in `Spoons/DragonGrid.spoon/`.
+
+### Using the DragonGrid Spoon
+
+Add to your Hammerspoon config (~/.hammerspoon/init.lua):
+
+```lua
+-- Load the DragonGrid spoon
+hs.loadSpoon("DragonGrid")
+
+-- Configure it (optional)
+spoon.DragonGrid.config.gridSize = 3     -- Grid size (3x3)
+spoon.DragonGrid.config.maxLayers = 2    -- Number of grid levels for precision
+
+-- Set up hotkey for activation
+local hyper = {"cmd", "alt", "ctrl", "shift"} -- Your preferred modifiers
+spoon.DragonGrid:bindHotKeys({
+  show = {hyper, "g"}  -- Activate with hyper+g
+}):start()
+```
+
+The Spoon provides all the functionality of DragonGrid but in a modular, reusable package:
+- Cleaner integration with Hammerspoon
+- Menubar for configuration
+- Standard documentation
+- Easy to share and distribute
+
+See `Spoons/DragonGrid.spoon/README.md` for full documentation. 

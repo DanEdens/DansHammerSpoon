@@ -96,3 +96,49 @@ GitHub Desktop now always shows a project selection menu when opened through Ham
 3. Enter a custom path to open with GitHub Desktop
 
 This feature is implemented through a specialized function that overrides the normal application behavior specifically for GitHub Desktop.
+
+# HyperLogger for Hammerspoon
+
+## Overview
+HyperLogger is a custom logging solution for Hammerspoon that adds clickable hyperlinks to log messages in the Hammerspoon console. When you click on a log message, it will open the source file at the exact line that generated the log message, making debugging much easier.
+
+## Features
+- Automatically captures file and line information for each log message
+- Displays clickable hyperlinks in the Hammerspoon console
+- Compatible with the standard Hammerspoon logger API
+- Opens source files in Cursor editor at the correct line number
+- Maintains all standard log levels (info, debug, warning, error)
+
+## Installation
+1. Place the `HyperLogger.lua` file in your Hammerspoon configuration directory.
+2. Load it in your `init.lua` file:
+```lua
+local HyperLogger = require('HyperLogger')
+```
+
+## Usage
+Replace standard logger calls with HyperLogger:
+
+```lua
+-- Create a new logger
+local log = HyperLogger.new('MyFeature', 'debug')
+
+-- Log messages with automatic file/line tracking
+log:i('Initializing feature')
+log:d('Debug information')
+log:w('Warning message')
+log:e('Error occurred')
+
+-- You can also manually specify file and line
+log:i('Custom location message', 'path/to/file.lua', 42)
+```
+
+## How It Works
+1. HyperLogger wraps the standard Hammerspoon logger for basic logging functionality
+2. It uses Lua's debug library to automatically capture source file and line information
+3. Messages are displayed as styled text with clickable hyperlinks
+4. When clicked, it uses a custom URL handler to open the file in the Cursor editor
+
+## Customization
+- Edit the `createClickableLog` function to change the styling of log messages
+- Modify the URL handler to use a different editor

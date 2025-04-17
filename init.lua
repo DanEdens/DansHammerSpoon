@@ -9,6 +9,10 @@ require("hs.ipc")
 
 -- dofile(hs.configdir .. "/temp.lua")
 
+-- Load HyperLogger for better debugging with clickable log messages
+local HyperLogger = require('HyperLogger')
+local log = HyperLogger.new('Main', 'debug')
+log:i('Loading Hammerspoon configuration')
 -- Load HammerGhost
 hs.loadSpoon("HammerGhost")
 

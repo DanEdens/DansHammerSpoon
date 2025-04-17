@@ -1,6 +1,8 @@
 ---@diagnostic disable: lowercase-global, undefined-global
-local log = hs.logger.new('Hotkeys', 'debug')
-log.i('Initializing hotkey system')
+-- Use our custom HyperLogger instead of the standard logger
+local HyperLogger = require('HyperLogger')
+local log = HyperLogger.new('Hotkeys', 'debug')
+log:i('Initializing hotkey system')
 
 -- Import modules
 local WindowManager = require('WindowManager')
@@ -237,6 +239,6 @@ end
 
 -- Add a definition for tempFunction at the end of the file, before the help text functions
 function tempFunction()
-    log.i('Temporary function called')
+    log:i('Temporary function called')
     hs.alert.show("Temporary Function Placeholder")
 end

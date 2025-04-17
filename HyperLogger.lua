@@ -6,6 +6,16 @@ local HyperLogger = {}
 -- Table to store all logger instances
 local loggers = {}
 
+-- URL encode a string
+local function urlEncode(str)
+    if str then
+        str = string.gsub(str, "\n", "\r\n")
+        str = string.gsub(str, "([^%w %-%_%.%~])",
+            function(c) return string.format("%%%02X", string.byte(c)) end)
+        str = string.gsub(str, " ", "+")
+    end
+    return str
+end
 -- Create a styled text string with a clickable link
 local function createClickableLog(message, file, line)
     -- Create a string that will be clickable and open the file at the specified line
@@ -19,9 +29,9 @@ local function createClickableLog(message, file, line)
         }
     )
 
-    -- Add metadata to make it clickable
+    -- Add metadata to make it clickable with properly encoded URL
     clickableText = clickableText:setStyle({
-        link = "hammerspoon://openFile?file=" .. file .. "&line=" .. line
+        link = "hammerspoon://openFile?file=" .. urlEncode(file) .. "&line=" .. line
     }, #message + 2, #clickableText)
 
     return clickableText

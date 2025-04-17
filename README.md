@@ -161,6 +161,11 @@ Several improvements have been made to the codebase:
    - Open different projects even when GitHub Desktop is already running
    - Enter custom paths directly in the selection UI
 
+4. **Hammerspoon OS Version Compatibility Fix** - Fixed error with operating system version reporting
+   - Updated to handle the table return format of `hs.host.operatingSystemVersion()`
+   - Properly formats version as string using major.minor.patch format
+   - Prevents "attempt to concatenate a table value" errors during initialization
+
 ## Contributing
 
 When contributing to this project:

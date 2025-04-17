@@ -35,7 +35,7 @@ local fileList = {
 
 local projects_list = {
     -- Core projects
-    { name = "New Project",         path = "~" },
+    { name = "Chat History",        path = "/Users/d.edens/lab/madness_interactive/docs/cursor_chathistory" },
     { name = "regressiontestkit",   path = "~/lab/regressiontestkit" },
     { name = "madness_interactive", path = "~/lab/madness_interactive" },
     { name = "Swarmonomicon",       path = "~/lab/madness_interactive/projects/common/Swarmonomicon" },

@@ -109,8 +109,8 @@ hs.hotkey.bind(hammer, "x", function() spoon.DragonGrid:toggleGridDisplay() end)
 hs.hotkey.bind(_hyper, "x", function() spoon.DragonGrid:showSettingsMenu() end)
 
 -- Misc
-hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy -S'") end)
-hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. FileManager.getEditor() .. "' ~/.zshrc") end)
+hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy'") end)
+-- hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. FileManager.getEditor() .. "' ~/.zshrc") end)
 
 -- Help/Documentation
 hs.hotkey.bind(hammer, "Space", function() showHammerList() end)
@@ -120,16 +120,17 @@ hs.hotkey.bind(_hyper, "Space", function() showHyperList() end)
 hs.hotkey.bind(hammer, "y", function() AppManager.open_countdown_timer() end)
 hs.hotkey.bind(_hyper, "y", function() AppManager.toggle_do_not_disturb() end)
 
-hs.hotkey.bind(hammer, "m", function() AppManager.toggle_media_play_pause() end)
-hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. FileManager.getEditor() .. "' ~/.zshrc") end)
+-- HammerGhost Hotkeys
+hs.hotkey.bind(hammer, "m", function() spoon.HammerGhost:toggle() end)
+hs.hotkey.bind(_hyper, "m", function() tempFunction() end)
 
 -- Additional application and system shortcuts
-hs.hotkey.bind(hammer, "k", function() AppManager.lock_screen() end)
-hs.hotkey.bind(_hyper, "k", function() AppManager.sleep_display() end)
+-- hs.hotkey.bind(hammer, "k", function() AppManager.lock_screen() end)
+-- hs.hotkey.bind(_hyper, "k", function() AppManager.sleep_display() end)
 
 -- Clipboard and productivity tools
-hs.hotkey.bind(hammer, "c", function() FileManager.showClipboardManager() end)
-hs.hotkey.bind(_hyper, "c", function() FileManager.clearClipboard() end)
+-- hs.hotkey.bind(hammer, "c", function() FileManager.showClipboardManager() end)
+-- hs.hotkey.bind(_hyper, "c", function() FileManager.clearClipboard() end)
 
 -- -- Add tempFunction for remaining letters
 -- hs.hotkey.bind(hammer, "a", function() tempFunction() end)

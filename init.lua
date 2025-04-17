@@ -1,5 +1,4 @@
 dofile(hs.configdir .. "/loadConfig.lua")
-dofile(hs.configdir .. "/ExtendedClipboard.lua")
 dofile(hs.configdir .. "/WindowManager.lua")
 
 -- Load HyperLogger for better debugging with clickable log messages
@@ -27,9 +26,6 @@ log:d('Environment variables configured: ' .. AWSIP .. ', ' .. AWSIP2 .. ', ' ..
 -- Load HammerGhost
 log:i('Loading HammerGhost spoon')
 hs.loadSpoon("HammerGhost")
-spoon.HammerGhost:bindHotkeys({
-    toggle = {{"cmd", "alt", "ctrl"}, "M"}  -- Use Cmd+Alt+Ctrl+G to toggle HammerGhost
-})
 log:d('HammerGhost hotkeys bound')
 
 -- Configure Console Dark Mode
@@ -78,7 +74,7 @@ local consoleTB = toolbar.new("myConsole", {
     {
         id = "editConfig",
         label = "Edit Config",
-        image = hs.image.imageFromName("NSEditTemplate"),
+            image = hs.image.imageFromName("NSTouchBarListViewTemplate"),
         fn = function()
             local editor = "cursor"  -- Use cursor as the editor
             local configFile = hs.configdir .. "/init.lua"
@@ -806,31 +802,31 @@ dofile(hs.configdir .. "/hotkeys.lua")
 
 -- Setup brightness to max
 -- log:d('Setting screen brightness to maximum')
-hs.brightness.set(100)
+-- hs.brightness.set(100)
 
--- Disable window animations for performance
--- log:d('Disabling window animations')
-hs.window.animationDuration = 0
+-- -- Disable window animations for performance
+-- -- log:d('Disabling window animations')
+-- hs.window.animationDuration = 0
 
--- Setup global color definitions
-log:d('Setting up global color definitions')
-white = hs.drawing.color.white
-black = hs.drawing.color.black
-blue = hs.drawing.color.blue
-osx_red = hs.drawing.color.osx_red
-osx_green = hs.drawing.color.osx_green
-osx_yellow = hs.drawing.color.osx_yellow
-tomato = hs.drawing.color.x11.tomato
-dodgerblue = hs.drawing.color.x11.dodgerblue
-firebrick = hs.drawing.color.x11.firebrick
-lawngreen = hs.drawing.color.x11.lawngreen
-lightseagreen = hs.drawing.color.x11.lightseagreen
-purple = hs.drawing.color.x11.purple
-royalblue = hs.drawing.color.x11.royalblue
-sandybrown = hs.drawing.color.x11.sandybrown
-black50 = { red = 0, blue = 0, green = 0, alpha = 0.5 }
-darkblue = { red = 24 / 255, blue = 195 / 255, green = 145 / 255, alpha = 1 }
-gray = { red = 246 / 255, blue = 246 / 255, green = 246 / 255, alpha = 0.3 }
+-- -- Setup global color definitions
+-- log:d('Setting up global color definitions')
+-- white = hs.drawing.color.white
+-- black = hs.drawing.color.black
+-- blue = hs.drawing.color.blue
+-- osx_red = hs.drawing.color.osx_red
+-- osx_green = hs.drawing.color.osx_green
+-- osx_yellow = hs.drawing.color.osx_yellow
+-- tomato = hs.drawing.color.x11.tomato
+-- dodgerblue = hs.drawing.color.x11.dodgerblue
+-- firebrick = hs.drawing.color.x11.firebrick
+-- lawngreen = hs.drawing.color.x11.lawngreen
+-- lightseagreen = hs.drawing.color.x11.lightseagreen
+-- purple = hs.drawing.color.x11.purple
+-- royalblue = hs.drawing.color.x11.royalblue
+-- sandybrown = hs.drawing.color.x11.sandybrown
+-- black50 = { red = 0, blue = 0, green = 0, alpha = 0.5 }
+-- darkblue = { red = 24 / 255, blue = 195 / 255, green = 145 / 255, alpha = 1 }
+-- gray = { red = 246 / 255, blue = 246 / 255, green = 246 / 255, alpha = 0.3 }
 
 log:i('Hammerspoon initialization complete')
 hs.alert.show("Config loaded")
@@ -846,11 +842,11 @@ hs.loadSpoon("DragonGrid")
 local AppManager = require('AppManager')
 local FileManager = require('FileManager')
 
--- Console apperance
-hs.console.titleVisibility("hidden")
-hs.console.windowBackgroundColor({ 0, 0, 0, 0.9 })
-hs.console.consoleFont("Menlo")
--- hs.console.consoleFontSize(14)
+-- -- Console apperance
+-- hs.console.titleVisibility("hidden")
+-- hs.console.windowBackgroundColor({ 0, 0, 0, 0.9 })
+-- hs.console.consoleFont("Menlo")
+-- -- hs.console.consoleFontSize(14)
 
 -- Logging and testing
 -- local log = hs.logger.new('Hammerspoon', 'info')

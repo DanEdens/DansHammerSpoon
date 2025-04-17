@@ -166,6 +166,12 @@ Several improvements have been made to the codebase:
    - Properly formats version as string using major.minor.patch format
    - Prevents "attempt to concatenate a table value" errors during initialization
 
+5. **Hotkey Binding Fix** - Fixed error with missing Finder function
+   - Added missing `open_finder` function to AppManager module
+   - Resolves "At least one of pressedfn, releasedfn or repeatfn must be a function" error
+   - Ensures hyper+F hotkey correctly opens or focuses Finder
+   - See [Hotkey-Fix.md](docs/Hotkey-Fix.md) for details
+
 ## Contributing
 
 When contributing to this project:

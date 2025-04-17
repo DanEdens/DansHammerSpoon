@@ -1,3 +1,179 @@
+# Hammerspoon Configuration
+
+![Hammerspoon Logo](https://www.hammerspoon.org/images/hammerspoon.png)
+
+A powerful, customized Hammerspoon configuration for advanced macOS automation and window management.
+
+## Overview
+
+This Hammerspoon configuration provides a comprehensive set of tools for macOS automation, featuring:
+
+- Advanced window management with multiple layouts and precise positioning
+- DragonGrid system for pixel-perfect mouse control
+- Smart application launching with window selection
+- File and project management
+- Device connection handling
+- Enhanced debugging with clickable logs
+
+The configuration is modular, customizable, and designed for power users seeking to streamline their workflow.
+
+## Core Modules
+
+### DragonGrid
+
+A precision mouse positioning system that displays an interactive grid overlay, allowing for pixel-perfect mouse control.
+
+- Multi-level grid system for increasing precision
+- Window or screen modes
+- Click and drag operations
+- Visual feedback and customizable appearance
+- Multi-screen support
+
+See [DragonGrid Documentation](docs/DragonGrid.md) for complete details.
+
+### WindowManager
+
+Comprehensive window management with predefined layouts and precise positioning.
+
+- Move windows to specific screen positions (corners, halves, etc.)
+- Apply predefined layouts for different workflow scenarios
+- Save and restore window positions
+- Multi-screen support with easy window movement between displays
+
+### AppManager
+
+Smart application launching with window selection and project integration.
+
+- Launch applications or focus existing windows
+- Select between multiple windows of the same application
+- Open applications with specific projects
+- Integration with FileManager for project selection
+
+### FileManager
+
+File and project management capabilities for quick access to commonly used files and projects.
+
+- Quick access to frequently edited configuration files
+- Project directory management
+- Editor selection for opening files
+- Recent file tracking
+
+### HyperLogger
+
+Enhanced logging system with clickable log messages for easier debugging.
+
+- File and line information for each log message
+- Clickable links in the console to open source files
+- Compatible with Hammerspoon's standard logging system
+- Automatic caller information tracking
+
+## Key Keyboard Shortcuts
+
+Shortcuts use these modifier combinations:
+- **hammer** = Cmd+Ctrl+Alt
+- **hyper** = Cmd+Shift+Ctrl+Alt
+
+### Window Management
+
+| Shortcut | Action |
+|----------|--------|
+| hammer+1 | Move window to top-left corner |
+| hammer+2 | Move window to top-right corner |
+| hammer+3 | Full screen window |
+| hammer+4 | Left wide layout |
+| hammer+6 | Small left side |
+| hammer+7 | Small right side |
+| hammer+0 | Horizontal split |
+| hyper+0 | Vertical split |
+| hammer+left/right/up/down | Move window in that direction |
+| hyper+left | Move window to previous screen |
+| hyper+right | Move window to next screen |
+| hammer+F6 | Save window position |
+| hammer+F7 | Restore window position |
+
+### Applications
+
+| Shortcut | Action |
+|----------|--------|
+| hammer+p | Open PyCharm |
+| hyper+p | Open Cursor |
+| hammer+b | Open Arc browser |
+| hyper+b | Open Chrome |
+| hammer+s | Open Slack |
+| hammer+g | Open GitHub Desktop |
+| hammer+\` | Open Cursor |
+| hyper+\` | Open VS Code |
+
+### DragonGrid
+
+| Shortcut | Action |
+|----------|--------|
+| hammer+x | Toggle DragonGrid |
+| hyper+x | Show DragonGrid settings |
+
+### File Management
+
+| Shortcut | Action |
+|----------|--------|
+| hammer+e | Show file menu |
+| hyper+e | Show editor menu |
+| hammer+i | Open most recent image |
+
+## Setup and Installation
+
+1. Install Hammerspoon from [hammerspoon.org](https://www.hammerspoon.org/) or via Homebrew:
+   ```
+   brew install --cask hammerspoon
+   ```
+
+2. Clone this repository to your Hammerspoon configuration directory:
+   ```
+   git clone https://github.com/yourusername/hammerspoon-config.git ~/.hammerspoon
+   ```
+
+3. Launch Hammerspoon or reload your configuration if already running
+
+## Customization
+
+The configuration can be customized by editing the following files:
+
+- `init.lua` - Main configuration file
+- `hotkeys.lua` - Keyboard shortcut definitions
+- `FileManager.lua` - Customize file and project lists
+- `*.lua` modules - Each module can be customized for specific functionality
+
+## Recent Improvements
+
+Several improvements have been made to the codebase:
+
+1. **DragonGrid Multi-Screen Support** - Fixed UI issues with the precision grid system when operating across multiple monitors
+   - See [DragonGrid-MultiScreen-Fix.md](docs/DragonGrid-MultiScreen-Fix.md) for details
+   - Enables seamless grid-based mouse positioning across all connected displays
+   - Maintains consistent UI behavior between grid levels
+
+2. **HyperLogger for Debugging** - Enhanced logging system with clickable log messages
+   - Automatically captures file and line information
+   - Displays clickable hyperlinks in the console
+   - Makes debugging much easier by linking logs to source code
+
+3. **GitHub Desktop Enhancements** - Specialized project selection when opening GitHub Desktop
+   - Choose between existing GitHub Desktop windows
+   - Open different projects even when GitHub Desktop is already running
+   - Enter custom paths directly in the selection UI
+
+## Contributing
+
+When contributing to this project:
+
+1. Create a branch for each logical set of changes
+2. Follow the existing code style
+3. Add proper documentation for all changes
+4. Test thoroughly before submitting
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
 # Hammerspoon Configuration Improvement Plan
 
 This repository contains a Hammerspoon configuration with plans for improvements and restructuring.
@@ -29,15 +205,6 @@ Our analysis of the codebase has identified several areas for improvement:
 - Hardcoded values throughout the codebase
 - Basic secrets management in `load_secrets.lua`
 
-## Recent Improvements
-
-Several improvements have been made to the codebase:
-
-1. **DragonGrid Multi-Screen Support** - Fixed UI issues with the precision grid system when operating across multiple monitors
-   - See [DragonGrid-MultiScreen-Fix.md](docs/DragonGrid-MultiScreen-Fix.md) for details
-   - Enables seamless grid-based mouse positioning across all connected displays
-   - Maintains consistent UI behavior between grid levels
-
 ## Implementation Approach
 
 We recommend a phased approach to improvements:
@@ -55,15 +222,6 @@ To begin working on improvements:
 2. Start with high-priority, high-impact tasks as outlined in `IMPLEMENTATION_PRIORITY.md`
 3. Make incremental changes rather than large rewrites
 4. Maintain backward compatibility throughout the process
-
-## Contributing
-
-When contributing to this project:
-
-1. Create a branch for each logical set of changes
-2. Follow the existing code style (or the new one if defined)
-3. Add proper documentation for all changes
-4. Test thoroughly before submitting 
 
 # DragonGrid for Hammerspoon
 

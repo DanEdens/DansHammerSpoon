@@ -54,7 +54,7 @@ hs.console.windowBackgroundColor({
 hs.console.outputBackgroundColor(darkMode.backgroundColor)
 hs.console.consoleCommandColor(darkMode.textColor)
 hs.console.consolePrintColor(darkMode.textColor)
-hs.console.consoleResultColor({ white = 0.7 }) -- Slightly dimmer than regular text
+hs.console.consoleResultColor({ white = 0.9 }) -- Slightly dimmer than regular text
 hs.console.alpha(0.95)                    -- Slightly transparent
 hs.console.titleVisibility("hidden")      -- Hide the title bar for a cleaner look
 log:d('Console appearance configured')
@@ -67,7 +67,7 @@ hs.timer.doAfter(0.1, function()
         consoleWindow:setAppearance(hs.drawing.windowAppearance.darkAqua)
         log:d('Console appearance set to darkAqua')
     else
-        log:w('Failed to set console appearance - window or method not available')
+        log:d('Failed to set console appearance - window or method not available')
     end
 end)
 
@@ -860,10 +860,12 @@ hs.alert.show("Config loaded")
 
 -- Initialize modules
 -- Load DragonGrid as a Spoon instead of requiring the module
+
 hs.loadSpoon("DragonGrid")
-spoon.DragonGrid:bindHotKeys({
-    show = { { "cmd", "alt", "ctrl", "shift" }, "x" }
-}):start()
+
+-- spoon.DragonGrid:bindHotKeys({
+--     show = { { "cmd", "alt", "ctrl", "shift" }, "x" }
+-- }):start()
 local AppManager = require('AppManager')
 local FileManager = require('FileManager')
 
@@ -895,13 +897,13 @@ end
 local configFileWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig)
 configFileWatcher:start()
 
--- Setup app hotkeys
-local hyper = { "cmd", "alt", "ctrl", "shift" }
-hs.hotkey.bind(hyper, "C", AppManager.open_chrome)
-hs.hotkey.bind(hyper, "S", AppManager.open_slack)
-hs.hotkey.bind(hyper, "G", AppManager.open_github)
-hs.hotkey.bind(hyper, "E", AppManager.open_vscode)
-hs.hotkey.bind(hyper, "F", AppManager.open_finder)
-hs.hotkey.bind(hyper, "M", AppManager.open_mission_control)
-hs.hotkey.bind(hyper, "L", AppManager.open_launchpad)
-hs.hotkey.bind(hyper, "T", AppManager.open_terminal)
+-- -- Setup app hotkeys
+-- local hyper = { "cmd", "alt", "ctrl", "shift" }
+-- hs.hotkey.bind(hyper, "C", AppManager.open_chrome)
+-- hs.hotkey.bind(hyper, "S", AppManager.open_slack)
+-- hs.hotkey.bind(hyper, "G", AppManager.open_github)
+-- hs.hotkey.bind(hyper, "E", AppManager.open_vscode)
+-- hs.hotkey.bind(hyper, "F", AppManager.open_finder)
+-- hs.hotkey.bind(hyper, "M", AppManager.open_mission_control)
+-- hs.hotkey.bind(hyper, "L", AppManager.open_launchpad)
+-- hs.hotkey.bind(hyper, "T", AppManager.open_terminal)

@@ -45,13 +45,13 @@ function DragonGrid.createDragonGrid()
     local mousePos = hs.mouse.absolutePosition()
     local currentScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
 
-    log.d("Mouse position: x=" .. mousePos.x .. ", y=" .. mousePos.y)
-    log.d("Using screen: " .. (currentScreen:name() or "unnamed"))
+    log:d("Mouse position: x=" .. mousePos.x .. ", y=" .. mousePos.y)
+    log:d("Using screen: " .. (currentScreen:name() or "unnamed"))
     local frame
     if windowMode then
         local win = hs.window.focusedWindow()
         if not win then
-            log.w("No focused window found, using current screen")
+            log:w("No focused window found, using current screen")
             frame = currentScreen:frame()
         else
             frame = win:frame()
@@ -60,7 +60,7 @@ function DragonGrid.createDragonGrid()
         frame = currentScreen:frame()
     end
 
-    log.d("Creating level 1 grid at x=" .. frame.x .. ", y=" .. frame.y ..
+    log:d("Creating level 1 grid at x=" .. frame.x .. ", y=" .. frame.y ..
         ", w=" .. frame.w .. ", h=" .. frame.h)
     dragonGridCanvas = hs.canvas.new(frame)
     dragonGridCanvas:behavior(hs.canvas.windowBehaviors.canJoinAllSpaces)
@@ -247,7 +247,7 @@ function DragonGrid.createDragonGrid()
 end
 
 function DragonGrid.handleGridClick(x, y)
-    log.d("Grid click at x:" .. x .. ", y:" .. y)
+    log:d("Grid click at x:" .. x .. ", y:" .. y)
 
     if currentLevel > 1 then
         -- We're in a higher level grid
@@ -257,7 +257,7 @@ function DragonGrid.handleGridClick(x, y)
         if x < currentSelection.x or x > (currentSelection.x + currentSelection.w) or
             y < currentSelection.y or y > (currentSelection.y + currentSelection.h) then
             -- Click is outside the current selection area
-            log.d("Click outside current grid area - ignoring")
+            log:d("Click outside current grid area - ignoring")
             return
         end
 
@@ -269,7 +269,7 @@ function DragonGrid.handleGridClick(x, y)
         local row = math.floor((y - currentSelection.y) / cellHeight)
         local cellNum = row * gridSize + col + 1
 
-        log.d("Clicked on level " .. currentLevel .. " cell " .. cellNum ..
+        log:d("Clicked on level " .. currentLevel .. " cell " .. cellNum ..
             " at row " .. row .. ", col " .. col)
         DragonGrid.handleNumberKey(cellNum)
     else
@@ -294,7 +294,7 @@ function DragonGrid.handleGridClick(x, y)
                 end
 
                 frame = clickScreen:frame()
-                log.d("Click on screen: " .. (clickScreen:name() or "unnamed"))
+                log:d("Click on screen: " .. (clickScreen:name() or "unnamed"))
             else
                 frame = win:frame()
             end
@@ -315,140 +315,153 @@ function DragonGrid.handleGridClick(x, y)
             end
 
             frame = clickScreen:frame()
-            log.d("Click on screen: " .. (clickScreen:name() or "unnamed"))
+            log:d("Click on screen: " .. (clickScreen:name() or "unnamed"))
         end
 
-        log.d("Screen frame: x=" .. frame.x .. ", y=" .. frame.y ..
-            ", w=" .. frame.w .. ", h=" .. frame.h)
+        -- Calculate which cell was clicked
+        local relX = x - frame.x
+        local relY = y - frame.y
+        local cellWidth = frame.w / gridSize
+        local cellHeight = frame.h / gridSize
 
-        -- Check if the click is within the screen frame
-        if x < frame.x or x > frame.x + frame.w or
-            y < frame.y or y > frame.y + frame.h then
-            log.d("Click outside screen bounds - ignoring")
-            return
+        local col = math.floor(relX / cellWidth)
+        local row = math.floor(relY / cellHeight)
+        local cellNum = row * gridSize + col + 1
+
+        log:d("Clicked on level 1 cell " .. cellNum .. " at row " .. row .. ", col " .. col)
+        DragonGrid.handleNumberKey(cellNum)
+    end
+end
+
+function DragonGrid.handleNumberKey(number)
+    log:d("Handling number key: " .. number)
+    if number < 1 or number > (gridSize * gridSize) then
+        log:w("Invalid cell number: " .. number)
+        return
+    end
+
+    if dragMode and not dragStart then
+        -- In drag mode, first mark position
+        dragStart = hs.mouse.absolutePosition()
+        log:d("Setting drag start to " .. dragStart.x .. "," .. dragStart.y)
+        hs.alert.show("Start position marked")
+        return
+    end
+
+    -- Calculate row and column from the cell number
+    local row = math.floor((number - 1) / gridSize)
+    local col = (number - 1) % gridSize
+
+    -- Move mouse to cell position
+    if currentLevel == 1 then
+        -- First level grid - need absolute screen coordinates
+        local frame
+        if windowMode then
+            local win = hs.window.focusedWindow()
+            if not win then
+                frame = hs.mouse.getCurrentScreen():frame()
+            else
+                frame = win:frame()
+            end
+        else
+            frame = hs.mouse.getCurrentScreen():frame()
         end
 
         local cellWidth = frame.w / gridSize
         local cellHeight = frame.h / gridSize
 
-        -- Calculate which cell was clicked
-        local col = math.floor((x - frame.x) / cellWidth)
-        local row = math.floor((y - frame.y) / cellHeight)
+        -- Center of the selected cell
+        local x = frame.x + (col * cellWidth) + (cellWidth / 2)
+        local y = frame.y + (row * cellHeight) + (cellHeight / 2)
 
-        -- Check bounds
-        if col < 0 or col >= gridSize or row < 0 or row >= gridSize then
-            log.d("Click outside grid bounds - ignoring")
-            return
-        end
-
-        local cellNum = row * gridSize + col + 1
-
-        log.d("Clicked on first level cell " .. cellNum .. " at row " .. row .. ", col " .. col)
-        DragonGrid.handleNumberKey(cellNum)
-    end
-end
-
-function DragonGrid.handleNumberKey(num)
-    if num < 1 or num > (gridSize * gridSize) then
-        log.w("Invalid grid number: " .. tostring(num))
-        return
-    end
-
-    log.d("Grid number selected: " .. num .. ", currentLevel: " .. currentLevel)
-    local row = math.floor((num - 1) / gridSize)
-    local col = (num - 1) % gridSize
-
-    -- Get the correct frame based on current context
-    local frame
-    if currentLevel == 1 then
-        -- For level 1, we use the whole screen or window
-        if windowMode then
-            local win = hs.window.focusedWindow()
-            if not win then
-                log.w("No focused window found, using current screen")
-                local mouseScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
-                frame = mouseScreen:frame()
-                log.d("Using screen: " .. (mouseScreen:name() or "unnamed"))
-            else
-                frame = win:frame()
-            end
-        else
-            local mouseScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
-            frame = mouseScreen:frame()
-            log.d("Using screen: " .. (mouseScreen:name() or "unnamed"))
-        end
-    else
-        -- For higher levels, we use the previous selection's dimensions
-        local prevSelection = selectionHistory[currentLevel - 1]
-        frame = {
-            x = prevSelection.x,
-            y = prevSelection.y,
-            w = prevSelection.w,
-            h = prevSelection.h
-        }
-    end
-
-    log.d("Current frame: x=" .. frame.x .. ", y=" .. frame.y .. ", w=" .. frame.w .. ", h=" .. frame.h)
-
-    -- Calculate the cell dimensions for this level
-    local cellWidth = frame.w / gridSize
-    local cellHeight = frame.h / gridSize
-
-    -- Calculate absolute position of the selected cell
-    local cellX = frame.x + col * cellWidth
-    local cellY = frame.y + row * cellHeight
-
-    log.d("Selected cell: row=" .. row .. ", col=" .. col)
-    log.d("Cell position: x=" .. cellX .. ", y=" .. cellY .. ", w=" .. cellWidth .. ", h=" .. cellHeight)
-
-    if currentLevel < maxLayers then
-        -- Store this selection in history
-        local selection = {
-            row = row,
-            col = col,
-            x = cellX,
-            y = cellY,
+        -- Store the selection for the next level
+        selectionHistory[currentLevel] = {
+            x = frame.x + (col * cellWidth),
+            y = frame.y + (row * cellHeight),
             w = cellWidth,
             h = cellHeight
         }
 
-        selectionHistory[currentLevel] = selection
-        log.d("Storing selection at level " .. currentLevel)
+        log:d("Selected level 1 cell at " .. x .. "," .. y)
 
-        -- Move to next level
-        currentLevel = currentLevel + 1
-        DragonGrid.createNextLevelGrid()
-    else
-        -- Final level selection (perform action)
-        local finalX = cellX + (cellWidth / 2)
-        local finalY = cellY + (cellHeight / 2)
+        -- If at max layers, perform a click and exit
+        if currentLevel >= maxLayers then
+            hs.mouse.absolutePosition({ x = x, y = y })
+            log:d("Reached max layers (" .. maxLayers .. "), positioning mouse and exiting")
 
-        log.d("Final position: x=" .. finalX .. ", y=" .. finalY)
-
-        if dragMode and dragStart == nil then
-            -- We're in drag mode and this is the first point
-            dragStart = { x = finalX, y = finalY }
-            hs.mouse.absolutePosition(dragStart)
-            -- Show a message to indicate we're in drag mode
-            hs.alert.show("Drag start point set. Select destination.")
-        elseif dragMode and dragStart ~= nil then
-            -- We're in drag mode and this is the second point
-            hs.mouse.absolutePosition(dragStart)
-            hs.eventtap.leftMouseDown()
-            hs.timer.doAfter(0.1, function()
-                hs.mouse.absolutePosition({ x = finalX, y = finalY })
+            if dragMode and dragStart then
+                -- In drag mode with start position, complete the drag
+                hs.eventtap.leftMouseDown(dragStart)
                 hs.timer.doAfter(0.1, function()
-                    hs.eventtap.leftMouseUp()
-                    dragMode = false
-                    dragStart = nil
-                    DragonGrid.destroyDragonGrid()
+                    hs.mouse.absolutePosition({ x = x, y = y })
+                    hs.timer.doAfter(0.1, function()
+                        hs.eventtap.leftMouseUp()
+                        log:d("Drag completed from " .. dragStart.x .. "," .. dragStart.y .. " to " .. x .. "," .. y)
+                        dragMode = false
+                        dragStart = nil
+                        DragonGrid.destroyDragonGrid()
+                    end)
                 end)
-            end)
+            else
+                -- Normal mode, just position mouse
+                hs.mouse.absolutePosition({ x = x, y = y })
+                DragonGrid.destroyDragonGrid()
+            end
         else
-            -- Just move the mouse cursor to the selected position
-            hs.mouse.absolutePosition({ x = finalX, y = finalY })
-            -- Destroy the grid
-            DragonGrid.destroyDragonGrid()
+            -- Position mouse and go deeper
+            hs.mouse.absolutePosition({ x = x, y = y })
+            currentLevel = currentLevel + 1
+            log:d("Going to level " .. currentLevel)
+            DragonGrid.createNextLevelGrid()
+        end
+    else
+        -- Higher level grid - calculate relative to previous selection
+        local currentSelection = selectionHistory[currentLevel - 1]
+        local cellWidth = currentSelection.w / gridSize
+        local cellHeight = currentSelection.h / gridSize
+
+        -- Center of the selected cell
+        local x = currentSelection.x + (col * cellWidth) + (cellWidth / 2)
+        local y = currentSelection.y + (row * cellHeight) + (cellHeight / 2)
+
+        -- Store the selection for the next level
+        selectionHistory[currentLevel] = {
+            x = currentSelection.x + (col * cellWidth),
+            y = currentSelection.y + (row * cellHeight),
+            w = cellWidth,
+            h = cellHeight
+        }
+
+        log:d("Selected level " .. currentLevel .. " cell at " .. x .. "," .. y)
+
+        -- If at max layers, perform a click and exit
+        if currentLevel >= maxLayers then
+            log:d("Reached max layers (" .. maxLayers .. "), positioning mouse and exiting")
+
+            if dragMode and dragStart then
+                -- In drag mode with start position, complete the drag
+                hs.eventtap.leftMouseDown(dragStart)
+                hs.timer.doAfter(0.1, function()
+                    hs.mouse.absolutePosition({ x = x, y = y })
+                    hs.timer.doAfter(0.1, function()
+                        hs.eventtap.leftMouseUp()
+                        log:d("Drag completed from " .. dragStart.x .. "," .. dragStart.y .. " to " .. x .. "," .. y)
+                        dragMode = false
+                        dragStart = nil
+                        DragonGrid.destroyDragonGrid()
+                    end)
+                end)
+            else
+                -- Normal mode, just position mouse
+                hs.mouse.absolutePosition({ x = x, y = y })
+                DragonGrid.destroyDragonGrid()
+            end
+        else
+            -- Position mouse and go deeper
+            hs.mouse.absolutePosition({ x = x, y = y })
+            currentLevel = currentLevel + 1
+            log:d("Going to level " .. currentLevel)
+            DragonGrid.createNextLevelGrid()
         end
     end
 end
@@ -487,10 +500,10 @@ function DragonGrid.createNextLevelGrid()
         currentScreen = hs.mouse.getCurrentScreen() or hs.screen.mainScreen()
     end
 
-    log.d("Using screen: " .. (currentScreen:name() or "unnamed") ..
+    log:d("Using screen: " .. (currentScreen:name() or "unnamed") ..
         " for level " .. currentLevel .. " grid")
 
-    log.d("Creating level " .. currentLevel .. " grid at x=" ..
+    log:d("Creating level " .. currentLevel .. " grid at x=" ..
         currentSelection.x .. ", y=" .. currentSelection.y ..
         ", w=" .. currentSelection.w .. ", h=" .. currentSelection.h)
 
@@ -558,7 +571,7 @@ function DragonGrid.createNextLevelGrid()
             local x = col * cellWidth
             local y = row * cellHeight
 
-            log.d("Level " .. currentLevel .. " cell " .. cellNum ..
+            log:d("Level " .. currentLevel .. " cell " .. cellNum ..
                 " at x:" .. x .. ", y:" .. y .. ", w:" .. cellWidth .. ", h:" .. cellHeight)
 
             -- Add cell border

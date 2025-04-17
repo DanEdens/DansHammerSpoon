@@ -28,8 +28,10 @@ hs.hotkey.bind(hammer, "3", function() WindowManager.applyLayout('fullScreen') e
 hs.hotkey.bind(_hyper, "3", function() WindowManager.applyLayout('nearlyFull') end)
 hs.hotkey.bind(hammer, "4", function() WindowManager.applyLayout('leftWide') end)
 hs.hotkey.bind(_hyper, "4", function() WindowManager.miniShuffle() end)
--- hs.hotkey.bind(hammer, "5", function() WindowManager.applyLayout('splitVertical') end)
--- hs.hotkey.bind(_hyper, "5", function() WindowManager.applyLayout('splitHorizontal') end)
+
+-- Screen and display management
+hs.hotkey.bind(hammer, "5", function() WindowManager.applyLayout('splitVertical') end)
+hs.hotkey.bind(_hyper, "5", function() WindowManager.applyLayout('splitHorizontal') end)
 hs.hotkey.bind(hammer, "6", function() WindowManager.moveSide("left", true) end)
 hs.hotkey.bind(_hyper, "6", function() WindowManager.moveSide("left", false) end)
 hs.hotkey.bind(hammer, "7", function() WindowManager.moveSide("right", true) end)
@@ -129,10 +131,6 @@ hs.hotkey.bind(_hyper, "k", function() AppManager.sleep_display() end)
 -- Clipboard and productivity tools
 hs.hotkey.bind(hammer, "c", function() FileManager.showClipboardManager() end)
 hs.hotkey.bind(_hyper, "c", function() FileManager.clearClipboard() end)
-
--- Screen and display management
-hs.hotkey.bind(hammer, "5", function() WindowManager.applyLayout('splitVertical') end)
-hs.hotkey.bind(_hyper, "5", function() WindowManager.applyLayout('splitHorizontal') end)
 
 -- -- Add tempFunction for remaining letters
 -- hs.hotkey.bind(hammer, "a", function() tempFunction() end)

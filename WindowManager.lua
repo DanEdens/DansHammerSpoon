@@ -159,7 +159,7 @@ function WindowManager.miniShuffle()
 
     -- Apply the frame
     win:setFrame(newFrame)
-    WindowManager.currentFrame = newFrame
+    -- WindowManager.currentFrame = newFrame
 
     -- Increment counter
     WindowManager.counter = (WindowManager.counter + 1) % #miniLayouts
@@ -194,7 +194,7 @@ function WindowManager.halfShuffle(numRows, numCols)
     log.i('Half shuffle w/ position: ', rowCounter, colCounter)
 
     win:setFrame(f)
-    WindowManager.currentFrame = f
+    -- WindowManager.currentFrame = f
     -- log.d('Set frame:', { x = f.x, y = f.y, w = f.w, h = f.h })
 
     -- Update counters
@@ -222,13 +222,29 @@ function WindowManager.applyLayout(layoutName)
     local max = screen:frame()
     local f = win:frame()
 
-    -- Apply the layout functions
-    f.x = layout.x(max)
-    f.y = layout.y(max)
-    f.w = layout.w(max)
-    f.h = layout.h(max)
+    -- Calculate new frame
+    local newFrame = {
+        x = layout.x(max),
+        y = layout.y(max),
+        w = layout.w(max),
+        h = layout.h(max)
+    }
 
-    win:setFrame(f)
+    -- First move the window without changing size (maintaining current w/h)
+    local moveFrame = {
+        x = newFrame.x,
+        y = newFrame.y,
+        w = f.w,
+        h = f.h
+    }
+    win:setFrame(moveFrame, 0.1)
+
+    -- Small delay to let the move complete without blocking
+    hs.timer.usleep(100000)
+
+    -- Then resize the window at the new position
+    win:setFrame(newFrame, 1)
+
     log.i('Applied layout:', layoutName)
 end
 

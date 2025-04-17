@@ -496,7 +496,7 @@ function obj:createNextLevelGrid()
         self.logger.e("No previous selection found for level " .. (currentLevel - 1))
         return
     end
-    
+
     -- Find the screen containing the selection center point
     local selectionCenter = {
         x = currentSelection.x + currentSelection.w / 2,
@@ -532,7 +532,7 @@ function obj:createNextLevelGrid()
     })
     dragonGridCanvas:behavior(hs.canvas.windowBehaviors.canJoinAllSpaces)
     dragonGridCanvas:level(hs.canvas.windowLevels.overlay)
-    
+
     -- Add semi-transparent background
     dragonGridCanvas:appendElements({
         type = "rectangle",
@@ -540,7 +540,7 @@ function obj:createNextLevelGrid()
         fillColor = self.config.colors.background,
         frame = { x = 0, y = 0, w = currentSelection.w, h = currentSelection.h }
     })
-    
+
     -- Add status indicator at the top
     local modeText = windowMode and "WINDOW MODE" or "SCREEN MODE"
     dragonGridCanvas:appendElements({
@@ -553,7 +553,7 @@ function obj:createNextLevelGrid()
         textColor = { white = 1, alpha = 0.8 },
         textAlignment = "left"
     })
-    
+
     -- Create the grid cells
     local cellWidth = currentSelection.w / gridSize
     local cellHeight = currentSelection.h / gridSize
@@ -570,7 +570,7 @@ function obj:createNextLevelGrid()
                 strokeWidth = 2,
                 frame = { x = x, y = y, w = cellWidth, h = cellHeight }
             })
-            
+
             -- Add cell number
             dragonGridCanvas:appendElements({
                 type = "text",
@@ -583,7 +583,7 @@ function obj:createNextLevelGrid()
             })
         end
     end
-    
+
     -- Add help text at the bottom
     dragonGridCanvas:appendElements({
         type = "text",
@@ -594,7 +594,7 @@ function obj:createNextLevelGrid()
         textColor = { white = 1, alpha = 0.7 },
         textAlignment = "center"
     })
-    
+
     -- Add second line of help text
     dragonGridCanvas:appendElements({
         type = "text",
@@ -605,10 +605,10 @@ function obj:createNextLevelGrid()
         textColor = { white = 1, alpha = 0.7 },
         textAlignment = "center"
     })
-    
+
     -- Show the grid
     dragonGridCanvas:show()
-    
+
     -- Set up click handler for the entire canvas
     dragonGridCanvas:mouseCallback(function(canvas, event, id, x, y)
         if event == "mouseUp" then
@@ -693,6 +693,10 @@ end
 
 -- Show settings menu for DragonGrid
 function obj:showSettingsMenu()
+    -- Check if menubar has been lost and recreate it if needed
+    if not menubar then
+        self:start()
+    end
     local gridSizeDesc = "Current grid size: " .. gridSize .. "x" .. gridSize
     local layersDesc = "Current max layers: " .. maxLayers
 
@@ -771,8 +775,10 @@ function obj:showSettingsMenu()
         { title = "Launch DragonGrid", fn = function() self:toggleGridDisplay() end }
     }
 
+    -- Use a temporary menubar for the popup menu to avoid interfering with the permanent one
     return hs.menubar.new(false):setMenu(choices):popupMenu(hs.mouse.absolutePosition())
 end
+
 function obj:init()
     -- Initialize the spoon
     self.logger.i("Initializing DragonGrid Spoon")
@@ -792,7 +798,21 @@ function obj:start()
 
     menubar = hs.menubar.new()
     if menubar then
-        menubar:setIcon(hs.image.imageFromName("NSCursorPointingHand"))
+        -- Use a more reliable system icon
+        local icon = hs.image.imageFromName("NSTouchBarGridTemplate") or
+            hs.image.imageFromName("NSGridTemplate") or
+            hs.image.imageFromName("NSActionTemplate")
+
+        -- Ensure icon size is appropriate for menubar
+        if icon then
+            local iconSize = 18
+            icon = icon:setSize({ w = iconSize, h = iconSize })
+        end
+
+        menubar:setIcon(icon)
+
+        -- Set the tooltip for clarity
+        menubar:setTooltip("DragonGrid")
         menubar:setMenu(function()
             return {
                 { title = "Show DragonGrid",         fn = function() self:toggleGridDisplay() end },
@@ -835,8 +855,12 @@ function obj:start()
                 { title = "Set Layers to 4",         fn = function()
                     maxLayers = 4; self.config.maxLayers = 4
                 end },
+                { title = "-" },
+                { title = "Settings Menu", fn = function() self:showSettingsMenu() end }
             }
         end)
+    else
+        self.logger.e("Failed to create menubar item")
     end
 
     return self
@@ -858,7 +882,7 @@ function obj:bindHotKeys(mapping)
         show = function() self:toggleGridDisplay() end,
         settings = function() self:showSettingsMenu() end
     }
-    
+
     hs.spoons.bindHotkeysToSpec(spec, mapping)
     return self
 end

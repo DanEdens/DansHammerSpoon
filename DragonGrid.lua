@@ -1,5 +1,7 @@
-local log = hs.logger.new('DragonGrid', 'debug')
-log.i('Initializing DragonGrid module')
+-- Use HyperLogger for clickable debugging logs
+local HyperLogger = require('HyperLogger')
+local log = HyperLogger.new('DragonGrid', 'debug')
+log:i('Initializing DragonGrid module')
 
 local DragonGrid = {}
 

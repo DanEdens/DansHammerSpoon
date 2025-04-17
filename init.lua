@@ -858,3 +858,47 @@ gray = { red = 246 / 255, blue = 246 / 255, green = 246 / 255, alpha = 0.3 }
 
 log:i('Hammerspoon initialization complete')
 hs.alert.show("Config loaded")
+
+-- Initialize modules
+local DragonGrid = require('DragonGrid')
+local AppManager = require('AppManager')
+local FileManager = require('FileManager')
+
+-- Console apperance
+hs.console.titleVisibility("hidden")
+hs.console.windowBackgroundColor({ 0, 0, 0, 0.9 })
+hs.console.consoleFont("Menlo")
+-- hs.console.consoleFontSize(14)
+
+-- Logging and testing
+local log = hs.logger.new('Hammerspoon', 'debug')
+local osVersion = hs.host.operatingSystemVersion()
+local osVersionString = table.concat({ osVersion.major, osVersion.minor, osVersion.patch }, ".")
+log.i('Initializing... OS X version is: ' .. osVersionString)
+
+local function reloadConfig(files)
+    local doReload = false
+    for _, file in pairs(files) do
+        if file:sub(-4) == ".lua" then
+            doReload = true
+        end
+    end
+    if doReload then
+        hs.reload()
+    end
+end
+
+-- Watch config for changes
+local configFileWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig)
+configFileWatcher:start()
+
+-- Setup app hotkeys
+local hyper = { "cmd", "alt", "ctrl", "shift" }
+hs.hotkey.bind(hyper, "C", AppManager.open_chrome)
+hs.hotkey.bind(hyper, "S", AppManager.open_slack)
+hs.hotkey.bind(hyper, "G", AppManager.open_github)
+hs.hotkey.bind(hyper, "E", AppManager.open_vscode)
+hs.hotkey.bind(hyper, "F", AppManager.open_finder)
+hs.hotkey.bind(hyper, "M", AppManager.open_mission_control)
+hs.hotkey.bind(hyper, "L", AppManager.open_launchpad)
+hs.hotkey.bind(hyper, "T", AppManager.open_terminal)

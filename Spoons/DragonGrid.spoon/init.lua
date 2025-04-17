@@ -700,7 +700,41 @@ function obj:showSettingsMenu()
     local gridSizeDesc = "Current grid size: " .. gridSize .. "x" .. gridSize
     local layersDesc = "Current max layers: " .. maxLayers
 
-    local choices = {
+    -- Use a temporary menubar for the popup menu to avoid interfering with the permanent one
+    -- return hs.menubar.new(false):setMenu(choices):popupMenu(hs.mouse.absolutePosition())
+end
+
+function obj:init()
+    -- Initialize the spoon
+    self.logger.i("Initializing DragonGrid Spoon")
+    gridSize = self.config.gridSize or 3
+    maxLayers = self.config.maxLayers or 2
+    return self
+end
+
+function obj:start()
+    -- Start the spoon
+    self.logger.i("Starting DragonGrid Spoon")
+
+    -- Create menubar item
+    if menubar then
+        menubar:delete()
+    end
+
+    menubar = hs.menubar.new()
+    if menubar then
+        -- Use a more reliable system icon
+        local icon = hs.image.imageFromName("NSTouchBarGridTemplate") or
+            hs.image.imageFromName("NSGridTemplate") or
+            hs.image.imageFromName("NSActionTemplate")
+
+        -- Ensure icon size is appropriate for menubar
+        if icon then
+            local iconSize = 18
+            icon = icon:setSize({ w = iconSize, h = iconSize })
+        end
+
+        local choices = {
         { title = "-" },
         { title = "DragonGrid Settings", disabled = true },
         { title = "-" },
@@ -774,41 +808,7 @@ function obj:showSettingsMenu()
         { title = "-" },
         { title = "Launch DragonGrid", fn = function() self:toggleGridDisplay() end }
     }
-
-    -- Use a temporary menubar for the popup menu to avoid interfering with the permanent one
-    return hs.menubar.new(false):setMenu(choices):popupMenu(hs.mouse.absolutePosition())
-end
-
-function obj:init()
-    -- Initialize the spoon
-    self.logger.i("Initializing DragonGrid Spoon")
-    gridSize = self.config.gridSize or 3
-    maxLayers = self.config.maxLayers or 2
-    return self
-end
-
-function obj:start()
-    -- Start the spoon
-    self.logger.i("Starting DragonGrid Spoon")
-
-    -- Create menubar item
-    if menubar then
-        menubar:delete()
-    end
-
-    menubar = hs.menubar.new()
-    if menubar then
-        -- Use a more reliable system icon
-        local icon = hs.image.imageFromName("NSTouchBarGridTemplate") or
-            hs.image.imageFromName("NSGridTemplate") or
-            hs.image.imageFromName("NSActionTemplate")
-
-        -- Ensure icon size is appropriate for menubar
-        if icon then
-            local iconSize = 18
-            icon = icon:setSize({ w = iconSize, h = iconSize })
-        end
-
+        
         menubar:setIcon(icon)
 
         -- Set the tooltip for clarity
@@ -856,7 +856,7 @@ function obj:start()
                     maxLayers = 4; self.config.maxLayers = 4
                 end },
                 { title = "-" },
-                { title = "Settings Menu", fn = function() self:showSettingsMenu() end }
+                { title = "Settings Menu", fn = function() hs.menubar.new(false):setMenu(choices):popupMenu(hs.mouse.absolutePosition()) end }
             }
         end)
     else

@@ -313,4 +313,11 @@ function AppManager.open_launchpad()
     AppManager.launchOrFocusWithWindowSelection("Launchpad")
 end
 
+function AppManager.open_terminal()
+    AppManager.launchOrFocusWithWindowSelection("Warp")
+end
+
+function AppManager.open_finder()
+    AppManager.launchOrFocusWithWindowSelection("Finder")
+end
 return AppManager

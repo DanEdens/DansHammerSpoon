@@ -4,6 +4,7 @@
 Fixed issues with URL event handling in the HammerGhost Spoon, particularly addressing the following warnings:
 - `urlevent: Received hs.urlevent event with no registered callback:updateProperty`
 - `Missing id parameter for selectItem`
+- `Failed to load resource: unsupported URL`
 
 ## Changes Made
 
@@ -20,7 +21,7 @@ Fixed issues with URL event handling in the HammerGhost Spoon, particularly addr
 - Created window.hammerspoon namespace required by app.js
 - Improved parameter serialization and logging for debugging
 - Fixed parameter encoding and decoding issues
-- Added iframe-based URL navigation to avoid page reloads
+- Replaced iframe approach with simulated link clicks to avoid 'unsupported URL' errors
 
 ### 3. Updated UI Event Handlers
 - Replaced all direct `updateProperty` calls with `updatePropertyHandler`

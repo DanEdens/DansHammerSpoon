@@ -43,12 +43,41 @@ function obj:generateId()
 end
 
 function obj:init()
+    -- Create a logger for better debugging
+    local HyperLogger = require('HyperLogger')
+    self.logger = HyperLogger.new('HammerGhost', 'info')
+    self.logger:setLogLevel('debug')
+    self.logger:i("Initializing HammerGhost")
     -- Check resources first
     if not self:checkResources() then
         hs.alert.show("HammerGhost: Missing required resources")
         return self
     end
 
+    -- Register URL event handler for 'hammerspoon' scheme
+    self.logger:i("Setting up URL event handlers")
+    hs.urlevent.setDefaultHandler('hammerspoon')
+
+    -- Generic URL event handler
+    hs.urlevent.httpCallback = function(scheme, host, params, fullURL)
+        self.logger:i("Received URL event: " .. fullURL)
+        self.logger:d("Params: " .. hs.inspect(params))
+
+        -- Process based on host (action)
+        if host == "selectItem" then
+            self:selectItem(params.id)
+        elseif host == "toggleItem" then
+            self:toggleItem(params.id)
+        elseif host == "editItem" then
+            self:editItem(params)
+        elseif host == "deleteItem" then
+            self:deleteItem(params.id)
+        elseif host == "openActionEditor" then
+            self:showActionEditor()
+        else
+            self.logger:w("Unhandled URL event action: " .. host)
+        end
+    end
     -- Initialize action manager
     actionManager:init()
     -- Load saved macros if they exist
@@ -87,6 +116,10 @@ function obj:start()
     end
     if self.window then
         self.window:show()
+        -- Inject our JavaScript bridge after a small delay to ensure the page is loaded
+        hs.timer.doAfter(0.5, function()
+            self:injectBridge()
+        end)
     end
     return self
 end
@@ -165,99 +198,24 @@ function obj:createMainWindow()
     webview:allowTextEntry(true)
     webview:darkMode(true)
 
-    -- Set up message handlers
+    -- Set up navigation callback for URL scheme based communication
     webview:navigationCallback(function(action, webview)
-        local scheme, host, params = action:match("^([^:]+)://([^?]+)%??(.*)$")
-        if scheme == "hammerspoon" then
-            if host == "selectItem" then
-                self:selectItem(hs.http.urlDecode(params))
-            elseif host == "toggleItem" then
-                self:toggleItem(hs.http.urlDecode(params))
-            elseif host == "editItem" then
-                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
-                if success then
-                    self:editItem(data)
-                else
-                    hs.logger.new("HammerGhost"):e("Failed to decode edit data: " .. params)
-                end
-            elseif host == "deleteItem" then
-                self:deleteItem(hs.http.urlDecode(params))
-            elseif host == "updateProperty" then
-                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
-                if success then
-                    self:updateProperty(data)
-                else
-                    hs.logger.new("HammerGhost"):e("Failed to decode property update data: " .. params)
-                end
-            elseif host == "moveItem" then
-                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
-                if success then
-                    self:moveItem(data)
-                else
-                    hs.logger.new("HammerGhost"):e("Failed to decode move data: " .. params)
-                end
-            elseif host == "openActionEditor" then
-                self:showActionEditor()
+        self.logger:d("WebView navigation event: " .. action)
 
-                -- Action Editor Callbacks
-            elseif host == "actionEditorReady" then
-                self:refreshActionEditor()
-            elseif host == "createAction" then
-                local actionId = actionManager:createAction()
-                self.currentActionId = actionId
-                self:refreshActionEditor()
-            elseif host == "updateActionProperty" then
-                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
-                if success then
-                    actionManager:updateAction(data.id, { [data.property] = data.value })
-                    self:refreshActionEditor()
-                end
-            elseif host == "updateActionParameter" then
-                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
-                if success then
-                    actionManager:updateParameter(data.id, data.parameter, data.value)
-                    self:refreshActionEditor()
-                end
-            elseif host == "addTrigger" then
-                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
-                if success then
-                    actionManager:addTrigger(data.actionId, data.type)
-                    self:refreshActionEditor()
-                end
-            elseif host == "toggleTrigger" then
-                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
-                if success then
-                    actionManager:toggleTrigger(data.actionId, data.triggerId)
-                    self:refreshActionEditor()
-                end
-            elseif host == "deleteTrigger" then
-                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
-                if success then
-                    actionManager:deleteTrigger(data.actionId, data.triggerId)
-                    self:refreshActionEditor()
-                end
-            elseif host == "saveAction" then
-                actionManager:save()
-                hs.alert.show("Action saved")
-            elseif host == "deleteAction" then
-                actionManager:deleteAction(hs.http.urlDecode(params))
-                self.currentActionId = nil
-                self:refreshActionEditor()
-                actionManager:save()
-            elseif host == "testAction" then
-                local actionId = hs.http.urlDecode(params)
-                local success, result = actionManager:executeAction(actionId)
-                if success then
-                    hs.alert.show("Action executed successfully")
-                else
-                    hs.alert.show("Action failed: " .. (result or "Unknown error"))
-                end
-            elseif host == "closeActionEditor" then
-                actionManager:save()
-                self:closeActionEditor()
+        -- If this is an actual URL (not a WebView event), try to extract hammerspoon:// URLs
+        if action:match("^[a-z]+://") then
+            if action:match("^hammerspoon://") then
+                self.logger:i("Found hammerspoon URL: " .. action)
+                -- Let it through so the OS can handle the URL scheme
+                return false
+            elseif action:match("^http[s]?://") then
+                -- Also let through normal web URLs
+                return false
             end
         end
-        return true
+
+        -- For WebView events, just return false to allow navigation
+        return false
     end)
 
     -- Load HTML content
@@ -267,7 +225,7 @@ function obj:createMainWindow()
         htmlFile:close()
         webview:html(content)
     else
-        hs.logger.new("HammerGhost"):e("Failed to load index.html")
+        self.logger:e("Failed to load index.html")
         webview:html("<html><body style='background: #1e1e1e; color: #d4d4d4;'><h1>Error loading UI</h1></body></html>")
     end
 
@@ -460,12 +418,18 @@ function obj:editItem(data)
 end
 
 function obj:deleteItem(index)
+    self.logger:i("Deleting item with ID: " .. tostring(index))
+
+    -- Ensure index is treated as string for consistent comparison
+    index = tostring(index)
     local function removeFromParent(items)
         for i, item in ipairs(items) do
-            if item.id == index then
+            -- Ensure item.id is treated as string for comparison
+            self.logger:d("Comparing item with ID: " .. tostring(item.id) .. " to target ID: " .. index)
+            if tostring(item.id) == index then
                 local name = item.name -- Store name before removal
                 table.remove(items, i)
-                hs.logger.new("HammerGhost"):d("Deleted item: " .. name)
+                self.logger:i("Deleted item: " .. name .. " at index " .. i)
                 return true, name
             end
             if item.children then
@@ -479,14 +443,15 @@ function obj:deleteItem(index)
     local success, name = removeFromParent(self.macroTree)
     if success then
         -- If we deleted the currently selected item, clear the selection
-        if self.currentSelection and self.currentSelection.id == index then
+        if self.currentSelection and tostring(self.currentSelection.id) == index then
             self.currentSelection = nil
         end
+        self.logger:i("Successfully deleted item: " .. (name or "unknown"))
         self:refreshWindow()
         self:saveConfig()
         hs.alert.show("Deleted: " .. (name or "item"))
     else
-        hs.logger.new("HammerGhost"):e("Could not find item with id: " .. index)
+        self.logger:e("Could not find item with id: " .. index)
     end
 end
 
@@ -512,9 +477,13 @@ end
 function obj:refreshWindow()
     if not self.window then return end
 
-    -- Generate HTML for the macro tree
-    local html = self:generateTreeHTML()
-    self.window:html(html)
+    -- If we have items in the tree, generate the tree view, otherwise let the welcome screen show
+    if #self.macroTree > 0 then
+        -- Generate HTML for the macro tree
+        local html = self:generateTreeHTML()
+        self.window:html(html)
+    end
+    -- If there are no items, keep the welcome screen visible (which is loaded from index.html)
 end
 
 function obj:generateTreeHTML()
@@ -746,46 +715,151 @@ function obj:generateTreeHTML()
                                y > rect.height * 2/3 ? 'after' : 'inside';
                 
                 // Send move command to Hammerspoon
-                window.location.href = 'hammerspoon://moveItem?' + encodeURIComponent(JSON.stringify({
+                sendCommand('moveItem', {
                     sourceId: sourceId,
                     targetId: target.dataset.id,
                     position: position
-                }));
+                });
                 
                 endDrag(event);
             }
             
             function selectItem(id, event) {
                 if (event) event.stopPropagation();
-                window.location.href = 'hammerspoon://selectItem?' + encodeURIComponent(id);
+                sendCommand('selectItem', { id: id });
             }
             
             function toggleItem(id, event) {
                 if (event) event.stopPropagation();
-                window.location.href = 'hammerspoon://toggleItem?' + encodeURIComponent(id);
+                sendCommand('toggleItem', { id: id });
             }
             
             function editItem(id, name, event) {
                 if (event) event.stopPropagation();
                 const newName = prompt('Enter new name:', name);
                 if (newName) {
-                    window.location.href = 'hammerspoon://editItem?' + encodeURIComponent(JSON.stringify({id: id, name: newName}));
-                }
-            }
-            
-            function deleteItem(id, name, event) {
-                if (event) event.stopPropagation();
-                if (confirm('Are you sure you want to delete "' + name + '"?')) {
-                    window.location.href = 'hammerspoon://deleteItem?' + encodeURIComponent(id);
+                    sendCommand('editItem', { id: id, name: newName });
                 }
             }
             
             function updateProperty(id, property, value) {
-                window.location.href = 'hammerspoon://updateProperty?' + encodeURIComponent(JSON.stringify({
+                sendCommand('updateProperty', {
                     id: id,
                     property: property,
                     value: value
+                });
+            }
+            
+            function deleteItem(id, name, event) {
+                if (event) event.stopPropagation();
+                // Instead of using confirm dialog, create a better delete confirmation UI
+                const confirmDeleteModal = document.createElement('div');
+                confirmDeleteModal.className = 'delete-confirm-modal';
+                confirmDeleteModal.innerHTML = `
+                    <div class="delete-confirm-content">
+                        <h3>Confirm Delete</h3>
+                        <p>Are you sure you want to delete "${name}"?</p>
+                        <div class="delete-confirm-buttons">
+                            <button class="btn-cancel">Cancel</button>
+                            <button class="btn-delete">Delete</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(confirmDeleteModal);
+                
+                // Style the modal
+                const style = document.createElement('style');
+                style.textContent = `
+                    .delete-confirm-modal {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.5);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        z-index: 1000;
+                    }
+                    .delete-confirm-content {
+                        background-color: var(--bg-color);
+                        border-radius: 8px;
+                        padding: 20px;
+                        width: 300px;
+                        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+                    }
+                    .delete-confirm-content h3 {
+                        margin-top: 0;
+                    }
+                    .delete-confirm-buttons {
+                        display: flex;
+                        justify-content: flex-end;
+                        gap: 10px;
+                        margin-top: 20px;
+                    }
+                    .btn-cancel {
+                        background-color: var(--active-color);
+                        color: var(--text-color);
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    }
+                    .btn-delete {
+                        background-color: #772b2b;
+                        color: white;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Add event listeners
+                const cancelBtn = confirmDeleteModal.querySelector('.btn-cancel');
+                const deleteBtn = confirmDeleteModal.querySelector('.btn-delete');
+                
+                cancelBtn.addEventListener('click', () => {
+                    document.body.removeChild(confirmDeleteModal);
+                    document.head.removeChild(style);
+                });
+                
+                deleteBtn.addEventListener('click', () => {
+                    // First remove the modal
+                    document.body.removeChild(confirmDeleteModal);
+                    document.head.removeChild(style);
+                    
+                    // Then trigger the delete action with a slight delay to ensure UI updates first
+                    setTimeout(() => {
+                        sendCommand('deleteItem', { id: id });
+                    }, 50);
+                });
+            }
+            
+            // Helper function to send commands to Hammerspoon
+            function sendCommand(action, data) {
+                // Create a global Hammerspoon communication object if it doesn't exist
+                if (!window.HammerspoonActions) {
+                    window.HammerspoonActions = {
+                        pendingCommands: []
+                    };
+                }
+                
+                // Add the command to the queue
+                window.HammerspoonActions.pendingCommands.push({
+                    action: action,
+                    ...data
+                });
+                
+                // Use URL scheme to notify Hammerspoon
+                const params = encodeURIComponent(JSON.stringify({
+                    action: action,
+                    ...data
                 }));
+                window.location.href = `hammerspoon://${action}?${params}`;
             }
         </script>
     </head>
@@ -903,6 +977,7 @@ end
 function obj:saveConfig()
     -- Convert macro tree to XML
     local xml = xmlparser.toXML(self.macroTree)
+    hs.logger.new("HammerGhost"):i("Saving config, tree has " .. #self.macroTree .. " items")
 
     -- Save to file
     local f = io.open(self.configPath, "w")
@@ -910,8 +985,10 @@ function obj:saveConfig()
         f:write(xml)
         f:close()
         hs.alert.show("Configuration saved")
+        hs.logger.new("HammerGhost"):i("Config saved successfully to " .. self.configPath)
     else
         hs.alert.show("Error saving configuration")
+        hs.logger.new("HammerGhost"):e("Failed to open config file for writing: " .. self.configPath)
     end
 end
 
@@ -1091,6 +1168,54 @@ hs.shutdownCallback = function()
     end
     -- Also save actions
     actionManager:save()
+end
+function obj:getTreeDataJSON()
+    self.logger:d("Getting tree data as JSON")
+    -- Convert the macro tree to JSON
+    local success, jsonData = pcall(hs.json.encode, self.macroTree)
+    if success then
+        return jsonData
+    else
+        self.logger:e("Failed to encode tree data to JSON: " .. jsonData)
+        return "[]"
+    end
+end
+
+function obj:injectBridge()
+    if not self.window then
+        self.logger:e("Cannot inject bridge - window not initialized")
+        return
+    end
+
+    self.logger:i("Injecting JavaScript bridge")
+
+    -- Prepare the bridge script
+    local bridge = [[
+        // Create the bridge object if it doesn't exist
+        if (!window.hammerspoon) {
+            window.hammerspoon = {};
+        }
+
+        // Add tree data method
+        window.hammerspoon.getTreeData = function() {
+            return `TREE_DATA_JSON`;
+        };
+
+        // Log that we've set up the bridge
+        console.log("Hammerspoon bridge injected successfully");
+    ]]
+
+    -- Insert the actual tree data
+    bridge = bridge:gsub("TREE_DATA_JSON", self:getTreeDataJSON())
+
+    -- Inject the bridge script
+    self.window:evaluateJavaScript(bridge, function(result, error)
+        if error then
+            self.logger:e("Failed to inject JavaScript bridge: " .. hs.inspect(error))
+        else
+            self.logger:i("JavaScript bridge injected successfully")
+        end
+    end)
 end
 -- Return the object
 return obj

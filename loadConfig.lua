@@ -10,7 +10,7 @@ if not hspoon_list then
         -- "HSKeybindings",
         -- "SpoonInstall",
         "ClipShow",
-        "ClipboardTool",
+        -- "ClipboardTool",
         -- "CountDown",
         -- "HCalendar",
         -- "HSaria2",

@@ -48,6 +48,21 @@ document.addEventListener('DOMContentLoaded', function ()
             modalContainer.classList.add('hidden');
         }
 
+        // Set up close buttons for modals
+        document.querySelectorAll('[data-close-modal]').forEach(button =>
+        {
+            button.addEventListener('click', () =>
+            {
+                // Find the closest modal parent
+                const modal = button.closest('.modal');
+                if (modal)
+                {
+                    modal.classList.add('hidden');
+                    document.getElementById('modalContainer').classList.add('hidden');
+                }
+            });
+        });
+
         updateTheme();
         showView(appState.currentView);
         updateSettingsUI();
@@ -642,4 +657,4 @@ document.addEventListener('DOMContentLoaded', function ()
             console.log('App initialized');
         }
     };
-}); 
+});

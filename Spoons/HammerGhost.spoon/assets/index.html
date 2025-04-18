@@ -158,10 +158,67 @@
     <script src="./tree_view.js"></script>
     <script src="./app.js"></script>
     <script>
-        // Initialize the application when the DOM is loaded
+        // Additional initialization - our custom URL bridge
         document.addEventListener('DOMContentLoaded', () => {
-            App.init();
+            console.log("Setting up URL bridge");
+
+            // Define the Hammerspoon bridge if it doesn't exist
+            if (!window.hammerspoon) {
+                window.hammerspoon = {};
+            }
+
+            // Create bridge methods
+            window.hammerspoon.sendCommand = function(action, params) {
+                sendCommand(action, params);
+            };
         });
+
+        // Helper function to send commands to Hammerspoon
+        function sendCommand(action, data) {
+            try {
+                // Create a custom URL scheme that Hammerspoon will understand
+                let url = `hammerspoon://${action}`;
+                
+                // Convert data object to URL query string
+                if (data && Object.keys(data).length > 0) {
+                    const queryParams = [];
+                    
+                    for (const key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            let value = data[key];
+                            if (typeof value === 'object') {
+                                value = JSON.stringify(value);
+                            }
+                            queryParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+                        }
+                    }
+                    
+                    if (queryParams.length > 0) {
+                        url += `?${queryParams.join('&')}`;
+                    }
+                }
+                
+                console.log("DEBUG: Sending command via URL:", url);
+                
+                // Option 1: Use window.location with a timeout to prevent navigation
+                // This is more reliable than iframe for OS-level URL scheme handling
+                const currentLocation = window.location.href;
+                setTimeout(function() {
+                    window.location.href = url;
+                    // Prevent actual navigation by quickly changing back
+                    setTimeout(function() {
+                        if (window.location.href !== currentLocation) {
+                            window.history.back();
+                        }
+                    }, 5);
+                }, 0);
+            } catch (error) {
+                console.error("Error sending command:", error);
+            }
+        }
+
+        // Expose the sendCommand function globally
+        window.sendCommand = sendCommand;
     </script>
 </body>
-</html> 
+</html>

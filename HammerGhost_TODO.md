@@ -4,6 +4,12 @@
 - ✅ Fixed path construction bug in HammerGhost.spoon (de5aeb24-d922-4054-ba42-cd81fae902c2)
   - Removed redundant 'scripts/' prefix from `hs.spoons.resourcePath()` calls
   - Ensured proper loading of action_system.lua
+- ✅ Implemented core item interaction functions (7046eac0-aec7-4b9b-90aa-cce845271710)
+  - Added proper selection handling with UI updates
+  - Implemented item expansion/collapse toggles
+  - Fixed item editing with persistence
+  - Implemented deletion with confirmation and selection clearing
+  - Added selection tracking
 
 ## 🔄 In Progress
 - 🔄 Implement Advanced Tree Visualization (8681faae-0c4e-44b1-b538-8d0b09fab0e5)
@@ -14,11 +20,11 @@
 
 ## 📋 Core Features Pending
 1. Item Interaction and Properties
-   - [ ] Implement item selection and property panel update (init.lua:454)
-   - [ ] Implement item expansion/collapse (init.lua:468)
-   - [ ] Implement item editing (init.lua:482)
-   - [ ] Implement item deletion (init.lua:496)
-   - [ ] Implement selection tracking (init.lua:552)
+   - [x] Implement item selection and property panel update (init.lua:454)
+   - [x] Implement item expansion/collapse (init.lua:468)
+   - [x] Implement item editing (init.lua:482)
+   - [x] Implement item deletion (init.lua:496)
+   - [x] Implement selection tracking (init.lua:552)
 
 2. Trigger System
    - [ ] Enhance Trigger System (cee954fa-0e88-47df-bff3-13951a0176a0)

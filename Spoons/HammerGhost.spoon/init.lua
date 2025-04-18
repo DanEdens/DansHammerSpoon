@@ -31,6 +31,7 @@ obj.lastId = 0
 obj.spoonPath = hs.spoons.scriptPath()
 obj.actionEditor = nil
 obj.currentActionId = nil
+obj.server = nil -- Add server property
 
 -- Load additional modules
 local xmlparser = dofile(hs.spoons.resourcePath("scripts/xmlparser.lua"))
@@ -48,36 +49,154 @@ function obj:init()
     self.logger = HyperLogger.new('HammerGhost', 'info')
     self.logger:setLogLevel('debug')
     self.logger:i("Initializing HammerGhost")
+
     -- Check resources first
     if not self:checkResources() then
         hs.alert.show("HammerGhost: Missing required resources")
         return self
     end
 
+    -- Initialize the server for URL handling
+    self.logger:i("Initializing HTTP server for URL event handling")
+    self.server = hs.urlevent.watcher.new()
     -- Register URL event handler for 'hammerspoon' scheme
     self.logger:i("Setting up URL event handlers")
+    -- Make sure Hammerspoon handles the hammerspoon:// URL scheme
     hs.urlevent.setDefaultHandler('hammerspoon')
 
-    -- Generic URL event handler
-    hs.urlevent.httpCallback = function(scheme, host, params, fullURL)
-        self.logger:i("Received URL event: " .. fullURL)
-        self.logger:d("Params: " .. hs.inspect(params))
+    -- Initialize the callback table
+    self.callbacks = {
+        onSelect = nil,
+        onToggle = nil,
+        onEdit = nil,
+        onDelete = nil,
+        onMove = nil,
+        onAdd = nil
+    }
 
-        -- Process based on host (action)
-        if host == "selectItem" then
-            self:selectItem(params.id)
-        elseif host == "toggleItem" then
-            self:toggleItem(params.id)
-        elseif host == "editItem" then
-            self:editItem(params)
-        elseif host == "deleteItem" then
-            self:deleteItem(params.id)
-        elseif host == "openActionEditor" then
-            self:showActionEditor()
-        else
-            self.logger:w("Unhandled URL event action: " .. host)
+    -- URL event handlers for JavaScript bridge
+    local handlers = {
+        selectItem = function(params)
+            local id = params.id
+            if id and self.callbacks.onSelect then
+                self.callbacks.onSelect(id)
+            end
+            return true
+        end,
+
+        toggleItem = function(params)
+            local id = params.id
+            if id and self.callbacks.onToggle then
+                self.callbacks.onToggle(id)
+            end
+            return true
+        end,
+
+        editItem = function(params)
+            local id = params.id
+            local label = params.label
+            if id and label and self.callbacks.onEdit then
+                self.callbacks.onEdit(id, label)
+            end
+            return true
+        end,
+
+        deleteItem = function(params)
+            local id = params.id
+            if id and self.callbacks.onDelete then
+                self.callbacks.onDelete(id)
+            end
+            return true
+        end,
+
+        moveItem = function(params)
+            local id = params.id
+            local targetId = params.targetId
+            local position = params.position
+            if id and position and self.callbacks.onMove then
+                self.callbacks.onMove(id, targetId, position)
+            end
+            return true
+        end,
+
+        addItem = function(params)
+            local label = params.label
+            if label and self.callbacks.onAdd then
+                self.callbacks.onAdd(label)
+            end
+            return true
         end
-    end
+    }
+
+    -- Register URL event handlers
+    self.server:setCallback(function(scheme, host, params, fragment)
+        local handler = handlers[host]
+        if handler then
+            return handler(params)
+        end
+        return false
+    end)
+
+    -- Handle selectItem events
+    hs.urlevent.bind("selectItem", function(eventName, params)
+        self.logger:d("Received selectItem event with params: " .. hs.inspect(params))
+        if params and params.id then
+            self.logger:i("Selecting item with ID: " .. params.id)
+            self:selectItem(params.id)
+        else
+            self.logger:w("Missing id parameter for selectItem")
+        end
+    end)
+
+    -- Handle toggleItem events
+    hs.urlevent.bind("toggleItem", function(eventName, params)
+        self.logger:d("Received toggleItem event with params: " .. hs.inspect(params))
+        if params and params.id then
+            self:toggleItem(params.id)
+        else
+            self.logger:w("Missing id parameter for toggleItem")
+        end
+    end)
+
+    -- Handle editItem events
+    hs.urlevent.bind("editItem", function(eventName, params)
+        self.logger:d("Received editItem event with params: " .. hs.inspect(params))
+        if params and params.id and params.name then
+            self:editItem({ id = params.id, name = params.name })
+        else
+            self.logger:w("Missing parameters for editItem")
+        end
+    end)
+
+    -- Handle deleteItem events
+    hs.urlevent.bind("deleteItem", function(eventName, params)
+        self.logger:d("Received deleteItem event with params: " .. hs.inspect(params))
+        if params and params.id then
+            self:deleteItem(params.id)
+        else
+            self.logger:w("Missing id parameter for deleteItem")
+        end
+    end)
+
+    -- Handle moveItem events
+    hs.urlevent.bind("moveItem", function(eventName, params)
+        self.logger:d("Received moveItem event with params: " .. hs.inspect(params))
+        if params and params.sourceId and params.targetId and params.position then
+            self:moveItem({
+                sourceId = params.sourceId,
+                targetId = params.targetId,
+                position = params.position
+            })
+        else
+            self.logger:w("Missing parameters for moveItem")
+        end
+    end)
+
+    -- Handle openActionEditor events
+    hs.urlevent.bind("openActionEditor", function(eventName, params)
+        self.logger:d("Received openActionEditor event")
+        self:showActionEditor()
+    end)
     -- Initialize action manager
     actionManager:init()
     -- Load saved macros if they exist
@@ -206,6 +325,23 @@ function obj:createMainWindow()
         if action:match("^[a-z]+://") then
             if action:match("^hammerspoon://") then
                 self.logger:i("Found hammerspoon URL: " .. action)
+                -- Extract the action and parameters
+                local host, params = action:match("hammerspoon://([^?]*)%??(.*)$")
+                self.logger:d("URL parsed - host: " .. tostring(host) .. ", params: " .. tostring(params))
+
+                -- Debug output for parameters
+                if params and params ~= "" then
+                    local paramPairs = {}
+                    for pair in params:gmatch("([^&]+)") do
+                        local k, v = pair:match("([^=]+)=(.+)")
+                        if k and v then
+                            k = k:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
+                            v = v:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
+                            paramPairs[k] = v
+                            self.logger:d("Param: " .. k .. " = " .. v)
+                        end
+                    end
+                end
                 -- Let it through so the OS can handle the URL scheme
                 return false
             elseif action:match("^http[s]?://") then
@@ -1182,40 +1318,520 @@ function obj:getTreeDataJSON()
 end
 
 function obj:injectBridge()
-    if not self.window then
-        self.logger:e("Cannot inject bridge - window not initialized")
-        return
-    end
+    -- JavaScript bridge implementation for WebView
+    local bridgeJS = [[
+        console.log("Setting up HammerGhost JavaScript bridge...");
+        window.sendCommand = function(action, params) {
+            // Convert parameters to query string
+            let queryParams = '';
+            if (params) {
+                queryParams = Object.keys(params)
+                    .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
+                    .join('&');
+            }
 
-    self.logger:i("Injecting JavaScript bridge")
+            // Create the hammerspoon:// URL with action as the host
+            const url = 'hammerspoon://' + action + (queryParams ? '?' + queryParams : '');
+            console.log("Sending command:", url);
 
-    -- Prepare the bridge script
-    local bridge = [[
-        // Create the bridge object if it doesn't exist
-        if (!window.hammerspoon) {
-            window.hammerspoon = {};
-        }
-
-        // Add tree data method
-        window.hammerspoon.getTreeData = function() {
-            return `TREE_DATA_JSON`;
+            // Navigate to the URL to trigger Hammerspoon handler
+            window.location.href = url;
+            return false;
         };
 
-        // Log that we've set up the bridge
-        console.log("Hammerspoon bridge injected successfully");
+        // Item selection handler
+        window.selectItemHandler = function(id) {
+            console.log("Selecting item:", id);
+            return window.sendCommand('selectItem', { id: id });
+        };
+
+        // Item toggle handler
+        window.toggleItemHandler = function(id) {
+            console.log("Toggling item:", id);
+            return window.sendCommand('toggleItem', { id: id });
+        };
+
+        // Edit item handler
+        window.editItemHandler = function(id, name) {
+            console.log("Editing item:", id, name);
+            const newName = prompt("Edit item name:", name);
+            if (newName !== null && newName !== name) {
+                return window.sendCommand('editItem', { id: id, name: newName });
+            }
+            return false;
+        };
+
+        // Delete item handler
+        window.deleteItemHandler = function(id, name) {
+            console.log("Deleting item:", id, name);
+            const confirmed = confirm("Are you sure you want to delete '" + name + "'?");
+            if (confirmed) {
+                return window.sendCommand('deleteItem', { id: id });
+            }
+            return false;
+        };
+
+        // Drag and drop support
+        window.startDrag = function(event, id) {
+            event.dataTransfer.setData("text/plain", id);
+            event.dataTransfer.effectAllowed = "move";
+            console.log("Started dragging item:", id);
+        };
+
+        window.endDrag = function(event) {
+            event.preventDefault();
+            console.log("Drag ended");
+        };
+
+        window.dragOver = function(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+        };
+
+        window.drop = function(event, targetId, position) {
+            event.preventDefault();
+            const sourceId = event.dataTransfer.getData("text/plain");
+            console.log("Drop - Source:", sourceId, "Target:", targetId, "Position:", position);
+
+            if (sourceId && targetId) {
+                return window.sendCommand('moveItem', {
+                    sourceId: sourceId,
+                    targetId: targetId,
+                    position: position
+                });
+            }
+            return false;
+        };
+
+        console.log("HammerGhost JavaScript bridge setup complete!");
     ]]
 
-    -- Insert the actual tree data
-    bridge = bridge:gsub("TREE_DATA_JSON", self:getTreeDataJSON())
-
-    -- Inject the bridge script
-    self.window:evaluateJavaScript(bridge, function(result, error)
+    -- Inject the bridge JavaScript into the WebView
+    self.window:evaluateJavaScript(bridgeJS, function(result, error)
         if error then
             self.logger:e("Failed to inject JavaScript bridge: " .. hs.inspect(error))
         else
             self.logger:i("JavaScript bridge injected successfully")
         end
     end)
+    return self
 end
+
+function obj:getHTML()
+    local template = [[
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HammerGhost</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f5f5f7;
+            color: #333;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: #000;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+        li:hover {
+            background-color: #f0f0f5;
+        }
+        li.selected {
+            background-color: #e6f7ff;
+            border-left: 4px solid #1890ff;
+        }
+        li.dragging {
+            opacity: 0.5;
+        }
+        .item-label {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .item-check {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .item-actions {
+            display: none;
+            margin-left: 10px;
+        }
+        li:hover .item-actions {
+            display: flex;
+        }
+        .item-action {
+            padding: 5px;
+            margin-left: 5px;
+            cursor: pointer;
+            color: #666;
+            border-radius: 4px;
+        }
+        .item-action:hover {
+            background-color: rgba(0,0,0,0.05);
+            color: #000;
+        }
+        .drop-indicator {
+            background-color: #1890ff;
+            height: 2px;
+            position: absolute;
+            left: 0;
+            right: 0;
+            display: none;
+        }
+        .drop-indicator.top {
+            top: 0;
+        }
+        .drop-indicator.bottom {
+            bottom: 0;
+        }
+        .drop-indicator.visible {
+            display: block;
+        }
+        .add-item {
+            margin-top: 16px;
+            display: flex;
+        }
+        .add-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px 0 0 8px;
+            font-size: 14px;
+        }
+        .add-button {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .add-button:hover {
+            background-color: #0066cc;
+        }
+    </style>
+</head>
+<body>
+    <h1>HammerGhost</h1>
+    <div id="app">
+        <ul id="item-list">
+            <!-- Item template -->
+            <template id="item-template">
+                <li class="item"
+                    data-id=""
+                    onclick="selectItemHandler(this.dataset.id)"
+                    draggable="true"
+                    ondragstart="startDrag(event, this.dataset.id)"
+                    ondragend="endDrag(event)"
+                    ondragover="dragOver(event)"
+                    ondrop="drop(event, this.dataset.id, 'middle')">
+                    <input type="checkbox" class="item-check" onclick="event.stopPropagation(); toggleItemHandler(this.parentNode.dataset.id)">
+                    <span class="item-label"></span>
+                    <div class="item-actions">
+                        <span class="item-action edit-action"
+                              onclick="event.stopPropagation(); editItemHandler(this.parentNode.parentNode.dataset.id, this.parentNode.parentNode.querySelector('.item-label').textContent)">✏️</span>
+                        <span class="item-action delete-action"
+                              onclick="event.stopPropagation(); deleteItemHandler(this.parentNode.parentNode.dataset.id, this.parentNode.parentNode.querySelector('.item-label').textContent)">🗑️</span>
+                    </div>
+                    <div class="drop-indicator top"></div>
+                    <div class="drop-indicator bottom"></div>
+                </li>
+            </template>
+        </ul>
+
+        <div class="add-item">
+            <input type="text" id="new-item-input" class="add-input" placeholder="Add new item...">
+            <button id="add-item-button" class="add-button">Add</button>
+        </div>
+    </div>
+
+    <script>
+        // Handler functions that use the JavaScript bridge
+        function selectItemHandler(itemId) {
+            console.log('Item selected:', itemId);
+            window.bridge.sendCommand('selectItem', { id: itemId });
+        }
+
+        function toggleItemHandler(itemId) {
+            console.log('Toggle item:', itemId);
+            window.bridge.sendCommand('toggleItem', { id: itemId });
+        }
+
+        function editItemHandler(itemId, label) {
+            console.log('Edit item:', itemId, label);
+            window.bridge.sendCommand('editItem', { id: itemId, label: label });
+        }
+
+        function deleteItemHandler(itemId, label) {
+            console.log('Delete item:', itemId, label);
+            window.bridge.sendCommand('deleteItem', { id: itemId, label: label });
+        }
+
+        function startDrag(event, itemId) {
+            const item = event.target.closest('li');
+            item.classList.add('dragging');
+            event.dataTransfer.setData('text/plain', itemId);
+            event.dataTransfer.effectAllowed = 'move';
+        }
+
+        function endDrag(event) {
+            document.querySelectorAll('.dragging').forEach(el => {
+                el.classList.remove('dragging');
+            });
+            document.querySelectorAll('.drop-indicator').forEach(el => {
+                el.classList.remove('visible');
+            });
+        }
+
+        function dragOver(event) {
+            event.preventDefault();
+            const item = event.target.closest('li');
+            if (!item) return;
+
+            event.dataTransfer.dropEffect = 'move';
+
+            // Get mouse position relative to the item
+            const rect = item.getBoundingClientRect();
+            const y = event.clientY - rect.top;
+
+            // Hide all indicators
+            document.querySelectorAll('.drop-indicator').forEach(el => {
+                el.classList.remove('visible');
+            });
+
+            if (y < rect.height / 2) {
+                item.querySelector('.drop-indicator.top').classList.add('visible');
+            } else {
+                item.querySelector('.drop-indicator.bottom').classList.add('visible');
+            }
+        }
+
+        function drop(event, targetId, position) {
+            event.preventDefault();
+            const draggedId = event.dataTransfer.getData('text/plain');
+            if (draggedId === targetId) return; // Can't drop onto self
+
+            console.log('Drop:', draggedId, 'onto', targetId, 'at', position);
+
+            // Hide indicators
+            document.querySelectorAll('.drop-indicator').forEach(el => {
+                el.classList.remove('visible');
+            });
+
+            // Determine drop position
+            let dropPosition = position;
+            if (position === 'middle') {
+                const rect = event.target.closest('li').getBoundingClientRect();
+                const y = event.clientY - rect.top;
+                dropPosition = y < rect.height / 2 ? 'before' : 'after';
+            }
+
+            // Use bridge to move item
+            window.bridge.sendCommand('moveItem', {
+                id: draggedId,
+                targetId: targetId,
+                position: dropPosition
+            });
+        }
+
+        // We'll use the data from the Hammerspoon bridge
+        document.addEventListener('DOMContentLoaded', function() {
+            // Render items using data from bridge
+            if (window.bridge) {
+                renderItemList();
+            } else {
+                console.error('Bridge not available');
+                // Show sample data for testing
+                renderSampleData();
+            }
+
+            // Set up event listeners
+            document.getElementById('add-item-button').addEventListener('click', addNewItem);
+            document.getElementById('new-item-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addNewItem();
+                }
+            });
+
+            // Set up drop zones
+            setupDropZones();
+        });
+
+        function renderItemList() {
+            const itemList = document.getElementById('item-list');
+            itemList.innerHTML = ''; // Clear existing items
+
+            try {
+                // Get data from bridge
+                const items = JSON.parse(window.bridge.getItems());
+                renderItems(items);
+            } catch (err) {
+                console.error('Error getting items from bridge:', err);
+                renderSampleData();
+            }
+        }
+
+        function renderSampleData() {
+            const items = [
+                { id: '1', label: 'Sample Item 1', checked: false },
+                { id: '2', label: 'Sample Item 2', checked: true },
+                { id: '3', label: 'Sample Item 3', checked: false }
+            ];
+            renderItems(items);
+        }
+
+        function renderItems(items) {
+            const itemList = document.getElementById('item-list');
+
+            // Render each item
+            items.forEach(item => {
+                const template = document.getElementById('item-template');
+                const clone = document.importNode(template.content, true);
+
+                const li = clone.querySelector('li');
+                li.dataset.id = item.id;
+
+                const checkbox = clone.querySelector('.item-check');
+                checkbox.checked = item.checked;
+
+                const label = clone.querySelector('.item-label');
+                label.textContent = item.label;
+
+                itemList.appendChild(clone);
+            });
+        }
+
+        function addNewItem() {
+            const input = document.getElementById('new-item-input');
+            const value = input.value.trim();
+
+            if (value) {
+                // Send to bridge
+                if (window.bridge) {
+                    window.bridge.sendCommand('addItem', { label: value });
+                    input.value = '';
+                    renderItemList(); // Refresh the list
+                } else {
+                    console.log('Adding new item:', value);
+                    input.value = '';
+
+                    // For demo purposes, just add to the UI
+                    const template = document.getElementById('item-template');
+                    const clone = document.importNode(template.content, true);
+
+                    const li = clone.querySelector('li');
+                    li.dataset.id = 'new-' + Date.now();
+
+                    const label = clone.querySelector('.item-label');
+                    label.textContent = value;
+
+                    document.getElementById('item-list').appendChild(clone);
+                }
+            }
+        }
+
+        function setupDropZones() {
+            const list = document.getElementById('item-list');
+
+            // Add drop zone at the beginning of the list
+            const firstDropZone = document.createElement('div');
+            firstDropZone.className = 'drop-zone top-zone';
+            firstDropZone.style.height = '10px';
+            firstDropZone.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+            firstDropZone.ondrop = (e) => { drop(e, null, 'top'); };
+
+            list.insertBefore(firstDropZone, list.firstChild);
+        }
+    </script>
+</body>
+</html>
+]]
+    return template
+end
+
+-- Callback setters
+
+-- Set callback for item selection
+function obj:setOnSelectCallback(callback)
+    self.callbacks.onSelect = callback
+    return self
+end
+
+-- Set callback for item toggling
+function obj:setOnToggleCallback(callback)
+    self.callbacks.onToggle = callback
+    return self
+end
+
+-- Set callback for item editing
+function obj:setOnEditCallback(callback)
+    self.callbacks.onEdit = callback
+    return self
+end
+
+-- Set callback for item deletion
+function obj:setOnDeleteCallback(callback)
+    self.callbacks.onDelete = callback
+    return self
+end
+
+-- Set callback for item movement
+function obj:setOnMoveCallback(callback)
+    self.callbacks.onMove = callback
+    return self
+end
+
+-- Set callback for item addition
+function obj:setOnAddCallback(callback)
+    self.callbacks.onAdd = callback
+    return self
+end
+
+-- Add a test method for URL handling
+function obj:testURLHandling()
+    self.logger:i("Testing URL handling")
+
+    -- Create a simple test item if none exists
+    if #self.macroTree == 0 then
+        self:createMacroItem("Test Folder", "folder")
+        self.logger:i("Created test folder with ID: " .. self.macroTree[1].id)
+    end
+
+    -- Try to select the first item using the URL scheme
+    local itemId = self.macroTree[1].id
+    local testURL = "hammerspoon://selectItem?id=" .. itemId
+    self.logger:i("Testing URL: " .. testURL)
+
+    -- Open the URL to trigger the handler
+    hs.execute("open '" .. testURL .. "'")
+
+    return self
+end
+
 -- Return the object
 return obj

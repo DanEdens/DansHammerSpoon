@@ -969,8 +969,8 @@ function obj:generateTreeHTML()
         html = html .. string.format('<div class="tree-item%s" data-id="%s" data-type="%s" style="%s" ',
             selectedClass, item.id, item.type, indentStyle)
 
-        -- Add event handlers
-        html = html .. string.format('onclick="selectItemHandler(\'%s\')" ', item.id)
+        -- Add event handlers - use the standard function names that align with our bridge
+        html = html .. string.format('onclick="selectItem(\'%s\')" ', item.id)
         html = html .. 'draggable="true" '
         html = html .. string.format('ondragstart="startDrag(event, \'%s\')" ', item.id)
         html = html .. 'ondragend="endDrag(event)" '
@@ -978,7 +978,7 @@ function obj:generateTreeHTML()
         html = html .. string.format('ondrop="drop(event, \'%s\', \'after\')">', item.id)
 
         -- Add icon
-        html = html .. string.format('<span class="icon" onclick="toggleItemHandler(\'%s\'); return false;">%s</span>',
+        html = html .. string.format('<span class="icon" onclick="toggleItem(\'%s\'); return false;">%s</span>',
             item.id, icon)
 
         -- Add name
@@ -988,12 +988,12 @@ function obj:generateTreeHTML()
         html = html .. '<div class="actions">'
         html = html ..
             string.format(
-                '<button class="edit" onclick="editItemHandler(\'%s\', \'%s\'); return false;" title="Edit">✏️</button>',
+                '<button class="edit" onclick="editItem(\'%s\', \'%s\'); return false;" title="Edit">✏️</button>',
                 item.id, escapedName)
         html = html ..
             string.format(
-                '<button class="delete" onclick="deleteItemHandler(\'%s\', \'%s\'); return false;" title="Delete">🗑️</button>',
-                item.id, escapedName)
+                '<button class="delete" onclick="deleteItem(\'%s\'); return false;" title="Delete">🗑️</button>',
+                item.id)
         html = html .. '</div>'
 
         -- Close tree item div
@@ -1026,7 +1026,7 @@ function obj:generateTreeHTML()
         propertiesHtml = propertiesHtml .. string.format([[
             <div class="form-group">
                 <label>Name</label>
-                <input type="text" value="%s" onchange="updatePropertyHandler('%s', 'name', this.value)">
+                <input type="text" value="%s" onchange="sendCommand('updateProperty', { id: '%s', property: 'name', value: this.value })">
             </div>
             <div class="form-group">
                 <label>Type</label>
@@ -1039,11 +1039,11 @@ function obj:generateTreeHTML()
             propertiesHtml = propertiesHtml .. string.format([[
                 <div class="form-group">
                     <label>Shortcut</label>
-                    <input type="text" value="%s" onchange="updatePropertyHandler('%s', 'shortcut', this.value)" placeholder="e.g. cmd+alt+ctrl+A">
+                    <input type="text" value="%s" onchange="sendCommand('updateProperty', { id: '%s', property: 'shortcut', value: this.value })" placeholder="e.g. cmd+alt+ctrl+A">
                 </div>
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea onchange="updatePropertyHandler('%s', 'description', this.value)">%s</textarea>
+                    <textarea onchange="sendCommand('updateProperty', { id: '%s', property: 'description', value: this.value })">%s</textarea>
                 </div>
             ]], self.currentSelection.shortcut or "", self.currentSelection.id,
                 self.currentSelection.id, self.currentSelection.description or "")
@@ -1052,11 +1052,11 @@ function obj:generateTreeHTML()
             propertiesHtml = propertiesHtml .. string.format([[
                 <div class="form-group">
                     <label>Delay Between Steps (ms)</label>
-                    <input type="number" value="%s" onchange="updatePropertyHandler('%s', 'delay', this.value)" min="0">
+                    <input type="number" value="%s" onchange="sendCommand('updateProperty', { id: '%s', property: 'delay', value: this.value })" min="0">
                 </div>
                 <div class="form-group">
                     <label>Run in Background</label>
-                    <input type="checkbox" %s onchange="updatePropertyHandler('%s', 'background', this.checked)">
+                    <input type="checkbox" %s onchange="sendCommand('updateProperty', { id: '%s', property: 'background', value: this.checked })">
                 </div>
             ]], self.currentSelection.delay or "0", self.currentSelection.id,
                 self.currentSelection.background and "checked" or "", self.currentSelection.id)
@@ -1284,7 +1284,12 @@ function obj:injectBridge()
     local bridgeJS = [[
         console.log("Setting up HammerGhost JavaScript bridge...");
         
-        // Create the bridge object first
+        // Create the hammerspoon namespace if it doesn't exist
+        if (!window.hammerspoon) {
+            window.hammerspoon = {};
+        }
+        
+        // Create the bridge object
         window.bridge = {
             sendCommand: function(action, params) {
                 // Convert parameters to query string
@@ -1297,6 +1302,8 @@ function obj:injectBridge()
                                 value = '';
                             } else if (typeof value === 'boolean') {
                                 value = value ? 'true' : 'false';
+                            } else if (typeof value === 'object') {
+                                value = JSON.stringify(value);
                             }
                             return encodeURIComponent(key) + '=' + encodeURIComponent(value);
                         })
@@ -1308,79 +1315,117 @@ function obj:injectBridge()
                 console.log("Sending command via bridge:", url);
 
                 // Navigate to the URL to trigger Hammerspoon handler
-                window.location.href = url;
+                const currentLocation = window.location.href;
+                setTimeout(function() {
+                    window.location.href = url;
+                    // Prevent actual navigation by quickly changing back
+                    setTimeout(function() {
+                        if (window.location.href !== currentLocation) {
+                            window.history.back();
+                        }
+                    }, 5);
+                }, 0);
+                
                 return true;
             }
         };
         
-        // Make sendCommand available at both window level and bridge level for compatibility
+        // Expose a global sendCommand function for compatibility
         window.sendCommand = function(action, params) {
-            console.log("Calling window.sendCommand, redirecting to bridge");
+            console.log("Calling window.sendCommand:", action, params);
             return window.bridge.sendCommand(action, params);
         };
+        
+        // Add sendCommand to the hammerspoon namespace for app.js compatibility
+        window.hammerspoon.sendCommand = window.sendCommand;
+        
+        // Add tree data function to hammerspoon namespace if needed by app.js
+        window.hammerspoon.getTreeData = function() {
+            // This is a placeholder - will be replaced by real data via Lua
+            return [];
+        };
 
-        // Item selection handler
+        // Basic handlers for tree nodes that the HTML already expects
+        window.selectItem = function(id) {
+            console.log("selectItem called:", id);
+            return window.sendCommand('selectItem', { id: id });
+        };
+
+        window.toggleItem = function(id) {
+            console.log("toggleItem called:", id);
+            return window.sendCommand('toggleItem', { id: id });
+        };
+
+        window.editItem = function(id, name) {
+            console.log("editItem called:", id, name);
+            return window.sendCommand('editItem', { id: id, name: name });
+        };
+
+        window.deleteItem = function(id) {
+            console.log("deleteItem called:", id);
+            return window.sendCommand('deleteItem', { id: id });
+        };
+        
+        // Our custom handlers that match the HTML we generate
         window.selectItemHandler = function(id) {
-            console.log("Selecting item:", id);
-            return window.bridge.sendCommand('selectItem', { id: id });
+            console.log("selectItemHandler called:", id);
+            return window.selectItem(id);
         };
 
-        // Item toggle handler
         window.toggleItemHandler = function(id) {
-            console.log("Toggling item:", id);
-            return window.bridge.sendCommand('toggleItem', { id: id });
+            console.log("toggleItemHandler called:", id);
+            return window.toggleItem(id);
         };
 
-        // Edit item handler
         window.editItemHandler = function(id, name) {
-            console.log("Editing item:", id, name);
+            console.log("editItemHandler called:", id, name);
             const newName = prompt("Edit item name:", name);
             if (newName !== null && newName !== name) {
-                return window.bridge.sendCommand('editItem', { id: id, name: newName });
+                return window.editItem(id, newName);
             }
             return false;
         };
 
-        // Delete item handler
         window.deleteItemHandler = function(id, name) {
-            console.log("Deleting item:", id, name);
+            console.log("deleteItemHandler called:", id, name);
             const confirmed = confirm("Are you sure you want to delete '" + name + "'?");
             if (confirmed) {
-                return window.bridge.sendCommand('deleteItem', { id: id });
+                return window.deleteItem(id);
             }
             return false;
         };
 
-        // Update property handler
         window.updatePropertyHandler = function(id, property, value) {
-            console.log("Updating property:", id, property, value);
-            return window.bridge.sendCommand('updateProperty', { id: id, property: property, value: value });
+            console.log("updatePropertyHandler called:", id, property, value);
+            return window.sendCommand('updateProperty', { id: id, property: property, value: value });
         };
 
         // Drag and drop support
         window.startDrag = function(event, id) {
+            console.log("startDrag:", id);
             event.dataTransfer.setData("text/plain", id);
             event.dataTransfer.effectAllowed = "move";
-            console.log("Started dragging item:", id);
         };
 
         window.endDrag = function(event) {
+            console.log("endDrag called");
             event.preventDefault();
-            console.log("Drag ended");
         };
 
         window.dragOver = function(event) {
+            console.log("dragOver called");
             event.preventDefault();
             event.dataTransfer.dropEffect = "move";
         };
 
         window.drop = function(event, targetId, position) {
+            console.log("drop called:", targetId, position);
             event.preventDefault();
             const sourceId = event.dataTransfer.getData("text/plain");
             console.log("Drop - Source:", sourceId, "Target:", targetId, "Position:", position);
 
             if (sourceId && targetId) {
-                return window.bridge.sendCommand('moveItem', {
+                return window.sendCommand('moveItem', {
                     sourceId: sourceId,
                     targetId: targetId,
                     position: position

@@ -35,6 +35,19 @@ document.addEventListener('DOMContentLoaded', function ()
     // Core functions
     function initializeUI()
     {
+        // Ensure all modals are hidden on load
+        document.querySelectorAll('.modal').forEach(modal =>
+        {
+            modal.classList.add('hidden');
+        });
+
+        // Make sure the modal container is hidden too
+        const modalContainer = document.getElementById('modalContainer');
+        if (modalContainer)
+        {
+            modalContainer.classList.add('hidden');
+        }
+
         updateTheme();
         showView(appState.currentView);
         updateSettingsUI();

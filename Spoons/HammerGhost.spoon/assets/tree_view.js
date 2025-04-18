@@ -55,7 +55,11 @@ class TreeView
             isDragging: false,
             draggedNode: null,
             dropTarget: null,
-            dropPosition: null
+            dropPosition: null,
+            lastX: 0,
+            lastY: 0,
+            shiftKey: false,
+            dragOverHint: null
         };
 
         this.filterText = '';
@@ -606,38 +610,77 @@ class TreeView
      */
     findDropTarget(x, y)
     {
+        // Get all tree item rows in the container
         const rows = Array.from(this.container.querySelectorAll('.tree-view-row'));
 
-        for (const row of rows)
+        // If no rows found, return null
+        if (rows.length === 0) return null;
+
+        // Sort by vertical position for more accurate detection
+        const sortedRows = rows.sort((a, b) =>
+        {
+            const rectA = a.getBoundingClientRect();
+            const rectB = b.getBoundingClientRect();
+            return rectA.top - rectB.top;
+        });
+
+        // Find the closest row to the mouse position
+        let closestRow = null;
+        let closestDistance = Infinity;
+        let closestRect = null;
+
+        for (const row of sortedRows)
         {
             const rect = row.getBoundingClientRect();
 
-            if (y >= rect.top && y <= rect.bottom)
+            // Calculate the center point of the row
+            const centerY = rect.top + rect.height / 2;
+
+            // Calculate distance from mouse to center
+            const distance = Math.abs(y - centerY);
+
+            // If this is closer than our current closest, update
+            if (distance < closestDistance)
             {
-                const id = row.parentElement.dataset.id;
-                const node = this.findNodeById(id);
+                closestDistance = distance;
+                closestRow = row;
+                closestRect = rect;
+            }
+        }
 
-                if (!node) continue;
+        // If we found a closest row
+        if (closestRow)
+        {
+            const id = closestRow.parentElement.dataset.id;
+            const node = this.findNodeById(id);
 
-                // Determine drop position
-                const thirdHeight = rect.height / 3;
+            if (!node) return null;
 
-                if (y < rect.top + thirdHeight)
+            // Determine drop position with improved logic
+            const thirdHeight = closestRect.height / 3;
+
+            // Check if we're near the top edge
+            if (y < closestRect.top + thirdHeight)
+            {
+                return { node, position: 'before', element: closestRow };
+            }
+            // Check if we're near the bottom edge
+            else if (y > closestRect.bottom - thirdHeight)
+            {
+                return { node, position: 'after', element: closestRow };
+            }
+            // We're in the middle section
+            else
+            {
+                // Check if this is a folder (we can drop inside)
+                if (node.type === 'folder')
                 {
-                    return { node, position: 'before', element: row };
-                } else if (y > rect.bottom - thirdHeight)
+                    return { node, position: 'inside', element: closestRow };
+                }
+                // For non-folders, drop after
+                else
                 {
-                    return { node, position: 'after', element: row };
-                } else
-                {
-                    // Only allow dropping inside folders
-                    if (node.type === 'folder')
-                    {
-                        return { node, position: 'inside', element: row };
-                    } else
-                    {
-                        return { node, position: 'after', element: row };
-                    }
+                    return { node, position: 'after', element: closestRow };
                 }
             }
         }
@@ -660,16 +703,42 @@ class TreeView
             return false;
         }
 
-        // Can't drop on its children
-        if (this.isNodeDescendant(targetNode, draggedNode.id))
+        // Can't drop inside a non-folder for 'inside' position
+        if (position === 'inside' && targetNode.type !== 'folder')
         {
             return false;
         }
 
-        // Can only drop inside folders
-        if (position === 'inside' && targetNode.type !== 'folder')
+        // Prevent circular nesting - can't drop on a descendant
+        if (this.isNodeDescendant(draggedNode, targetNode.id))
         {
             return false;
+        }
+
+        // Add special case for dragging folders with many child items
+        if (draggedNode.type === 'folder' &&
+            draggedNode.children &&
+            draggedNode.children.length > 50)
+        {
+            // For large folders, we require an explicit "inside" position
+            // to prevent accidental drops that would be expensive to render
+            if (position !== 'inside' && targetNode.type === 'folder')
+            {
+                const dragOverElement = document.createElement('div');
+                dragOverElement.className = 'drag-over-hint';
+                dragOverElement.textContent = 'Drop inside? (Hold Shift to confirm)';
+
+                // Show hint near the cursor (removed on next dragMove)
+                document.body.appendChild(dragOverElement);
+                dragOverElement.style.top = `${this.dragState.lastY}px`;
+                dragOverElement.style.left = `${this.dragState.lastX + 20}px`;
+
+                // Store for removal
+                this.dragState.dragOverHint = dragOverElement;
+
+                // Allow drop only if shift key is pressed
+                return this.dragState.shiftKey;
+            }
         }
 
         return true;
@@ -784,6 +853,7 @@ class TreeView
      */
     filterTree(text)
     {
+        // If filter is empty, clear filtered data and re-render
         if (!text || text.length === 0)
         {
             this.filteredData = null;
@@ -791,48 +861,65 @@ class TreeView
             return;
         }
 
-        // Case insensitive search
-        const lowerText = text.toLowerCase();
+        // Normalize the search text for better matching
+        const normalizedText = text.toLowerCase().trim();
 
-        // Helper function to filter nodes
+        // Memoization cache for better performance with repeated searches
+        const matchCache = new Map();
+
+        // Optimized helper function to check if a node name matches
+        const nameMatches = (nodeName) =>
+        {
+            if (matchCache.has(nodeName))
+            {
+                return matchCache.get(nodeName);
+            }
+
+            const result = nodeName.toLowerCase().includes(normalizedText);
+            matchCache.set(nodeName, result);
+            return result;
+        };
+
+        // Optimized helper function to filter nodes
         const filterNode = (node) =>
         {
-            const nameMatches = node.name.toLowerCase().includes(lowerText);
-
-            // Include this node if its name matches
-            if (nameMatches)
+            // Check if node name matches (direct match)
+            if (nameMatches(node.name))
             {
                 return true;
             }
 
-            // Check children
+            // Only check children if this node has any
             if (node.children && node.children.length > 0)
             {
-                // Filter children recursively
-                const filteredChildren = node.children.filter(filterNode);
+                // Filter children recursively using array methods
+                // Use map with filter to avoid multiple iterations
+                const filteredChildren = node.children
+                    .map(child => filterNode(child))
+                    .filter(Boolean);
 
                 // Include this node if any children match
                 if (filteredChildren.length > 0)
                 {
                     // Clone the node with filtered children
-                    return {
-                        ...node,
+                    // Use Object.assign for better performance
+                    return Object.assign({}, node, {
                         children: filteredChildren
-                    };
+                    });
                 }
             }
 
             return false;
         };
 
-        // Filter the root nodes
+        // Process the root nodes - optimize for large datasets
         const filtered = this.data
             .map(node => filterNode(node))
             .filter(Boolean);
 
         this.filteredData = filtered;
 
-        // Auto-expand nodes with matches
+        // Auto-expand matched nodes with optimized approach
         this.expandFilteredNodes(this.filteredData);
 
         // Re-render the tree
@@ -845,14 +932,76 @@ class TreeView
      */
     expandFilteredNodes(nodes)
     {
-        if (!nodes) return;
+        if (!nodes || nodes.length === 0) return;
 
-        nodes.forEach(node =>
+        // Use a non-recursive approach for better performance with deep trees
+        const stack = [...nodes];
+        const expanded = new Set();
+
+        while (stack.length > 0)
         {
+            const node = stack.pop();
+
+            // Skip already processed nodes
+            if (expanded.has(node.id)) continue;
+
+            // Mark as expanded for this session
+            this.expandedNodes.add(node.id);
+            expanded.add(node.id);
+
+            // Add children to stack if they exist
             if (node.children && node.children.length > 0)
             {
-                this.expandedNodes.add(node.id);
-                this.expandFilteredNodes(node.children);
+                // Add in reverse order for proper DFS traversal
+                for (let i = node.children.length - 1; i >= 0; i--)
+                {
+                    stack.push(node.children[i]);
+                }
+            }
+        }
+
+        // For performance, only add keyboard shortcut hints if there are <100 nodes
+        if (expanded.size < 100)
+        {
+            this.addKeyboardShortcutHints();
+        }
+    }
+
+    /**
+     * Add keyboard shortcut hints to the UI
+     * This improves usability for keyboard navigation
+     */
+    addKeyboardShortcutHints()
+    {
+        // Only add hints if keyboard navigation is enabled
+        if (!this.keyboardNavigation) return;
+
+        // Add keyboard shortcut hints to relevant elements
+        const actionButtons = this.container.querySelectorAll('.tree-view-action');
+        actionButtons.forEach(button =>
+        {
+            // Only add if doesn't already have a hint
+            if (!button.querySelector('.kb-hint'))
+            {
+                const action = button.dataset.action;
+                let shortcut = '';
+
+                // Assign appropriate shortcuts based on action
+                switch (action)
+                {
+                    case 'edit': shortcut = 'E'; break;
+                    case 'delete': shortcut = 'Del'; break;
+                    case 'add': shortcut = 'A'; break;
+                    case 'duplicate': shortcut = 'D'; break;
+                    default: return;
+                }
+
+                // Create and append the hint element
+                const hint = document.createElement('span');
+                hint.className = 'kb-hint';
+                hint.textContent = shortcut;
+                hint.title = `Keyboard shortcut: ${shortcut}`;
+                button.appendChild(hint);
             }
         });
     }

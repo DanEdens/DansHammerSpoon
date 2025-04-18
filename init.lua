@@ -3,7 +3,7 @@ dofile(hs.configdir .. "/WindowManager.lua")
 
 -- Load HyperLogger for better debugging with clickable log messages
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('Main', 'debug')
+local log = HyperLogger.new('Main', 'info')
 log:i('Starting Hammerspoon initialization')
 
 -- Load core modules

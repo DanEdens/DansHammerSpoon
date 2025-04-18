@@ -42,15 +42,6 @@ function obj:generateId()
     return tostring(self.lastId)
 end
 
---- HammerGhost:init()
---- Method
---- Initialize the spoon
----
---- Parameters:
----  * None
----
---- Returns:
----  * The HammerGhost object
 function obj:init()
     -- Check resources first
     if not self:checkResources() then
@@ -90,16 +81,6 @@ function obj:init()
     return self
 end
 
---- HammerGhost:start()
---- Method
---- Start HammerGhost and show the main window
----
---- Parameters:
----  * None
----
---- Returns:
----  * The HammerGhost object
-
 function obj:start()
     if not self.window then
         self:createMainWindow()
@@ -110,15 +91,6 @@ function obj:start()
     return self
 end
 
---- HammerGhost:stop()
---- Method
---- Stop HammerGhost and hide the main window
----
---- Parameters:
----  * None
----
---- Returns:
----  * The HammerGhost object
 function obj:stop()
     if self.window then
         self:saveConfig()
@@ -129,15 +101,6 @@ function obj:stop()
     return self
 end
 
---- HammerGhost:toggle()
---- Method
---- Toggle the HammerGhost window visibility
----
---- Parameters:
----  * None
----
---- Returns:
----  * The HammerGhost object
 function obj:toggle()
     if not self.window then
         self:start()
@@ -177,15 +140,6 @@ function obj:bindHotkeys(mapping)
     return self
 end
 
---- HammerGhost:createMainWindow()
---- Method
---- Creates the main HammerGhost window
----
---- Parameters:
----  * None
----
---- Returns:
----  * None
 function obj:createMainWindow()
     local screen = hs.screen.mainScreen()
     local frame = screen:frame()
@@ -324,15 +278,6 @@ function obj:createMainWindow()
     self:createToolbar()
 end
 
---- HammerGhost:createToolbar()
---- Method
---- Creates the toolbar for the main window
----
---- Parameters:
----  * None
----
---- Returns:
----  * None
 function obj:createToolbar()
     -- Define toolbar items with system icons
     local toolbar = hs.webview.toolbar.new("HammerGhostToolbar", {
@@ -443,15 +388,6 @@ function obj:refreshActionEditor()
     self.actionEditor:evaluateJavaScript(string.format("updateData(%s)", jsonData))
 end
 
---- HammerGhost:selectItem(index)
---- Method
---- Handle item selection in the tree view
----
---- Parameters:
----  * index - The index of the selected item
----
---- Returns:
----  * None
 function obj:selectItem(index)
     local function findItem(items)
         for _, item in ipairs(items) do
@@ -471,15 +407,6 @@ function obj:selectItem(index)
     self:refreshWindow()
 end
 
---- HammerGhost:toggleItem(index)
---- Method
---- Toggle expansion state of an item
----
---- Parameters:
----  * index - The index of the item to toggle
----
---- Returns:
----  * None
 function obj:toggleItem(index)
     local function findAndToggle(items)
         for _, item in ipairs(items) do
@@ -502,15 +429,6 @@ function obj:toggleItem(index)
     end
 end
 
---- HammerGhost:editItem(data)
---- Method
---- Edit an item in the tree
----
---- Parameters:
----  * data - Table containing id and name for the item to edit
----
---- Returns:
----  * None
 function obj:editItem(data)
     if not data or not data.id or not data.name then
         hs.logger.new("HammerGhost"):e("Invalid edit data")
@@ -541,15 +459,6 @@ function obj:editItem(data)
     end
 end
 
---- HammerGhost:deleteItem(index)
---- Method
---- Delete an item from the tree
----
---- Parameters:
----  * index - The index of the item to delete
----
---- Returns:
----  * None
 function obj:deleteItem(index)
     local function removeFromParent(items)
         for i, item in ipairs(items) do
@@ -581,70 +490,25 @@ function obj:deleteItem(index)
     end
 end
 
---- HammerGhost:getCurrentSelection()
---- Method
---- Get the current selection
----
---- Parameters:
----  * None
----
---- Returns:
----  * The current selection
 function obj:getCurrentSelection()
     return self.currentSelection
 end
 
---- HammerGhost:addFolder()
---- Method
---- Add a new folder to the tree
----
---- Parameters:
----  * None
----
---- Returns:
----  * None
 function obj:addFolder()
     local name = "New Folder"
     self:createMacroItem(name, "folder", self:getCurrentSelection())
 end
 
---- HammerGhost:addAction()
---- Method
---- Add a new action to the tree
----
---- Parameters:
----  * None
----
---- Returns:
----  * None
 function obj:addAction()
     local name = "New Action"
     self:createMacroItem(name, "action", self:getCurrentSelection())
 end
 
---- HammerGhost:addSequence()
---- Method
---- Add a new sequence to the tree
----
---- Parameters:
----  * None
----
---- Returns:
----  * None
 function obj:addSequence()
     local name = "New Sequence"
     self:createMacroItem(name, "sequence", self:getCurrentSelection())
 end
 
---- HammerGhost:refreshWindow()
---- Method
---- Refresh the window content
----
---- Parameters:
----  * None
----
---- Returns:
----  * None
 function obj:refreshWindow()
     if not self.window then return end
 
@@ -653,15 +517,6 @@ function obj:refreshWindow()
     self.window:html(html)
 end
 
---- HammerGhost:generateTreeHTML()
---- Method
---- Generate HTML for the macro tree
----
---- Parameters:
----  * None
----
---- Returns:
----  * The generated HTML
 function obj:generateTreeHTML()
     -- Base HTML with styles
     local baseHtml = [[
@@ -954,7 +809,7 @@ function obj:generateTreeHTML()
         local selectedClass = (self.currentSelection and self.currentSelection.id == item.id) and " selected" or ""
         local indentStyle = string.format("padding-left: %dpx;", depth * 20)
 
-[[
+        local html = string.format([[
             <div class="drop-indicator"></div>
             <div class="tree-item%s" data-id="%s" data-type="%s" style="%s"
                  onclick="selectItem('%s')"
@@ -1009,7 +864,7 @@ function obj:generateTreeHTML()
 
         -- Type-specific properties
         if self.currentSelection.type == "action" then
-[[
+            propertiesHtml = propertiesHtml .. string.format([[
                 <div class="form-group">
                     <label>Shortcut</label>
                     <input type="text" value="%s" onchange="updateProperty('%s', 'shortcut', this.value)" placeholder="e.g. cmd+alt+ctrl+A">
@@ -1045,14 +900,6 @@ function obj:generateTreeHTML()
 end
 
 --- HammerGhost:saveConfig()
---- Method
---- Save the current configuration to XML
----
---- Parameters:
----  * None
----
---- Returns:
----  * None
 function obj:saveConfig()
     -- Convert macro tree to XML
     local xml = xmlparser.toXML(self.macroTree)
@@ -1068,15 +915,7 @@ function obj:saveConfig()
     end
 end
 
---- HammerGhost:checkResources()
---- Method
---- Ensure all required resources are available
----
---- Parameters:
----  * None
----
---- Returns:
----  * True if all resources are available, false otherwise
+
 function obj:checkResources()
     local resources = {
         "scripts/xmlparser.lua",
@@ -1097,17 +936,6 @@ function obj:checkResources()
     return true
 end
 
---- HammerGhost:createMacroItem(name, type, parent)
---- Method
---- Create a new macro item (folder, action, or sequence)
----
---- Parameters:
----  * name - The name of the item
----  * type - The type of item ("folder", "action", or "sequence")
----  * parent - Optional parent item to add this item to
----
---- Returns:
----  * The created item
 function obj:createMacroItem(name, type, parent)
     local item = {
         id = self:generateId(),
@@ -1136,15 +964,6 @@ function obj:createMacroItem(name, type, parent)
     return item
 end
 
---- HammerGhost:updateProperty(data)
---- Method
---- Update a property of an item
----
---- Parameters:
----  * data - Table containing id, property and value
----
---- Returns:
----  * None
 function obj:updateProperty(data)
     if not data or not data.id or not data.property or data.value == nil then
         hs.logger.new("HammerGhost"):e("Invalid property update data")
@@ -1193,15 +1012,6 @@ function obj:updateProperty(data)
     end
 end
 
---- HammerGhost:moveItem(data)
---- Method
---- Move an item to a new position in the tree
----
---- Parameters:
----  * data - Table containing sourceId, targetId, and position
----
---- Returns:
----  * None
 function obj:moveItem(data)
     if not data or not data.sourceId or not data.targetId or not data.position then
         hs.logger.new("HammerGhost"):e("Invalid move data")
@@ -1243,7 +1053,7 @@ function obj:moveItem(data)
 
     -- Find the target location
     local targetParent, targetIndex = findParentAndIndex(self.macroTree, data.targetId)
-    if not targetParent then
+    if not targetParent or not targetIndex then
         hs.logger.new("HammerGhost"):e("Could not find target item: " .. data.targetId)
         -- If we failed to find the target, put the source item back
         table.insert(self.macroTree, sourceItem)

@@ -189,7 +189,7 @@ function WindowManager.halfShuffle(numRows, numCols)
 
     f.x = x
     f.y = y
-    f.w = sectionWidth
+    f.w = sectionWidth / 4
     f.h = sectionHeight
     log.i('Half shuffle w/ position: ', rowCounter, colCounter)
 
@@ -247,23 +247,6 @@ function WindowManager.applyLayout(layoutName)
 
     log.i('Applied layout:', layoutName)
 end
-
--- found this to be alot slower and buggy. Better to directly apply the layout
--- function WindowManager.moveSide(side, isSmall)
---     if side == "left" then
---         if isSmall then
---             WindowManager.applyLayout('leftSmall')
---         else
---             WindowManager.applyLayout('leftHalf')
---         end
---     else
---         if isSmall then
---             WindowManager.applyLayout('rightSmall')
---         else
---             WindowManager.applyLayout('rightHalf')
---         end
---     end
--- end
 
 function WindowManager.moveToScreen(direction, position)
     local win = hs.window.focusedWindow()

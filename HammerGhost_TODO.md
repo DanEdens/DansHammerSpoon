@@ -1,4 +1,5 @@
 # HammerGhost Project - Consolidated Todo List
+Note: (todo-ID-from-MCP-Todo-Server)
 
 ## 🎉 Completed Tasks
 - ✅ Fixed path construction bug in HammerGhost.spoon (de5aeb24-d922-4054-ba42-cd81fae902c2)
@@ -126,4 +127,4 @@ Based on AGENT_PLAN_HAMMERGHOST.md:
 - Foundation Phase: ~30% complete
 - Core Features: ~15% complete
 - Advanced Features: ~5% complete
-- Polish: 0% complete 
+- Polish: 0% complete

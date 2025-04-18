@@ -335,22 +335,43 @@ function obj:createMainWindow()
                 -- Extract the action and parameters
                 local scheme, host, paramString = action:match("^(hammerspoon)://([^?]*)%??(.*)$")
 
-                self.logger:d("URL parsed - host: " .. tostring(host) .. ", params: " .. tostring(paramString))
+                self.logger:d("URL parsed - host: " .. tostring(host) .. ", params: " .. tostring(paramString or "nil"))
 
                 -- Convert parameter string to a table
                 local params = {}
                 if paramString and paramString ~= "" then
+                    -- Try to log the raw parameter string for debugging
+                    self.logger:d("Raw parameter string: " .. paramString)
                     for pair in paramString:gmatch("([^&]+)") do
                         local k, v = pair:match("([^=]+)=(.+)")
                         if k and v then
                             -- URL decode the key and value
                             k = k:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
                             v = v:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
+                            -- Try to determine if value is a JSON object
+                            if v:match("^{.*}$") or v:match("^%[.*%]$") then
+                                local success, jsonValue = pcall(hs.json.decode, v)
+                                if success then
+                                    v = jsonValue
+                                    self.logger:d("Decoded JSON value for param " .. k)
+                                end
+                            end
                             params[k] = v
-                            self.logger:d("Param: " .. k .. " = " .. v)
+                            self.logger:d("Param: " .. k .. " = " .. tostring(v))
                         end
                     end
                 end
+                -- If params are empty, try the last part as the id (common in some URLs)
+                if next(params) == nil and host:match("/") then
+                    local action, id = host:match("([^/]+)/(.+)")
+                    if action and id then
+                        host = action
+                        params.id = id
+                        self.logger:d("Extracted id from path: " .. id)
+                    end
+                end
+
+                self.logger:d("Handling URL event: " .. host .. " with params: " .. hs.inspect(params))
                 -- Manually trigger the appropriate handler based on the host
                 if host == "selectItem" then
                     hs.urlevent.handleURLEvent("selectItem", params)
@@ -362,8 +383,12 @@ function obj:createMainWindow()
                     hs.urlevent.handleURLEvent("deleteItem", params)
                 elseif host == "moveItem" then
                     hs.urlevent.handleURLEvent("moveItem", params)
+                elseif host == "updateProperty" then
+                    hs.urlevent.handleURLEvent("updateProperty", params)
                 elseif host == "openActionEditor" then
                     hs.urlevent.handleURLEvent("openActionEditor", params)
+                else
+                    self.logger:w("Unrecognized URL host: " .. host)
                 end
 
                 -- Return true to prevent the OS from trying to handle the URL
@@ -917,25 +942,79 @@ function obj:generateTreeHTML()
             
             // Helper function to send commands to Hammerspoon
             function sendCommand(action, data) {
-                // Create a global Hammerspoon communication object if it doesn't exist
-                if (!window.HammerspoonActions) {
-                    window.HammerspoonActions = {
-                        pendingCommands: []
-                    };
+                console.log("Bridge sendCommand called with:", action, JSON.stringify(data));
+                
+                // Validation to ensure we have required parameters
+                if (!action) {
+                    console.error("No action provided to sendCommand");
+                    return false;
                 }
                 
-                // Add the command to the queue
-                window.HammerspoonActions.pendingCommands.push({
-                    action: action,
-                    ...data
-                });
+                // Ensure we have an object for params
+                if (!data) {
+                    data = {};
+                }
                 
-                // Use URL scheme to notify Hammerspoon
-                const params = encodeURIComponent(JSON.stringify({
-                    action: action,
-                    ...data
-                }));
-                window.location.href = `hammerspoon://${action}?${params}`;
+                // Convert parameters to query string
+                let queryParams = '';
+                if (data) {
+                    try {
+                        queryParams = Object.entries(data)
+                            .map(([key, value]) => {
+                                // Ensure value is properly converted to string
+                                if (value === null || value === undefined) {
+                                    value = '';
+                                } else if (typeof value === 'boolean') {
+                                    value = value ? 'true' : 'false';
+                                } else if (typeof value === 'object') {
+                                    value = JSON.stringify(value);
+                                }
+                                
+                                console.log("Param: " + key + " = " + value);
+                                return encodeURIComponent(key) + '=' + encodeURIComponent(value);
+                            })
+                            .join('&');
+                    } catch (err) {
+                        console.error("Error processing parameters:", err);
+                    }
+                }
+
+                // Create the hammerspoon:// URL with action as the host
+                let url = 'hammerspoon://' + action;
+                if (queryParams) {
+                    url += '?' + queryParams;
+                }
+                console.log("Sending command via bridge URL:", url);
+
+                // Use direct navigation instead of location.href approach
+                try {
+                    // Using an iframe to avoid page navigation
+                    let iframe = document.querySelector('#commandFrame');
+                    if (!iframe) {
+                        iframe = document.createElement('iframe');
+                        iframe.id = 'commandFrame';
+                        iframe.style.width = '0';
+                        iframe.style.height = '0';
+                        iframe.style.border = 'none';
+                        iframe.style.position = 'absolute';
+                        document.body.appendChild(iframe);
+                    }
+                    
+                    iframe.src = url;
+                    console.log("Command sent via iframe");
+                } catch (err) {
+                    console.error("Error sending command:", err);
+                    
+                    // Fallback to direct navigation
+                    try {
+                        window.location.href = url;
+                        console.log("Command sent via location.href");
+                    } catch (err2) {
+                        console.error("Failed to send command via fallback method:", err2);
+                    }
+                }
+                
+                return true;
             }
         </script>
     </head>
@@ -1292,39 +1371,77 @@ function obj:injectBridge()
         // Create the bridge object
         window.bridge = {
             sendCommand: function(action, params) {
+                console.log("Bridge sendCommand called with:", action, JSON.stringify(params));
+                
+                // Validation to ensure we have required parameters
+                if (!action) {
+                    console.error("No action provided to sendCommand");
+                    return false;
+                }
+                
+                // Ensure we have an object for params
+                if (!params) {
+                    params = {};
+                }
+                
                 // Convert parameters to query string
                 let queryParams = '';
                 if (params) {
-                    queryParams = Object.entries(params)
-                        .map(([key, value]) => {
-                            // Ensure value is properly converted to string
-                            if (value === null || value === undefined) {
-                                value = '';
-                            } else if (typeof value === 'boolean') {
-                                value = value ? 'true' : 'false';
-                            } else if (typeof value === 'object') {
-                                value = JSON.stringify(value);
-                            }
-                            return encodeURIComponent(key) + '=' + encodeURIComponent(value);
-                        })
-                        .join('&');
+                    try {
+                        queryParams = Object.entries(params)
+                            .map(([key, value]) => {
+                                // Ensure value is properly converted to string
+                                if (value === null || value === undefined) {
+                                    value = '';
+                                } else if (typeof value === 'boolean') {
+                                    value = value ? 'true' : 'false';
+                                } else if (typeof value === 'object') {
+                                    value = JSON.stringify(value);
+                                }
+                                
+                                console.log("Param: " + key + " = " + value);
+                                return encodeURIComponent(key) + '=' + encodeURIComponent(value);
+                            })
+                            .join('&');
+                    } catch (err) {
+                        console.error("Error processing parameters:", err);
+                    }
                 }
 
                 // Create the hammerspoon:// URL with action as the host
-                const url = 'hammerspoon://' + action + (queryParams ? '?' + queryParams : '');
-                console.log("Sending command via bridge:", url);
+                let url = 'hammerspoon://' + action;
+                if (queryParams) {
+                    url += '?' + queryParams;
+                }
+                console.log("Sending command via bridge URL:", url);
 
-                // Navigate to the URL to trigger Hammerspoon handler
-                const currentLocation = window.location.href;
-                setTimeout(function() {
-                    window.location.href = url;
-                    // Prevent actual navigation by quickly changing back
-                    setTimeout(function() {
-                        if (window.location.href !== currentLocation) {
-                            window.history.back();
-                        }
-                    }, 5);
-                }, 0);
+                // Use direct navigation instead of location.href approach
+                try {
+                    // Using an iframe to avoid page navigation
+                    let iframe = document.querySelector('#commandFrame');
+                    if (!iframe) {
+                        iframe = document.createElement('iframe');
+                        iframe.id = 'commandFrame';
+                        iframe.style.width = '0';
+                        iframe.style.height = '0';
+                        iframe.style.border = 'none';
+                        iframe.style.position = 'absolute';
+                        document.body.appendChild(iframe);
+                    }
+                    
+                    iframe.src = url;
+                    console.log("Command sent via iframe");
+                } catch (err) {
+                    console.error("Error sending command:", err);
+                    
+                    // Fallback to direct navigation
+                    try {
+                        window.location.href = url;
+                        console.log("Command sent via location.href");
+                    } catch (err2) {
+                        console.error("Failed to send command via fallback method:", err2);
+                    }
+                }
                 
                 return true;
             }
@@ -1421,17 +1538,30 @@ function obj:injectBridge()
         window.drop = function(event, targetId, position) {
             console.log("drop called:", targetId, position);
             event.preventDefault();
-            const sourceId = event.dataTransfer.getData("text/plain");
-            console.log("Drop - Source:", sourceId, "Target:", targetId, "Position:", position);
+            const draggedId = event.dataTransfer.getData("text/plain");
+            if (draggedId === targetId) return; // Can't drop onto self
 
-            if (sourceId && targetId) {
-                return window.sendCommand('moveItem', {
-                    sourceId: sourceId,
-                    targetId: targetId,
-                    position: position
-                });
+            console.log('Drop:', draggedId, 'onto', targetId, 'at', position);
+
+            // Hide indicators
+            document.querySelectorAll('.drop-indicator').forEach(el => {
+                el.classList.remove('visible');
+            });
+
+            // Determine drop position
+            let dropPosition = position;
+            if (position === 'middle') {
+                const rect = event.target.closest('li').getBoundingClientRect();
+                const y = event.clientY - rect.top;
+                dropPosition = y < rect.height / 2 ? 'before' : 'after';
             }
-            return false;
+
+            // Use bridge to move item
+            window.bridge.sendCommand('moveItem', {
+                id: draggedId,
+                targetId: targetId,
+                position: dropPosition
+            });
         };
 
         console.log("HammerGhost JavaScript bridge setup complete!");

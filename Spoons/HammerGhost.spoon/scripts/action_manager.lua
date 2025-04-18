@@ -1,6 +1,6 @@
 -- Action Manager for HammerGhost
 -- Handles storage, retrieval, and management of actions
-local actionSystem = dofile(hs.spoons.resourcePath("scripts/action_system.lua"))
+local actionSystem = dofile(hs.spoons.resourcePath("action_system.lua"))
 
 local actionManager = {}
 actionManager.__index = actionManager

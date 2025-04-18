@@ -912,11 +912,7 @@ function obj:generateTreeHTML()
             
             function deleteItem(id, name) {
                 console.log("Deleting item:", id, name);
-                const confirmed = confirm("Are you sure you want to delete '" + name + "'?");
-                if (confirmed) {
-                    return window.sendCommand('deleteItem', { id: id });
-                }
-                return false;
+                return window.bridge.sendCommand('deleteItem', { id: id });
             }
             
             // Helper function to send commands to Hammerspoon
@@ -965,27 +961,44 @@ function obj:generateTreeHTML()
 
         -- Format item name for use in JavaScript event handlers to avoid quote issues
         local escapedName = item.name:gsub("'", "\\'")
+        
+        -- Build HTML in parts to avoid complex string formatting
+        local html = '<div class="drop-indicator"></div>\n'
 
-        -- Build HTML template with all the required elements
-        local html = string.format([[
-            <div class="drop-indicator"></div>
-            <div class="tree-item%s" data-id="%s" data-type="%s" style="%s"
-                 onclick="selectItemHandler('%s')"
-                 draggable="true"
-                 ondragstart="startDrag(event, '%s')"
-                 ondragend="endDrag(event)"
-                 ondragover="dragOver(event)"
-                 ondrop="drop(event, '%s', 'after')">
-                <span class="icon" onclick="event.stopPropagation(); toggleItemHandler('%s')">%s</span>
-                <span class="name">%s</span>
-                <div class="actions">
-                    <button class="edit" onclick="event.stopPropagation(); editItemHandler('%s', '%s')" title="Edit">✏️</button>
-                    <button class="delete" onclick="event.stopPropagation(); deleteItemHandler('%s', '%s')" title="Delete">🗑️</button>
-                </div>
-            </div>
-            <div class="drop-indicator"></div>
-        ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, item.id, item.id, icon, item.name, item.id,
-            escapedName, item.id, escapedName)
+        -- Start tree item div
+        html = html .. string.format('<div class="tree-item%s" data-id="%s" data-type="%s" style="%s" ',
+            selectedClass, item.id, item.type, indentStyle)
+
+        -- Add event handlers
+        html = html .. string.format('onclick="selectItemHandler(\'%s\')" ', item.id)
+        html = html .. 'draggable="true" '
+        html = html .. string.format('ondragstart="startDrag(event, \'%s\')" ', item.id)
+        html = html .. 'ondragend="endDrag(event)" '
+        html = html .. 'ondragover="dragOver(event)" '
+        html = html .. string.format('ondrop="drop(event, \'%s\', \'after\')">', item.id)
+
+        -- Add icon
+        html = html .. string.format('<span class="icon" onclick="toggleItemHandler(\'%s\'); return false;">%s</span>',
+            item.id, icon)
+
+        -- Add name
+        html = html .. string.format('<span class="name">%s</span>', item.name)
+
+        -- Add action buttons
+        html = html .. '<div class="actions">'
+        html = html ..
+            string.format(
+                '<button class="edit" onclick="editItemHandler(\'%s\', \'%s\'); return false;" title="Edit">✏️</button>',
+                item.id, escapedName)
+        html = html ..
+            string.format(
+                '<button class="delete" onclick="deleteItemHandler(\'%s\', \'%s\'); return false;" title="Delete">🗑️</button>',
+                item.id, escapedName)
+        html = html .. '</div>'
+
+        -- Close tree item div
+        html = html .. '</div>\n'
+        html = html .. '<div class="drop-indicator"></div>'
 
         -- Recursively generate HTML for children if this item is expanded
         if item.children and #item.children > 0 and item.expanded then
@@ -1270,47 +1283,52 @@ function obj:injectBridge()
     -- JavaScript bridge implementation for WebView
     local bridgeJS = [[
         console.log("Setting up HammerGhost JavaScript bridge...");
-        window.sendCommand = function(action, params) {
-            // Convert parameters to query string
-            let queryParams = '';
-            if (params) {
-                queryParams = Object.entries(params)
-                    .map(([key, value]) => {
-                        // Ensure value is properly converted to string
-                        if (value === null || value === undefined) {
-                            value = '';
-                        } else if (typeof value === 'boolean') {
-                            value = value ? 'true' : 'false';
-                        }
-                        return encodeURIComponent(key) + '=' + encodeURIComponent(value);
-                    })
-                    .join('&');
-            }
-
-            // Create the hammerspoon:// URL with action as the host
-            const url = 'hammerspoon://' + action + (queryParams ? '?' + queryParams : '');
-            console.log("Sending command:", url);
-
-            // Navigate to the URL to trigger Hammerspoon handler
-            window.location.href = url;
-            return false;
-        };
-
-        // Create a bridge object for backwards compatibility
+        
+        // Create the bridge object first
         window.bridge = {
-            sendCommand: window.sendCommand
+            sendCommand: function(action, params) {
+                // Convert parameters to query string
+                let queryParams = '';
+                if (params) {
+                    queryParams = Object.entries(params)
+                        .map(([key, value]) => {
+                            // Ensure value is properly converted to string
+                            if (value === null || value === undefined) {
+                                value = '';
+                            } else if (typeof value === 'boolean') {
+                                value = value ? 'true' : 'false';
+                            }
+                            return encodeURIComponent(key) + '=' + encodeURIComponent(value);
+                        })
+                        .join('&');
+                }
+
+                // Create the hammerspoon:// URL with action as the host
+                const url = 'hammerspoon://' + action + (queryParams ? '?' + queryParams : '');
+                console.log("Sending command via bridge:", url);
+
+                // Navigate to the URL to trigger Hammerspoon handler
+                window.location.href = url;
+                return true;
+            }
+        };
+        
+        // Make sendCommand available at both window level and bridge level for compatibility
+        window.sendCommand = function(action, params) {
+            console.log("Calling window.sendCommand, redirecting to bridge");
+            return window.bridge.sendCommand(action, params);
         };
 
         // Item selection handler
         window.selectItemHandler = function(id) {
             console.log("Selecting item:", id);
-            return window.sendCommand('selectItem', { id: id });
+            return window.bridge.sendCommand('selectItem', { id: id });
         };
 
         // Item toggle handler
         window.toggleItemHandler = function(id) {
             console.log("Toggling item:", id);
-            return window.sendCommand('toggleItem', { id: id });
+            return window.bridge.sendCommand('toggleItem', { id: id });
         };
 
         // Edit item handler
@@ -1318,7 +1336,7 @@ function obj:injectBridge()
             console.log("Editing item:", id, name);
             const newName = prompt("Edit item name:", name);
             if (newName !== null && newName !== name) {
-                return window.sendCommand('editItem', { id: id, name: newName });
+                return window.bridge.sendCommand('editItem', { id: id, name: newName });
             }
             return false;
         };
@@ -1326,13 +1344,17 @@ function obj:injectBridge()
         // Delete item handler
         window.deleteItemHandler = function(id, name) {
             console.log("Deleting item:", id, name);
-            return window.sendCommand('deleteItem', { id: id });
+            const confirmed = confirm("Are you sure you want to delete '" + name + "'?");
+            if (confirmed) {
+                return window.bridge.sendCommand('deleteItem', { id: id });
+            }
+            return false;
         };
 
         // Update property handler
         window.updatePropertyHandler = function(id, property, value) {
             console.log("Updating property:", id, property, value);
-            return window.sendCommand('updateProperty', { id: id, property: property, value: value });
+            return window.bridge.sendCommand('updateProperty', { id: id, property: property, value: value });
         };
 
         // Drag and drop support
@@ -1358,7 +1380,7 @@ function obj:injectBridge()
             console.log("Drop - Source:", sourceId, "Target:", targetId, "Position:", position);
 
             if (sourceId && targetId) {
-                return window.sendCommand('moveItem', {
+                return window.bridge.sendCommand('moveItem', {
                     sourceId: sourceId,
                     targetId: targetId,
                     position: position

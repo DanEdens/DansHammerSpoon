@@ -29,9 +29,12 @@ obj.macroTree = {}
 obj.currentSelection = nil
 obj.lastId = 0
 obj.spoonPath = hs.spoons.scriptPath()
+obj.actionEditor = nil
+obj.currentActionId = nil
 
 -- Load additional modules
 local xmlparser = dofile(hs.spoons.resourcePath("scripts/xmlparser.lua"))
+local actionManager = dofile(hs.spoons.resourcePath("scripts/action_manager.lua"))
 
 -- Helper function to generate unique IDs
 function obj:generateId()
@@ -55,6 +58,8 @@ function obj:init()
         return self
     end
     
+    -- Initialize action manager
+    actionManager:init()
     -- Load saved macros if they exist
     if hs.fs.attributes(self.configPath) then
         local f = io.open(self.configPath, "r")
@@ -119,6 +124,8 @@ function obj:stop()
         self:saveConfig()
         self.window:hide()
     end
+    -- Save actions
+    actionManager:save()
     return self
 end
 
@@ -154,6 +161,7 @@ end
 ---   * addAction - Add a new action
 ---   * addSequence - Add a new sequence
 ---   * addFolder - Add a new folder
+---   * showActions - Open the action editor
 ---
 --- Returns:
 ---  * The HammerGhost object
@@ -162,7 +170,8 @@ function obj:bindHotkeys(mapping)
         toggle = hs.fnutils.partial(self.toggle, self),
         addAction = hs.fnutils.partial(self.addAction, self),
         addSequence = hs.fnutils.partial(self.addSequence, self),
-        addFolder = hs.fnutils.partial(self.addFolder, self)
+        addFolder = hs.fnutils.partial(self.addFolder, self),
+        showActions = hs.fnutils.partial(self.showActionEditor, self)
     }
     hs.spoons.bindHotkeysToSpec(spec, mapping)
     return self
@@ -233,6 +242,65 @@ function obj:createMainWindow()
                 else
                     hs.logger.new("HammerGhost"):e("Failed to decode move data: " .. params)
                 end
+            elseif host == "openActionEditor" then
+                self:showActionEditor()
+
+                -- Action Editor Callbacks
+            elseif host == "actionEditorReady" then
+                self:refreshActionEditor()
+            elseif host == "createAction" then
+                local actionId = actionManager:createAction()
+                self.currentActionId = actionId
+                self:refreshActionEditor()
+            elseif host == "updateActionProperty" then
+                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
+                if success then
+                    actionManager:updateAction(data.id, { [data.property] = data.value })
+                    self:refreshActionEditor()
+                end
+            elseif host == "updateActionParameter" then
+                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
+                if success then
+                    actionManager:updateParameter(data.id, data.parameter, data.value)
+                    self:refreshActionEditor()
+                end
+            elseif host == "addTrigger" then
+                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
+                if success then
+                    actionManager:addTrigger(data.actionId, data.type)
+                    self:refreshActionEditor()
+                end
+            elseif host == "toggleTrigger" then
+                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
+                if success then
+                    actionManager:toggleTrigger(data.actionId, data.triggerId)
+                    self:refreshActionEditor()
+                end
+            elseif host == "deleteTrigger" then
+                local success, data = pcall(hs.json.decode, hs.http.urlDecode(params))
+                if success then
+                    actionManager:deleteTrigger(data.actionId, data.triggerId)
+                    self:refreshActionEditor()
+                end
+            elseif host == "saveAction" then
+                actionManager:save()
+                hs.alert.show("Action saved")
+            elseif host == "deleteAction" then
+                actionManager:deleteAction(hs.http.urlDecode(params))
+                self.currentActionId = nil
+                self:refreshActionEditor()
+                actionManager:save()
+            elseif host == "testAction" then
+                local actionId = hs.http.urlDecode(params)
+                local success, result = actionManager:executeAction(actionId)
+                if success then
+                    hs.alert.show("Action executed successfully")
+                else
+                    hs.alert.show("Action failed: " .. (result or "Unknown error"))
+                end
+            elseif host == "closeActionEditor" then
+                actionManager:save()
+                self:closeActionEditor()
             end
         end
         return true
@@ -287,6 +355,12 @@ function obj:createToolbar()
             fn = function() self:addSequence() end
         },
         {
+            id = "actionEditor",
+            label = "Action Editor",
+            image = hs.image.imageFromName("NSPreferencesGeneral"),
+            fn = function() self:showActionEditor() end
+        },
+        {
             id = "save",
             label = "Save",
             image = hs.image.imageFromName("NSSaveTemplate"),
@@ -303,6 +377,71 @@ function obj:createToolbar()
     self.toolbar = toolbar
 end
 
+-- Show action editor window
+function obj:showActionEditor()
+    if self.actionEditor then
+        self.actionEditor:show()
+        self:refreshActionEditor()
+        return
+    end
+
+    local screen = hs.screen.mainScreen()
+    local frame = screen:frame()
+
+    -- Create action editor window
+    local editor = hs.webview.new({
+        x = frame.x + (frame.w * 0.15),
+        y = frame.y + (frame.h * 0.15),
+        w = frame.w * 0.7,
+        h = frame.h * 0.7
+    }, { developerExtrasEnabled = true })
+
+    -- Set up window
+    editor:windowTitle("HammerGhost Action Editor")
+    editor:windowStyle(hs.webview.windowMasks.titled
+        | hs.webview.windowMasks.closable
+        | hs.webview.windowMasks.resizable)
+    editor:allowTextEntry(true)
+    editor:darkMode(true)
+
+    -- Set up navigation handler (reusing the same handler as main window)
+    editor:navigationCallback(function(action, webview)
+        return self.window:navigationCallback()(action, webview)
+    end)
+
+    -- Load the action editor HTML
+    local htmlFile = io.open(hs.spoons.resourcePath("assets/action_editor.html"), "r")
+    if htmlFile then
+        local content = htmlFile:read("*all")
+        htmlFile:close()
+        editor:html(content)
+    else
+        hs.logger.new("HammerGhost"):e("Failed to load action_editor.html")
+        editor:html(
+        "<html><body style='background: #1e1e1e; color: #d4d4d4;'><h1>Error loading Action Editor</h1></body></html>")
+    end
+
+    -- Store the editor
+    self.actionEditor = editor
+end
+
+-- Close action editor
+function obj:closeActionEditor()
+    if self.actionEditor then
+        self.actionEditor:hide()
+    end
+end
+
+-- Refresh action editor with current data
+function obj:refreshActionEditor()
+    if not self.actionEditor or not self.actionEditor:isVisible() then return end
+
+    local data = actionManager:getActionEditorData(self.currentActionId)
+    local jsonData = hs.json.encode(data)
+
+    -- Inject the data into the editor
+    self.actionEditor:evaluateJavaScript(string.format("updateData(%s)", jsonData))
+end
 --- HammerGhost:selectItem(index)
 --- Method
 --- Handle item selection in the tree view
@@ -859,7 +998,10 @@ end
 function obj:checkResources()
     local resources = {
         "scripts/xmlparser.lua",
-        "assets/index.html"
+        "scripts/action_system.lua",
+        "scripts/action_manager.lua",
+        "assets/index.html",
+        "assets/action_editor.html"
     }
     
     for _, resource in ipairs(resources) do
@@ -1089,6 +1231,8 @@ hs.shutdownCallback = function()
     if obj.window then
         obj:saveConfig()
     end
+    -- Also save actions
+    actionManager:save()
 end
 
 -- Add test function for XML

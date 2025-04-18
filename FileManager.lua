@@ -35,13 +35,14 @@ local fileList = {
 
 local projects_list = {
     -- Core projects
+    { name = ".hammerspoon",        path = "~/.hammerspoon" },
     { name = "Chat History",        path = "/Users/d.edens/lab/madness_interactive/docs/cursor_chathistory" },
+    { name = "Todomill_projectorium", path = "~/lab/madness_interactive/projects/python/Omnispindle/Todomill_projectorium" },
+    { name = "Omnispindle",         path = "~/lab/madness_interactive/projects/python/Omnispindle" },
+    { name = "Swarmonomicon",       path = "~/lab/madness_interactive/projects/common/Swarmonomicon" },
+    { name = "lab",                 path = "~/lab" },
     { name = "regressiontestkit",   path = "~/lab/regressiontestkit" },
     { name = "madness_interactive", path = "~/lab/madness_interactive" },
-    { name = "Swarmonomicon",       path = "~/lab/madness_interactive/projects/common/Swarmonomicon" },
-    { name = "Omnispindle",         path = "~/lab/madness_interactive/projects/python/Omnispindle" },
-    { name = "lab",                 path = "~/lab" },
-    { name = ".hammerspoon",        path = "~/.hammerspoon" },
     -- RegressionTestKit ecosystem
     { name = "OculusTestKit",       path = "~/lab/regressiontestkit/OculusTestKit" },
     { name = "phoenix",             path = "~/lab/regressiontestkit/phoenix" },
@@ -52,7 +53,7 @@ local projects_list = {
     { name = "teltonika_wrapper",   path = "~/lab/regressiontestkit/teltonika_wrapper" },
     { name = "ohmura-firmware",     path = "~/lab/regressiontestkit/ohmura-firmware" },
     { name = "saws",                path = "~/lab/regressiontestkit/saws" },
-    -- { name = "prod-ed-configs",     path = "~/lab/regressiontestkit/prod-ed-configs" },
+    { name = "prod-ed-configs",     path = "~/lab/regressiontestkit/prod-ed-configs" },
 
     -- Swarmonomicon ecosystem
     -- { name = "swarm-browser-agent", path = "~/lab/madness_interactive/projects/common/Swarmonomicon/browser-agent" },

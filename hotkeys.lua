@@ -122,7 +122,7 @@ hs.hotkey.bind(_hyper, "y", function() AppManager.toggle_do_not_disturb() end)
 
 -- HammerGhost Hotkeys
 hs.hotkey.bind(hammer, "m", function() spoon.HammerGhost:toggle() end)
-hs.hotkey.bind(_hyper, "m", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "m", function() spoon.HammerGhost:showActionEditor() end)
 
 -- Additional application and system shortcuts
 -- hs.hotkey.bind(hammer, "k", function() AppManager.lock_screen() end)

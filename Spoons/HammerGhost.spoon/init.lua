@@ -442,6 +442,7 @@ function obj:refreshActionEditor()
     -- Inject the data into the editor
     self.actionEditor:evaluateJavaScript(string.format("updateData(%s)", jsonData))
 end
+
 --- HammerGhost:selectItem(index)
 --- Method
 --- Handle item selection in the tree view
@@ -452,8 +453,22 @@ end
 --- Returns:
 ---  * None
 function obj:selectItem(index)
-    -- TODO: Implement item selection and property panel update
+    local function findItem(items)
+        for _, item in ipairs(items) do
+            if item.id == index then
+                return item
+            end
+            if item.children then
+                local found = findItem(item.children)
+                if found then return found end
+            end
+        end
+        return nil
+    end
+
+    self.currentSelection = findItem(self.macroTree)
     hs.logger.new("HammerGhost"):d("Selected item: " .. tostring(index))
+    self:refreshWindow()
 end
 
 --- HammerGhost:toggleItem(index)
@@ -466,22 +481,64 @@ end
 --- Returns:
 ---  * None
 function obj:toggleItem(index)
-    -- TODO: Implement item expansion/collapse
-    hs.logger.new("HammerGhost"):d("Toggled item: " .. tostring(index))
+    local function findAndToggle(items)
+        for _, item in ipairs(items) do
+            if item.id == index and item.children then
+                item.expanded = not item.expanded
+                hs.logger.new("HammerGhost"):d("Toggled item: " .. item.name .. ", expanded: " .. tostring(item.expanded))
+                return true
+            end
+            if item.children then
+                if findAndToggle(item.children) then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    if findAndToggle(self.macroTree) then
+        self:refreshWindow()
+    end
 end
 
---- HammerGhost:editItem(index)
+--- HammerGhost:editItem(data)
 --- Method
 --- Edit an item in the tree
 ---
 --- Parameters:
----  * index - The index of the item to edit
+---  * data - Table containing id and name for the item to edit
 ---
 --- Returns:
 ---  * None
-function obj:editItem(index)
-    -- TODO: Implement item editing
-    hs.logger.new("HammerGhost"):d("Editing item: " .. tostring(index))
+function obj:editItem(data)
+    if not data or not data.id or not data.name then
+        hs.logger.new("HammerGhost"):e("Invalid edit data")
+        return
+    end
+
+    local function findAndEdit(items)
+        for _, item in ipairs(items) do
+            if item.id == data.id then
+                item.name = data.name
+                hs.logger.new("HammerGhost"):d("Edited item " .. data.id .. " to name: " .. data.name)
+                return true
+            end
+            if item.children then
+                if findAndEdit(item.children) then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    if findAndEdit(self.macroTree) then
+        self:refreshWindow()
+        self:saveConfig()
+    else
+        hs.logger.new("HammerGhost"):e("Could not find item with id: " .. data.id)
+    end
 end
 
 --- HammerGhost:deleteItem(index)
@@ -494,8 +551,47 @@ end
 --- Returns:
 ---  * None
 function obj:deleteItem(index)
-    -- TODO: Implement item deletion
-    hs.logger.new("HammerGhost"):d("Deleting item: " .. tostring(index))
+    local function removeFromParent(items)
+        for i, item in ipairs(items) do
+            if item.id == index then
+                local name = item.name -- Store name before removal
+                table.remove(items, i)
+                hs.logger.new("HammerGhost"):d("Deleted item: " .. name)
+                return true, name
+            end
+            if item.children then
+                local success, name = removeFromParent(item.children)
+                if success then return true, name end
+            end
+        end
+        return false, nil
+    end
+
+    local success, name = removeFromParent(self.macroTree)
+    if success then
+        -- If we deleted the currently selected item, clear the selection
+        if self.currentSelection and self.currentSelection.id == index then
+            self.currentSelection = nil
+        end
+        self:refreshWindow()
+        self:saveConfig()
+        hs.alert.show("Deleted: " .. (name or "item"))
+    else
+        hs.logger.new("HammerGhost"):e("Could not find item with id: " .. index)
+    end
+end
+
+--- HammerGhost:getCurrentSelection()
+--- Method
+--- Get the current selection
+---
+--- Parameters:
+---  * None
+---
+--- Returns:
+---  * The current selection
+function obj:getCurrentSelection()
+    return self.currentSelection
 end
 
 --- HammerGhost:addFolder()
@@ -538,20 +634,6 @@ end
 function obj:addSequence()
     local name = "New Sequence"
     self:createMacroItem(name, "sequence", self:getCurrentSelection())
-end
-
---- HammerGhost:getCurrentSelection()
---- Method
---- Get the current selection
----
---- Parameters:
----  * None
----
---- Returns:
----  * The current selection
-function obj:getCurrentSelection()
-    -- TODO: Implement selection tracking
-    return nil
 end
 
 --- HammerGhost:refreshWindow()
@@ -1054,240 +1136,6 @@ function obj:createMacroItem(name, type, parent)
     return item
 end
 
---- HammerGhost:getCurrentSelection()
---- Method
---- Get the currently selected item
----
---- Parameters:
----  * None
----
---- Returns:
----  * The selected item or nil
-function obj:getCurrentSelection()
-    return self.currentSelection
-end
-
---- HammerGhost:selectItem(id)
---- Method
---- Select an item in the tree
----
---- Parameters:
----  * id - The ID of the item to select
----
---- Returns:
----  * None
-function obj:selectItem(id)
-    local function findItem(items)
-        for _, item in ipairs(items) do
-            if item.id == id then
-                return item
-            end
-            if item.children then
-                local found = findItem(item.children)
-                if found then return found end
-            end
-        end
-        return nil
-    end
-    
-    self.currentSelection = findItem(self.macroTree)
-    self:refreshWindow()
-end
-
---- HammerGhost:toggleItem(id)
---- Method
---- Toggle the expanded state of an item
----
---- Parameters:
----  * id - The ID of the item to toggle
----
---- Returns:
----  * None
-function obj:toggleItem(id)
-    local function findAndToggle(items)
-        for _, item in ipairs(items) do
-            if item.id == id and item.children then
-                item.expanded = not item.expanded
-                return true
-            end
-            if item.children then
-                if findAndToggle(item.children) then
-                    return true
-                end
-            end
-        end
-        return false
-    end
-    
-    if findAndToggle(self.macroTree) then
-        self:refreshWindow()
-    end
-end
-
---- HammerGhost:editItem(data)
---- Method
---- Edit an item in the tree
----
---- Parameters:
----  * data - The data of the item to edit
----
---- Returns:
----  * None
-function obj:editItem(data)
-    if not data or not data.id or not data.name then
-        hs.logger.new("HammerGhost"):e("Invalid edit data")
-        return
-    end
-
-    local function findItem(id)
-        local function search(items)
-            for _, item in ipairs(items) do
-                if item.id == id then
-                    return item
-                end
-                if item.children then
-                    local found = search(item.children)
-                    if found then return found end
-                end
-            end
-            return nil
-        end
-        return search(self.macroTree)
-    end
-    
-    local item = findItem(data.id)
-    if item then
-        item.name = data.name
-        self:refreshWindow()
-        self:saveConfig()
-    else
-        hs.logger.new("HammerGhost"):e("Could not find item with id: " .. data.id)
-    end
-end
-
---- HammerGhost:deleteItem(id)
---- Method
---- Delete an item from the tree
----
---- Parameters:
----  * id - The ID of the item to delete
----
---- Returns:
----  * None
-function obj:deleteItem(id)
-    local function findItem(id)
-        local function search(items)
-            for _, item in ipairs(items) do
-                if item.id == id then
-                    return item
-                end
-                if item.children then
-                    local found = search(item.children)
-                    if found then return found end
-                end
-            end
-            return nil
-        end
-        return search(self.macroTree)
-    end
-
-    local function removeItem(items)
-        for i, item in ipairs(items) do
-            if item.id == id then
-                local name = item.name -- Store name before removal
-                table.remove(items, i)
-                return name
-            end
-            if item.children then
-                local removed = removeItem(item.children)
-                if removed then return removed end
-            end
-        end
-        return nil
-    end
-    
-    local item = findItem(id)
-    if item then
-        local name = removeItem(self.macroTree)
-        if self.currentSelection and self.currentSelection.id == id then
-            self.currentSelection = nil
-        end
-        self:refreshWindow()
-        self:saveConfig()
-    end
-end
-
--- Add autosave on window close
-function obj:stop()
-    if self.window then
-        self:saveConfig()
-        self.window:hide()
-    end
-    return self
-end
-
--- Add autosave when Hammerspoon is about to exit
-hs.shutdownCallback = function()
-    if obj.window then
-        obj:saveConfig()
-    end
-    -- Also save actions
-    actionManager:save()
-end
-
--- Add test function for XML
-function obj:testXML()
-    -- Create a test macro tree
-    local testTree = {
-        {
-            id = "1",
-            type = "folder",
-            name = "Test Folder",
-            expanded = true,
-            children = {
-                {
-                    id = "2",
-                    type = "action",
-                    name = "Test Action",
-                    expanded = false
-                },
-                {
-                    id = "3",
-                    type = "sequence",
-                    name = "Test Sequence",
-                    expanded = true,
-                    children = {}
-                }
-            }
-        }
-    }
-    
-    -- Test saving
-    self.macroTree = testTree
-    self:saveConfig()
-    hs.alert.show("Test data saved")
-    
-    -- Test loading
-    if hs.fs.attributes(self.configPath) then
-        local f = io.open(self.configPath, "r")
-        if f then
-            local content = f:read("*all")
-            f:close()
-            hs.dialog.alert(0, 0, "XML Content", content)
-            
-            -- Try parsing it back
-            local loadedTree = xmlparser.fromXML(content)
-            if loadedTree and #loadedTree > 0 then
-                hs.alert.show("XML successfully loaded back")
-                -- Show first item's name as verification
-                hs.alert.show("Loaded item name: " .. loadedTree[1].name)
-            else
-                hs.alert.show("Failed to load XML")
-            end
-        end
-    end
-end
-
 --- HammerGhost:updateProperty(data)
 --- Method
 --- Update a property of an item
@@ -1426,5 +1274,13 @@ function obj:moveItem(data)
     self:refreshWindow()
 end
 
+-- Add autosave when Hammerspoon is about to exit
+hs.shutdownCallback = function()
+    if obj.window then
+        obj:saveConfig()
+    end
+    -- Also save actions
+    actionManager:save()
+end
 -- Return the object
 return obj 

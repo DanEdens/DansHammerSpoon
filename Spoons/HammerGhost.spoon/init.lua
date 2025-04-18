@@ -986,22 +986,20 @@ function obj:generateTreeHTML()
                 }
                 console.log("Sending command via bridge URL:", url);
 
-                // Use direct navigation instead of location.href approach
+                // Use a safer navigation approach that doesn't trigger unsupported URL errors
                 try {
-                    // Using an iframe to avoid page navigation
-                    let iframe = document.querySelector('#commandFrame');
-                    if (!iframe) {
-                        iframe = document.createElement('iframe');
-                        iframe.id = 'commandFrame';
-                        iframe.style.width = '0';
-                        iframe.style.height = '0';
-                        iframe.style.border = 'none';
-                        iframe.style.position = 'absolute';
-                        document.body.appendChild(iframe);
-                    }
+                    // Create a temporary link element
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
                     
-                    iframe.src = url;
-                    console.log("Command sent via iframe");
+                    // Simulate a click on the link
+                    setTimeout(() => {
+                        a.click();
+                        document.body.removeChild(a);
+                        console.log("Command sent via simulated link click");
+                    }, 0);
                 } catch (err) {
                     console.error("Error sending command:", err);
                     
@@ -1415,22 +1413,20 @@ function obj:injectBridge()
                 }
                 console.log("Sending command via bridge URL:", url);
 
-                // Use direct navigation instead of location.href approach
+                // Use a safer navigation approach that doesn't trigger unsupported URL errors
                 try {
-                    // Using an iframe to avoid page navigation
-                    let iframe = document.querySelector('#commandFrame');
-                    if (!iframe) {
-                        iframe = document.createElement('iframe');
-                        iframe.id = 'commandFrame';
-                        iframe.style.width = '0';
-                        iframe.style.height = '0';
-                        iframe.style.border = 'none';
-                        iframe.style.position = 'absolute';
-                        document.body.appendChild(iframe);
-                    }
+                    // Create a temporary link element
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
                     
-                    iframe.src = url;
-                    console.log("Command sent via iframe");
+                    // Simulate a click on the link
+                    setTimeout(() => {
+                        a.click();
+                        document.body.removeChild(a);
+                        console.log("Command sent via simulated link click");
+                    }, 0);
                 } catch (err) {
                     console.error("Error sending command:", err);
                     

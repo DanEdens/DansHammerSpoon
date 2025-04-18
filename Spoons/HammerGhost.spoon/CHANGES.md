@@ -18,6 +18,9 @@ Fixed issues with URL event handling in the HammerGhost Spoon, particularly addr
 - Made bridge initialization more robust and consistent
 - Added compatibility layer for existing assets (app.js and existing HTML files)
 - Created window.hammerspoon namespace required by app.js
+- Improved parameter serialization and logging for debugging
+- Fixed parameter encoding and decoding issues
+- Added iframe-based URL navigation to avoid page reloads
 
 ### 3. Updated UI Event Handlers
 - Replaced all direct `updateProperty` calls with `updatePropertyHandler`
@@ -32,6 +35,9 @@ Fixed issues with URL event handling in the HammerGhost Spoon, particularly addr
 - Added URL tracing for better debugging
 - Improved logging throughout the codebase
 - Added more verbose console logging for all event handlers
+- Enhanced URL parameter parsing and debugging in the navigation callback
+- Added JSON parsing for complex parameter values
+- Improved error handling and fallback methods
 
 ### 5. Fixed Syntax Issues
 - Rewritten HTML generation to use multiple string concatenations instead of complex templates

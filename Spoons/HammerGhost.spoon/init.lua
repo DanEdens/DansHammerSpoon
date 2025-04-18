@@ -62,7 +62,9 @@ function obj:init()
     self.logger:i("Setting up URL event handlers")
     -- Make sure Hammerspoon handles the hammerspoon:// URL scheme
     hs.urlevent.setDefaultHandler('hammerspoon')
-
+    
+    -- Enable URL event tracing for debugging
+    self:addURLTracing()
     -- Initialize the callback table
     self.callbacks = {
         onSelect = nil,
@@ -182,6 +184,19 @@ function obj:init()
         end
     end)
 
+    -- Handle updateProperty events
+    hs.urlevent.bind("updateProperty", function(eventName, params)
+        self.logger:d("Received updateProperty event with params: " .. hs.inspect(params))
+        if params and params.id and params.property and params.value ~= nil then
+            self:updateProperty({
+                id = params.id,
+                property = params.property,
+                value = params.value
+            })
+        else
+            self.logger:w("Missing required parameters for updateProperty")
+        end
+    end)
     -- Handle openActionEditor events
     hs.urlevent.bind("openActionEditor", function(eventName, params)
         self.logger:d("Received openActionEditor event")
@@ -948,26 +963,31 @@ function obj:generateTreeHTML()
         local selectedClass = (self.currentSelection and self.currentSelection.id == item.id) and " selected" or ""
         local indentStyle = string.format("padding-left: %dpx;", depth * 20)
 
+        -- Format item name for use in JavaScript event handlers to avoid quote issues
+        local escapedName = item.name:gsub("'", "\\'")
+
+        -- Build HTML template with all the required elements
         local html = string.format([[
             <div class="drop-indicator"></div>
             <div class="tree-item%s" data-id="%s" data-type="%s" style="%s"
-                 onclick="selectItem('%s')"
+                 onclick="selectItemHandler('%s')"
                  draggable="true"
-                 ondragstart="startDrag('%s', event)"
+                 ondragstart="startDrag(event, '%s')"
                  ondragend="endDrag(event)"
                  ondragover="dragOver(event)"
-                 ondrop="drop(event)">
-                <span class="icon" onclick="toggleItem('%s', event)">%s</span>
+                 ondrop="drop(event, '%s', 'after')">
+                <span class="icon" onclick="event.stopPropagation(); toggleItemHandler('%s')">%s</span>
                 <span class="name">%s</span>
                 <div class="actions">
-                    <button class="edit" onclick="editItem('%s', '%s', event)" title="Edit">✏️</button>
-                    <button class="delete" onclick="deleteItem('%s', '%s')" title="Delete">🗑️</button>
+                    <button class="edit" onclick="event.stopPropagation(); editItemHandler('%s', '%s')" title="Edit">✏️</button>
+                    <button class="delete" onclick="event.stopPropagation(); deleteItemHandler('%s', '%s')" title="Delete">🗑️</button>
                 </div>
             </div>
             <div class="drop-indicator"></div>
-        ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, item.id, icon, item.name,
-            item.id, item.name:gsub("'", "\\'"), item.id, item.name:gsub("'", "\\'"))
+        ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, item.id, item.id, icon, item.name, item.id,
+            escapedName, item.id, escapedName)
 
+        -- Recursively generate HTML for children if this item is expanded
         if item.children and #item.children > 0 and item.expanded then
             for _, child in ipairs(item.children) do
                 html = html .. generateItemHTML(child, depth + 1)
@@ -993,7 +1013,7 @@ function obj:generateTreeHTML()
         propertiesHtml = propertiesHtml .. string.format([[
             <div class="form-group">
                 <label>Name</label>
-                <input type="text" value="%s" onchange="updateProperty('%s', 'name', this.value)">
+                <input type="text" value="%s" onchange="updatePropertyHandler('%s', 'name', this.value)">
             </div>
             <div class="form-group">
                 <label>Type</label>
@@ -1006,11 +1026,11 @@ function obj:generateTreeHTML()
             propertiesHtml = propertiesHtml .. string.format([[
                 <div class="form-group">
                     <label>Shortcut</label>
-                    <input type="text" value="%s" onchange="updateProperty('%s', 'shortcut', this.value)" placeholder="e.g. cmd+alt+ctrl+A">
+                    <input type="text" value="%s" onchange="updatePropertyHandler('%s', 'shortcut', this.value)" placeholder="e.g. cmd+alt+ctrl+A">
                 </div>
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea onchange="updateProperty('%s', 'description', this.value)">%s</textarea>
+                    <textarea onchange="updatePropertyHandler('%s', 'description', this.value)">%s</textarea>
                 </div>
             ]], self.currentSelection.shortcut or "", self.currentSelection.id,
                 self.currentSelection.id, self.currentSelection.description or "")
@@ -1019,11 +1039,11 @@ function obj:generateTreeHTML()
             propertiesHtml = propertiesHtml .. string.format([[
                 <div class="form-group">
                     <label>Delay Between Steps (ms)</label>
-                    <input type="number" value="%s" onchange="updateProperty('%s', 'delay', this.value)" min="0">
+                    <input type="number" value="%s" onchange="updatePropertyHandler('%s', 'delay', this.value)" min="0">
                 </div>
                 <div class="form-group">
                     <label>Run in Background</label>
-                    <input type="checkbox" %s onchange="updateProperty('%s', 'background', this.checked)">
+                    <input type="checkbox" %s onchange="updatePropertyHandler('%s', 'background', this.checked)">
                 </div>
             ]], self.currentSelection.delay or "0", self.currentSelection.id,
                 self.currentSelection.background and "checked" or "", self.currentSelection.id)
@@ -1196,7 +1216,7 @@ function obj:moveItem(data)
     -- Find the target location
     local targetParent, targetIndex = findParentAndIndex(self.macroTree, data.targetId)
     if not targetParent or not targetIndex then
-        hs.logger.new("HammerGhost"):e("Could not find target item: " .. data.targetId)
+        hs.logger:e("Could not find target item: " .. data.targetId)
         -- If we failed to find the target, put the source item back
         table.insert(self.macroTree, sourceItem)
         return
@@ -1254,8 +1274,16 @@ function obj:injectBridge()
             // Convert parameters to query string
             let queryParams = '';
             if (params) {
-                queryParams = Object.keys(params)
-                    .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
+                queryParams = Object.entries(params)
+                    .map(([key, value]) => {
+                        // Ensure value is properly converted to string
+                        if (value === null || value === undefined) {
+                            value = '';
+                        } else if (typeof value === 'boolean') {
+                            value = value ? 'true' : 'false';
+                        }
+                        return encodeURIComponent(key) + '=' + encodeURIComponent(value);
+                    })
                     .join('&');
             }
 
@@ -1297,12 +1325,14 @@ function obj:injectBridge()
 
         // Delete item handler
         window.deleteItemHandler = function(id, name) {
-            console.log("Delete item:", id, name);
-            const confirmed = confirm("Are you sure you want to delete '" + name + "'?");
-            if (confirmed) {
-                return window.sendCommand('deleteItem', { id: id });
-            }
-            return false;
+            console.log("Deleting item:", id, name);
+            return window.sendCommand('deleteItem', { id: id });
+        };
+
+        // Update property handler
+        window.updatePropertyHandler = function(id, property, value) {
+            console.log("Updating property:", id, property, value);
+            return window.sendCommand('updateProperty', { id: id, property: property, value: value });
         };
 
         // Drag and drop support
@@ -1523,7 +1553,7 @@ function obj:getHTML()
 
         function deleteItemHandler(itemId, label) {
             console.log('Delete item:', itemId, label);
-            window.bridge.sendCommand('deleteItem', { id: itemId, label: label });
+            window.sendCommand('deleteItem', { id: itemId });
         }
 
         function startDrag(event, itemId) {
@@ -1767,5 +1797,84 @@ function obj:testURLHandling()
     return self
 end
 
+-- Add a test method to debug all URL handlers
+function obj:testAllURLHandlers()
+    self.logger:i("Testing all URL handlers")
+
+    -- Create test data for each URL handler
+    local tests = {
+        {
+            name = "selectItem",
+            params = { id = "test-id-1" }
+        },
+        {
+            name = "toggleItem",
+            params = { id = "test-id-1" }
+        },
+        {
+            name = "editItem",
+            params = { id = "test-id-1", name = "New Test Name" }
+        },
+        {
+            name = "deleteItem",
+            params = { id = "test-id-1" }
+        },
+        {
+            name = "moveItem",
+            params = { sourceId = "test-id-1", targetId = "test-id-2", position = "after" }
+        },
+        {
+            name = "updateProperty",
+            params = { id = "test-id-1", property = "name", value = "New Value" }
+        },
+        {
+            name = "openActionEditor",
+            params = {}
+        }
+    }
+
+    -- Execute each test
+    for _, test in ipairs(tests) do
+        self.logger:i("Testing URL handler: " .. test.name)
+
+        -- Convert parameters to query string
+        local queryParams = {}
+        for k, v in pairs(test.params) do
+            table.insert(queryParams, string.format("%s=%s",
+                hs.http.encodeForQuery(k),
+                hs.http.encodeForQuery(tostring(v)))
+            )
+        end
+
+        local queryStr = table.concat(queryParams, "&")
+        local testURL = "hammerspoon://" .. test.name
+        if queryStr ~= "" then
+            testURL = testURL .. "?" .. queryStr
+        end
+
+        self.logger:i("Test URL: " .. testURL)
+
+        -- Call the handler directly
+        hs.urlevent.handleURLEvent(test.name, test.params)
+    end
+
+    return self
+end
+
+-- Add tracing hook to the hs.urlevent module
+function obj:addURLTracing()
+    self.logger:i("Adding URL event tracing")
+
+    -- Save original function
+    local originalHandleURLEvent = hs.urlevent.handleURLEvent
+
+    -- Replace with tracing wrapper
+    hs.urlevent.handleURLEvent = function(eventName, params)
+        self.logger:i("URL Event Trace: " .. eventName .. " with params: " .. hs.inspect(params))
+        return originalHandleURLEvent(eventName, params)
+    end
+
+    return self
+end
 -- Return the object
 return obj

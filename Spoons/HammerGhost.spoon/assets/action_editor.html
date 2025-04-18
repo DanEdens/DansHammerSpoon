@@ -334,6 +334,23 @@
             text-align: center;
             color: #777;
         }
+        
+        .footer-buttons button:hover {
+            background-color: var(--active-color);
+        }
+        
+        .kb-hint {
+            display: inline-block;
+            font-size: 0.8em;
+            background: rgba(80, 80, 80, 0.3);
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-left: 5px;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+        
+        /* Empty state */
     </style>
 </head>
 <body>
@@ -704,6 +721,194 @@
         window.addEventListener('load', function() {
             window.location.href = 'hammerspoon://actionEditorReady';
         });
+        
+        // --- Keyboard Shortcuts ---
+        const keyboardShortcuts = {
+            'n': createNewAction,
+            's': function(e) { if (e.ctrlKey || e.metaKey) { e.preventDefault(); saveAction(); } },
+            'Escape': closeEditor,
+            'Delete': function(e) { 
+                if (selectedActionId && document.activeElement.tagName !== 'INPUT' && 
+                    document.activeElement.tagName !== 'TEXTAREA' && 
+                    document.activeElement.tagName !== 'SELECT') {
+                    e.preventDefault();
+                    deleteAction();
+                }
+            },
+            't': function(e) { 
+                if (selectedActionId && (e.ctrlKey || e.metaKey)) { 
+                    e.preventDefault(); 
+                    testAction(); 
+                }
+            }
+        };
+        
+        // Add keyboard shortcut handling
+        window.addEventListener('keydown', function(e) {
+            // Don't handle shortcuts when typing in form fields
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                // But still handle Ctrl+S and Escape
+                if ((e.key === 's' && (e.ctrlKey || e.metaKey)) || e.key === 'Escape') {
+                    const handler = keyboardShortcuts[e.key];
+                    if (handler) {
+                        handler(e);
+                    }
+                }
+                return;
+            }
+            
+            const handler = keyboardShortcuts[e.key];
+            if (handler) {
+                handler(e);
+            }
+        });
+        
+        // --- Notification System ---
+        function showNotification(message, type = 'info') {
+            // Create notification area if it doesn't exist
+            let notificationArea = document.getElementById('notificationArea');
+            if (!notificationArea) {
+                notificationArea = document.createElement('div');
+                notificationArea.id = 'notificationArea';
+                notificationArea.className = 'notification-area';
+                document.body.appendChild(notificationArea);
+                
+                // Add styles if they don't exist
+                if (!document.getElementById('notificationStyles')) {
+                    const style = document.createElement('style');
+                    style.id = 'notificationStyles';
+                    style.textContent = `
+                        .notification-area {
+                            position: fixed;
+                            top: 10px;
+                            right: 10px;
+                            z-index: 9999;
+                            max-width: 300px;
+                        }
+                        .notification {
+                            padding: 10px 30px 10px 15px;
+                            margin-bottom: 10px;
+                            border-radius: 4px;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                            position: relative;
+                            animation: notification-slide 0.3s ease-out;
+                        }
+                        .notification.success {
+                            background-color: rgba(76, 175, 80, 0.9);
+                            color: white;
+                        }
+                        .notification.error {
+                            background-color: rgba(244, 67, 54, 0.9);
+                            color: white;
+                        }
+                        .notification.info {
+                            background-color: rgba(33, 150, 243, 0.9);
+                            color: white;
+                        }
+                        .notification-close {
+                            position: absolute;
+                            right: 5px;
+                            top: 5px;
+                            background: none;
+                            border: none;
+                            color: inherit;
+                            opacity: 0.7;
+                            cursor: pointer;
+                        }
+                        .notification-close:hover {
+                            opacity: 1;
+                        }
+                        .notification.fade-out {
+                            opacity: 0;
+                            transform: translateX(30px);
+                            transition: opacity 0.3s, transform 0.3s;
+                        }
+                        @keyframes notification-slide {
+                            from {
+                                opacity: 0;
+                                transform: translateX(30px);
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translateX(0);
+                            }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            // Add close button
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'notification-close';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.addEventListener('click', () => {
+                notification.classList.add('fade-out');
+                setTimeout(() => notification.remove(), 300);
+            });
+            notification.appendChild(closeBtn);
+            
+            notificationArea.appendChild(notification);
+            
+            // Auto-dismiss after a delay
+            setTimeout(() => {
+                notification.classList.add('fade-out');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+        
+        function showSuccess(message) {
+            showNotification(message, 'success');
+        }
+        
+        function showError(message) {
+            showNotification(message, 'error');
+        }
+        
+        // Enhance action functions to show notifications
+        const originalSaveAction = saveAction;
+        saveAction = function() {
+            originalSaveAction();
+            showSuccess('Action saved successfully');
+        };
+        
+        const originalTestAction = testAction;
+        testAction = function() {
+            originalTestAction();
+            showSuccess('Running action...');
+        };
+        
+        // Add keyboard shortcut hints to UI
+        function addKeyboardShortcutHints() {
+            const shortcuts = {
+                'new-action-btn': 'N',
+                'save-action-btn': 'Ctrl+S',
+                'test-action-btn': 'Ctrl+T',
+                'delete-action-btn': 'Del',
+                'close-editor-btn': 'Esc'
+            };
+            
+            Object.entries(shortcuts).forEach(([id, key]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    const span = document.createElement('span');
+                    span.className = 'kb-hint';
+                    span.textContent = key;
+                    element.appendChild(span);
+                }
+            });
+        }
+        
+        // Call this after rendering the editor
+        const originalRenderActionEditor = renderActionEditor;
+        renderActionEditor = function() {
+            originalRenderActionEditor();
+            addKeyboardShortcutHints();
+        };
     </script>
 </body>
 </html> 

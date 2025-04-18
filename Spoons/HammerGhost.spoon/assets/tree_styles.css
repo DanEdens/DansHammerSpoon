@@ -322,3 +322,119 @@
         padding: 2px;
     }
 }
+
+/* Keyboard shortcut hints */
+.kb-hint {
+    display: inline-block;
+    font-size: 0.8em;
+    background: rgba(80, 80, 80, 0.3);
+    padding: 2px 5px;
+    border-radius: 3px;
+    margin-left: 5px;
+    vertical-align: middle;
+    color: var(--tree-item-text-color);
+}
+
+.tree-view-action {
+    position: relative;
+}
+
+/* Improve drag-and-drop feedback */
+.tree-view-drop-indicator {
+    background-color: var(--tree-drag-indicator);
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 0 4px rgba(79, 195, 247, 0.5);
+}
+
+.tree-view-drop-indicator.inside {
+    border: 2px dashed var(--tree-drag-indicator);
+    background-color: var(--tree-drag-into);
+    border-radius: 4px;
+}
+
+.drag-over-hint {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Notification system */
+.notification-area {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 9999;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+}
+
+.notification {
+    padding: 10px 30px 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: notification-slide 0.3s ease-out;
+    pointer-events: auto;
+}
+
+.notification.success {
+    background-color: rgba(76, 175, 80, 0.9);
+    color: white;
+}
+
+.notification.error {
+    background-color: rgba(244, 67, 54, 0.9);
+    color: white;
+}
+
+.notification.info {
+    background-color: rgba(33, 150, 243, 0.9);
+    color: white;
+}
+
+.notification-close {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.7;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    pointer-events: auto;
+}
+
+.notification-close:hover {
+    opacity: 1;
+}
+
+.notification.fade-out {
+    opacity: 0;
+    transform: translateX(30px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+@keyframes notification-slide {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

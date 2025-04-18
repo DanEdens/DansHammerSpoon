@@ -57,7 +57,7 @@ function obj:init()
         hs.alert.show("HammerGhost: Missing required resources")
         return self
     end
-    
+
     -- Initialize action manager
     actionManager:init()
     -- Load saved macros if they exist
@@ -205,8 +205,8 @@ function obj:createMainWindow()
 
     -- Set up webview
     webview:windowTitle("HammerGhost")
-    webview:windowStyle(hs.webview.windowMasks.titled 
-                     | hs.webview.windowMasks.closable 
+    webview:windowStyle(hs.webview.windowMasks.titled
+        | hs.webview.windowMasks.closable
                      | hs.webview.windowMasks.resizable)
     webview:allowTextEntry(true)
     webview:darkMode(true)
@@ -316,10 +316,10 @@ function obj:createMainWindow()
         hs.logger.new("HammerGhost"):e("Failed to load index.html")
         webview:html("<html><body style='background: #1e1e1e; color: #d4d4d4;'><h1>Error loading UI</h1></body></html>")
     end
-    
+
     -- Store the webview
     self.window = webview
-    
+
     -- Create toolbar
     self:createToolbar()
 end
@@ -367,12 +367,12 @@ function obj:createToolbar()
             fn = function() self:saveConfig() end
         }
     })
-    
+
     -- Apply the toolbar to the window
     if self.window then
         self.window:attachedToolbar(toolbar)
     end
-    
+
     -- Store the toolbar reference
     self.toolbar = toolbar
 end
@@ -647,7 +647,7 @@ end
 ---  * None
 function obj:refreshWindow()
     if not self.window then return end
-    
+
     -- Generate HTML for the macro tree
     local html = self:generateTreeHTML()
     self.window:html(html)
@@ -950,13 +950,13 @@ function obj:generateTreeHTML()
         else
             icon = "❓"
         end
-        
+
         local selectedClass = (self.currentSelection and self.currentSelection.id == item.id) and " selected" or ""
         local indentStyle = string.format("padding-left: %dpx;", depth * 20)
-        
-        local html = string.format([[
+
+[[
             <div class="drop-indicator"></div>
-            <div class="tree-item%s" data-id="%s" data-type="%s" style="%s" 
+            <div class="tree-item%s" data-id="%s" data-type="%s" style="%s"
                  onclick="selectItem('%s')"
                  draggable="true"
                  ondragstart="startDrag('%s', event)"
@@ -971,30 +971,30 @@ function obj:generateTreeHTML()
                 </div>
             </div>
             <div class="drop-indicator"></div>
-        ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, item.id, icon, item.name, 
+        ]], selectedClass, item.id, item.type, indentStyle, item.id, item.id, item.id, icon, item.name,
             item.id, item.name:gsub("'", "\\'"), item.id, item.name:gsub("'", "\\'"))
-        
+
         if item.children and #item.children > 0 and item.expanded then
             for _, child in ipairs(item.children) do
                 html = html .. generateItemHTML(child, depth + 1)
             end
         end
-        
+
         return html
     end
-    
+
     local treeContent = [[<div id="tree-panel">]]
-    
+
     for _, item in ipairs(self.macroTree) do
         treeContent = treeContent .. generateItemHTML(item, 0)
     end
-    
+
     treeContent = treeContent .. [[</div><div id="properties-panel">]]
-    
+
     -- Add properties panel content if an item is selected
     if self.currentSelection then
         local propertiesHtml = [[<div class="properties-form">]]
-        
+
         -- Common properties for all types
         propertiesHtml = propertiesHtml .. string.format([[
             <div class="form-group">
@@ -1006,10 +1006,10 @@ function obj:generateTreeHTML()
                 <input type="text" value="%s" readonly>
             </div>
         ]], self.currentSelection.name, self.currentSelection.id, self.currentSelection.type)
-        
+
         -- Type-specific properties
         if self.currentSelection.type == "action" then
-            propertiesHtml = propertiesHtml .. string.format([[
+[[
                 <div class="form-group">
                     <label>Shortcut</label>
                     <input type="text" value="%s" onchange="updateProperty('%s', 'shortcut', this.value)" placeholder="e.g. cmd+alt+ctrl+A">
@@ -1018,9 +1018,9 @@ function obj:generateTreeHTML()
                     <label>Description</label>
                     <textarea onchange="updateProperty('%s', 'description', this.value)">%s</textarea>
                 </div>
-            ]], self.currentSelection.shortcut or "", self.currentSelection.id, 
+            ]], self.currentSelection.shortcut or "", self.currentSelection.id,
                 self.currentSelection.id, self.currentSelection.description or "")
-        
+
         elseif self.currentSelection.type == "sequence" then
             propertiesHtml = propertiesHtml .. string.format([[
                 <div class="form-group">
@@ -1034,13 +1034,13 @@ function obj:generateTreeHTML()
             ]], self.currentSelection.delay or "0", self.currentSelection.id,
                 self.currentSelection.background and "checked" or "", self.currentSelection.id)
         end
-        
+
         propertiesHtml = propertiesHtml .. [[</div>]]
         treeContent = treeContent .. propertiesHtml
     end
-    
+
     treeContent = treeContent .. [[</div>]]
-    
+
     return baseHtml .. treeContent .. [[</body></html>]]
 end
 
@@ -1056,7 +1056,7 @@ end
 function obj:saveConfig()
     -- Convert macro tree to XML
     local xml = xmlparser.toXML(self.macroTree)
-    
+
     -- Save to file
     local f = io.open(self.configPath, "w")
     if f then
@@ -1085,7 +1085,7 @@ function obj:checkResources()
         "assets/index.html",
         "assets/action_editor.html"
     }
-    
+
     for _, resource in ipairs(resources) do
         local path = hs.spoons.resourcePath(resource)
         if not hs.fs.attributes(path) then
@@ -1093,7 +1093,7 @@ function obj:checkResources()
             return false
         end
     end
-    
+
     return true
 end
 
@@ -1116,21 +1116,21 @@ function obj:createMacroItem(name, type, parent)
         expanded = false,
         children = (type ~= "action") and {} or nil
     }
-    
+
     if type == "action" then
-        item.fn = function() 
+        item.fn = function()
             hs.alert.show("Action: " .. name)
         end
     elseif type == "sequence" then
         item.steps = {}
     end
-    
+
     if parent then
         table.insert(parent.children, item)
     else
         table.insert(self.macroTree, item)
     end
-    
+
     -- Refresh the window to show the new item
     self:refreshWindow()
     return item
@@ -1166,12 +1166,12 @@ function obj:updateProperty(data)
         end
         return search(self.macroTree)
     end
-    
+
     local item = findItem(data.id)
     if item then
         -- Update the property
         item[data.property] = data.value
-        
+
         -- Special handling for certain properties
         if data.property == "shortcut" and item.type == "action" then
             -- Update the hotkey if it exists
@@ -1185,7 +1185,7 @@ function obj:updateProperty(data)
                 item.hotkey:enable()
             end
         end
-        
+
         self:refreshWindow()
         self:saveConfig()
     else
@@ -1207,7 +1207,7 @@ function obj:moveItem(data)
         hs.logger.new("HammerGhost"):e("Invalid move data")
         return
     end
-    
+
     local function findAndRemoveItem(items, id)
         for i, item in ipairs(items) do
             if item.id == id then
@@ -1220,7 +1220,7 @@ function obj:moveItem(data)
         end
         return nil
     end
-    
+
     local function findParentAndIndex(items, id)
         for i, item in ipairs(items) do
             if item.id == id then
@@ -1233,23 +1233,23 @@ function obj:moveItem(data)
         end
         return nil, nil
     end
-    
+
     -- Find and remove the source item
     local sourceItem = findAndRemoveItem(self.macroTree, data.sourceId)
-    if not sourceItem then 
+    if not sourceItem then
         hs.logger.new("HammerGhost"):e("Could not find source item: " .. data.sourceId)
-        return 
+        return
     end
-    
+
     -- Find the target location
     local targetParent, targetIndex = findParentAndIndex(self.macroTree, data.targetId)
-    if not targetParent then 
+    if not targetParent then
         hs.logger.new("HammerGhost"):e("Could not find target item: " .. data.targetId)
         -- If we failed to find the target, put the source item back
         table.insert(self.macroTree, sourceItem)
-        return 
+        return
     end
-    
+
     -- Insert the item at the new position
     if data.position == "before" then
         table.insert(targetParent, targetIndex, sourceItem)
@@ -1268,7 +1268,7 @@ function obj:moveItem(data)
         hs.logger.new("HammerGhost"):e("Invalid drop position: " .. data.position)
         return
     end
-    
+
     -- Save the changes and refresh the window
     self:saveConfig()
     self:refreshWindow()
@@ -1283,4 +1283,4 @@ hs.shutdownCallback = function()
     actionManager:save()
 end
 -- Return the object
-return obj 
+return obj

@@ -101,4 +101,48 @@ actionSystem:registerActionType("myCustomAction", {
 
 ## License
 
-MIT License 
+MIT License
+
+## WebView Implementations
+### Main WebView Implementations
+
+The main WebView implementations in the codebase are:
+
+#### HammerGhost.spoon
+
+The most comprehensive WebView implementation in the codebase.
+- Uses `hs.webview.new()` to create both the main application window and an action editor window
+- Implements a navigation callback that handles custom URL scheme (`hammerspoon://...`) for communication between Lua and JavaScript
+- Includes HTML, CSS, and JavaScript assets for UI components
+- Uses `hs.webview.toolbar` to create a native macOS toolbar
+- Implements two-way communication between the WebView and Lua code
+
+#### HSKeybindings.spoon
+
+A simpler WebView implementation.
+- Creates a WebView to display keybindings in an HTML format
+- Generates HTML content dynamically from registered hotkeys
+- Simpler UI with no interactive elements requiring callbacks
+
+#### Omniscribe
+
+Not directly WebView-related, but includes HyperLogger which uses URL handlers to create clickable links in the Hammerspoon console.
+
+### WebView-related APIs Used
+
+- `hs.webview.new()`: Creates a WebView window with specified dimensions and options
+- `webview:windowTitle()`: Sets the window title
+- `webview:windowStyle()`: Sets window appearance using `hs.webview.windowMasks.*` flags
+- `webview:allowTextEntry()`: Controls whether text input is allowed
+- `webview:darkMode()`: Toggles dark mode appearance
+- `webview:navigationCallback()`: Sets up a callback to handle URL navigation events
+- `webview:html()`: Sets the HTML content of the WebView
+- `webview:evaluateJavaScript()`: Executes JavaScript in the WebView context
+- `hs.webview.toolbar.new()`: Creates a toolbar for the WebView
+- `webview:attachedToolbar()`: Attaches a toolbar to the WebView
+- `webview:show()/hide()`: Controls visibility of the WebView
+
+The HammerGhost implementation is the most feature-rich example, using a custom protocol scheme for bidirectional communication between Lua and JavaScript:
+- Lua sends data to JavaScript via `webview:evaluateJavaScript()`
+- JavaScript sends data to Lua via navigation to URLs like `hammerspoon://someAction?data`
+- The `navigationCallback` parses these URLs to extract commands and parameters

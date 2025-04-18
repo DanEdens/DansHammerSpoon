@@ -237,13 +237,13 @@ function WindowManager.applyLayout(layoutName)
         w = f.w,
         h = f.h
     }
-    win:setFrame(moveFrame, 0.1)
+    win:setFrame(moveFrame, 0)
 
     -- Small delay to let the move complete without blocking
     hs.timer.usleep(100000)
 
     -- Then resize the window at the new position
-    win:setFrame(newFrame, 1)
+    win:setFrame(newFrame, 0)
 
     log.i('Applied layout:', layoutName)
 end

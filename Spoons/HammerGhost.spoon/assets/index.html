@@ -1,157 +1,167 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <style>
-        :root {
-            --bg-color: #1e1e1e;
-            --text-color: #d4d4d4;
-            --border-color: #404040;
-            --hover-color: #2d2d2d;
-            --active-color: #3d3d3d;
-            --selected-color: #094771;
-        }
-        
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            height: 100vh;
-            display: flex;
-        }
-        
-        #tree-panel {
-            width: 70%;
-            border-right: 1px solid var(--border-color);
-            overflow-y: auto;
-            padding: 10px;
-        }
-        
-        #properties-panel {
-            width: 30%;
-            padding: 10px;
-            overflow-y: auto;
-        }
-        
-        .tree-item {
-            padding: 6px 8px;
-            margin: 2px 0;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-        
-        .tree-item:hover {
-            background-color: var(--hover-color);
-        }
-        
-        .tree-item.selected {
-            background-color: var(--selected-color);
-        }
-        
-        .tree-item .icon {
-            margin-right: 8px;
-            font-size: 16px;
-        }
-        
-        .tree-item .name {
-            flex-grow: 1;
-        }
-        
-        .tree-item .actions {
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        
-        .tree-item:hover .actions {
-            opacity: 1;
-        }
-        
-        .tree-item button {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            cursor: pointer;
-            font-size: 14px;
-            padding: 2px 4px;
-            margin-left: 4px;
-        }
-        
-        .tree-item button:hover {
-            background-color: var(--active-color);
-            border-radius: 3px;
-        }
-        
-        .properties-form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        
-        .form-group label {
-            font-weight: 500;
-        }
-        
-        .form-group input, .form-group select {
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 6px 8px;
-            border-radius: 4px;
-        }
-        
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: var(--selected-color);
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HammerGhost</title>
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./tree_styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div id="tree-panel">
-        <!-- Tree view content will be dynamically inserted here -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="app-title">
+                <i class="fas fa-ghost"></i>
+                <h1>HammerGhost</h1>
+            </div>
+            <div class="app-controls">
+                <button id="newFolderBtn" class="icon-button" title="New Folder">
+                    <i class="fas fa-folder-plus"></i>
+                </button>
+                <button id="newActionBtn" class="icon-button" title="New Action">
+                    <i class="fas fa-plus-circle"></i>
+                </button>
+                <button id="saveBtn" class="icon-button" title="Save Changes">
+                    <i class="fas fa-save"></i>
+                </button>
+                <button id="settingsBtn" class="icon-button" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-content">
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Actions</h2>
+                </div>
+                <div id="treeView" class="tree-container">
+                    <!-- Tree view will be populated here -->
+                </div>
+            </div>
+            <div class="content-area">
+                <div class="content-header">
+                    <h2 id="contentTitle">Welcome to HammerGhost</h2>
+                </div>
+                <div id="contentArea" class="content-main">
+                    <div class="welcome-screen">
+                        <div class="welcome-icon">
+                            <i class="fas fa-ghost"></i>
+                        </div>
+                        <h2>Welcome to HammerGhost</h2>
+                        <p>An EventGhost-like macro editor for Hammerspoon</p>
+                        <div class="welcome-actions">
+                            <button id="welcomeNewFolder" class="btn primary">
+                                <i class="fas fa-folder-plus"></i> Create Folder
+                            </button>
+                            <button id="welcomeNewAction" class="btn secondary">
+                                <i class="fas fa-plus-circle"></i> Create Action
+                            </button>
+                        </div>
+                        <div class="welcome-tips">
+                            <h3>Getting Started</h3>
+                            <ul>
+                                <li>Create folders to organize your actions</li>
+                                <li>Add actions and configure their triggers</li>
+                                <li>Right-click items for more options</li>
+                                <li>Drag and drop to reorder items</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="status-bar">
+                <span id="statusMessage">Ready</span>
+            </div>
+            <div class="version-info">
+                <span>HammerGhost v1.0.0</span>
+            </div>
+        </footer>
     </div>
-    <div id="properties-panel">
-        <!-- Properties form will be dynamically inserted here -->
+
+    <!-- Modal Templates -->
+    <div id="modalContainer" class="modal-container hidden">
+        <!-- New Folder Modal -->
+        <div id="newFolderModal" class="modal hidden">
+            <div class="modal-header">
+                <h3>New Folder</h3>
+                <button class="close-button" data-close-modal>&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="folderName">Folder Name</label>
+                    <input type="text" id="folderName" placeholder="Enter folder name">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" data-close-modal>Cancel</button>
+                <button id="createFolderBtn" class="btn primary">Create</button>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="deleteConfirmModal" class="modal hidden">
+            <div class="modal-header">
+                <h3>Confirm Delete</h3>
+                <button class="close-button" data-close-modal>&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <span id="deleteItemName"></span>?</p>
+                <p class="warning-text" id="deleteWarningText"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" data-close-modal>Cancel</button>
+                <button id="confirmDeleteBtn" class="btn danger">Delete</button>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal hidden">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="close-button" data-close-modal>&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="settingTheme">Theme</label>
+                    <select id="settingTheme">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="settingAutoSave">Auto Save</label>
+                    <select id="settingAutoSave">
+                        <option value="true">Enabled</option>
+                        <option value="false">Disabled</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" data-close-modal>Cancel</button>
+                <button id="saveSettingsBtn" class="btn primary">Save</button>
+            </div>
+        </div>
     </div>
-    
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu"></div>
+
+    <!-- Scripts -->
+    <script src="./tree_view.js"></script>
+    <script src="./app.js"></script>
     <script>
-        // Handle tree item selection
-        function selectItem(index) {
-            const items = document.querySelectorAll('.tree-item');
-            items.forEach(item => item.classList.remove('selected'));
-            const selected = document.querySelector(`[data-index="${index}"]`);
-            if (selected) {
-                selected.classList.add('selected');
-                window.location.href = 'hammerspoon://selectItem?' + encodeURIComponent(index);
-            }
-        }
-        
-        // Handle item expansion/collapse
-        function toggleItem(index) {
-            window.location.href = 'hammerspoon://toggleItem?' + encodeURIComponent(index);
-        }
-        
-        // Handle item editing
-        function editItem(index, event) {
-            event.stopPropagation();
-            window.location.href = 'hammerspoon://editItem?' + encodeURIComponent(index);
-        }
-        
-        // Handle item deletion
-        function deleteItem(index, event) {
-            event.stopPropagation();
-            window.location.href = 'hammerspoon://deleteItem?' + encodeURIComponent(index);
-        }
+        // Initialize the application when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+        });
     </script>
 </body>
 </html> 

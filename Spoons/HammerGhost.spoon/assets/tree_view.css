@@ -1,0 +1,435 @@
+/* TreeView Component Styles */
+.tree-view {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    color: #333;
+    user-select: none;
+}
+
+.tree-view-empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #888;
+    font-style: italic;
+}
+
+.tree-view-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tree-view-item {
+    padding: 0;
+    margin: 0;
+}
+
+.tree-view-row {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 2px 0;
+    transition: background-color 0.1s ease;
+    position: relative;
+}
+
+.tree-view-row:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.tree-view-row.selected {
+    background-color: rgba(0, 120, 215, 0.1);
+}
+
+.tree-view-row.selected:hover {
+    background-color: rgba(0, 120, 215, 0.15);
+}
+
+.tree-view-row.dragging {
+    opacity: 0.5;
+}
+
+.tree-view-indent {
+    display: inline-block;
+    width: 20px;
+    flex-shrink: 0;
+}
+
+.tree-view-toggle {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    justify-content: center;
+    align-items: center;
+    margin-right: 4px;
+    font-size: 12px;
+    color: #777;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+}
+
+.tree-view-toggle.expanded {
+    transform: rotate(90deg);
+}
+
+.tree-view-icon {
+    margin-right: 6px;
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+    color: #555;
+    flex-shrink: 0;
+}
+
+.tree-view-folder-icon {
+    color: #dcb67a;
+}
+
+.tree-view-file-icon {
+    color: #75bfff;
+}
+
+.tree-view-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.tree-view-actions {
+    display: flex;
+    align-items: center;
+    visibility: hidden;
+    margin-left: 8px;
+}
+
+.tree-view-row:hover .tree-view-actions {
+    visibility: visible;
+}
+
+.tree-view-action-button {
+    background: none;
+    border: none;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 2px;
+    color: #777;
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 0;
+    font-size: 14px;
+    transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.tree-view-action-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.tree-view-action-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 120, 215, 0.3);
+}
+
+.tree-view-action-button.run-button:hover {
+    color: #28a745;
+}
+
+.tree-view-action-button.edit-button:hover {
+    color: #007bff;
+}
+
+.tree-view-action-button.delete-button:hover {
+    color: #dc3545;
+}
+
+/* Context Menu Styles */
+.tree-view-context-menu {
+    position: absolute;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    padding: 6px 0;
+    min-width: 160px;
+    max-width: 280px;
+    animation: menu-fade-in 0.1s ease;
+}
+
+@keyframes menu-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tree-view-context-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    cursor: pointer;
+    color: #333;
+    transition: background-color 0.1s ease;
+    font-size: 14px;
+}
+
+.tree-view-context-menu-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.tree-view-context-menu-icon {
+    margin-right: 8px;
+    width: 16px;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+}
+
+.tree-view-context-menu-label {
+    flex: 1;
+}
+
+.tree-view-context-menu-shortcut {
+    margin-left: 20px;
+    color: #999;
+    font-size: 12px;
+}
+
+.tree-view-context-menu-divider {
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.1);
+    margin: 6px 0;
+}
+
+/* Drag and Drop Indicators */
+.tree-view-drop-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #007bff;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.tree-view-drop-indicator.inside {
+    background-color: transparent;
+    border: 2px dashed #007bff;
+    height: auto;
+    top: 0;
+    bottom: 0;
+    border-radius: 4px;
+}
+
+/* Search Highlight */
+.tree-view-highlight {
+    background-color: rgba(255, 213, 79, 0.4);
+    border-radius: 2px;
+}
+
+/* Empty Folder */
+.tree-view-empty-folder {
+    padding: 8px 8px 8px 40px;
+    color: #999;
+    font-style: italic;
+    font-size: 12px;
+}
+
+/* Loading States */
+.tree-view-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: #777;
+}
+
+.tree-view-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #007bff;
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: tree-view-spin 0.8s linear infinite;
+}
+
+@keyframes tree-view-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Keyboard Navigation Focus */
+.tree-view-row:focus {
+    outline: none;
+    background-color: rgba(0, 120, 215, 0.05);
+}
+
+.tree-view-row:focus.selected {
+    background-color: rgba(0, 120, 215, 0.15);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+    .tree-view-actions {
+        display: none;
+    }
+
+    .tree-view-row:active .tree-view-actions {
+        display: flex;
+        position: absolute;
+        right: 8px;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 4px;
+        border-radius: 4px;
+    }
+}
+
+/* Custom Animation for Folder Expansion */
+.tree-view-children {
+    overflow: hidden;
+    transition: height 0.2s ease-out;
+}
+
+/* Tree filter bar */
+.tree-view-filter {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.tree-view-filter-input {
+    flex: 1;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 14px;
+    outline: none;
+}
+
+.tree-view-filter-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 120, 215, 0.2);
+}
+
+.tree-view-filter-clear {
+    margin-left: 8px;
+    background: none;
+    border: none;
+    color: #777;
+    cursor: pointer;
+    font-size: 18px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.tree-view-filter-clear:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+/* Touch device optimizations */
+@media (pointer: coarse) {
+    .tree-view-row {
+        padding: 8px;
+        min-height: 44px;
+    }
+
+    .tree-view-action-button {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .tree-view {
+        color: #e0e0e0;
+    }
+
+    .tree-view-row:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .tree-view-row.selected {
+        background-color: rgba(0, 120, 215, 0.2);
+    }
+
+    .tree-view-row.selected:hover {
+        background-color: rgba(0, 120, 215, 0.25);
+    }
+
+    .tree-view-toggle {
+        color: #aaa;
+    }
+
+    .tree-view-icon {
+        color: #aaa;
+    }
+
+    .tree-view-folder-icon {
+        color: #e9c46a;
+    }
+
+    .tree-view-file-icon {
+        color: #90c2ff;
+    }
+
+    .tree-view-context-menu {
+        background-color: #222;
+        border-color: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .tree-view-context-menu-item {
+        color: #e0e0e0;
+    }
+
+    .tree-view-context-menu-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .tree-view-context-menu-divider {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .tree-view-filter {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .tree-view-filter-input {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #e0e0e0;
+    }
+
+    .tree-view-highlight {
+        background-color: rgba(255, 213, 79, 0.2);
+    }
+}

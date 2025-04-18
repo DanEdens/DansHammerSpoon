@@ -14,19 +14,26 @@ Fixed issues with URL event handling in the HammerGhost Spoon, particularly addr
 - Enhanced parameter conversion for all URL requests
 - Added proper handling for null/undefined/boolean values
 - Created comprehensive handler functions for all actions
+- Fixed inconsistent use of `window.bridge.sendCommand()` vs `window.sendCommand()`
+- Made bridge initialization more robust and consistent
 
-### 3. Updated UI Event Handlers 
+### 3. Updated UI Event Handlers
 - Replaced all direct `updateProperty` calls with `updatePropertyHandler`
-- Fixed event propagation using `event.stopPropagation()`
+- Replaced event propagation using `event.stopPropagation()` with `return false` to prevent default while still allowing custom event handling
 - Ensured consistent parameter passing with proper escaping
+- Added confirmation dialog for delete operations
 
 ### 4. Added Debugging Tools
 - Added `testAllURLHandlers()` function to test all URL events
 - Added URL tracing for better debugging
 - Improved logging throughout the codebase
 
+### 5. Fixed Syntax Issues
+- Rewritten HTML generation to use multiple string concatenations instead of complex templates
+- Fixed string format parameter syntax errors
+
 ## Future Improvements
 - Consider using a more robust parameter serialization method
 - Add better error reporting for failed property updates
 - Implement more comprehensive event validation
-- Create unit tests for URL event handling 
+- Create unit tests for URL event handling

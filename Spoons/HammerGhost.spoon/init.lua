@@ -31,7 +31,7 @@ obj.lastId = 0
 obj.spoonPath = hs.spoons.scriptPath()
 obj.actionEditor = nil
 obj.currentActionId = nil
-obj.server = nil -- Add server property
+obj.server = nil
 
 -- Load additional modules
 local xmlparser = dofile(hs.spoons.resourcePath("scripts/xmlparser.lua"))
@@ -58,8 +58,7 @@ function obj:init()
 
     -- Initialize the server for URL handling
     self.logger:i("Initializing HTTP server for URL event handling")
-    self.server = hs.urlevent.watcher.new()
-    -- Register URL event handler for 'hammerspoon' scheme
+    -- Register URL event handlers for JavaScript bridge
     self.logger:i("Setting up URL event handlers")
     -- Make sure Hammerspoon handles the hammerspoon:// URL scheme
     hs.urlevent.setDefaultHandler('hammerspoon')
@@ -127,15 +126,6 @@ function obj:init()
             return true
         end
     }
-
-    -- Register URL event handlers
-    self.server:setCallback(function(scheme, host, params, fragment)
-        local handler = handlers[host]
-        if handler then
-            return handler(params)
-        end
-        return false
-    end)
 
     -- Handle selectItem events
     hs.urlevent.bind("selectItem", function(eventName, params)
@@ -317,6 +307,7 @@ function obj:createMainWindow()
     webview:allowTextEntry(true)
     webview:darkMode(true)
 
+
     -- Set up navigation callback for URL scheme based communication
     webview:navigationCallback(function(action, webview)
         self.logger:d("WebView navigation event: " .. action)
@@ -325,27 +316,45 @@ function obj:createMainWindow()
         if action:match("^[a-z]+://") then
             if action:match("^hammerspoon://") then
                 self.logger:i("Found hammerspoon URL: " .. action)
-                -- Extract the action and parameters
-                local host, params = action:match("hammerspoon://([^?]*)%??(.*)$")
-                self.logger:d("URL parsed - host: " .. tostring(host) .. ", params: " .. tostring(params))
 
-                -- Debug output for parameters
-                if params and params ~= "" then
-                    local paramPairs = {}
-                    for pair in params:gmatch("([^&]+)") do
+                -- Extract the action and parameters
+                local scheme, host, paramString = action:match("^(hammerspoon)://([^?]*)%??(.*)$")
+
+                self.logger:d("URL parsed - host: " .. tostring(host) .. ", params: " .. tostring(paramString))
+
+                -- Convert parameter string to a table
+                local params = {}
+                if paramString and paramString ~= "" then
+                    for pair in paramString:gmatch("([^&]+)") do
                         local k, v = pair:match("([^=]+)=(.+)")
                         if k and v then
+                            -- URL decode the key and value
                             k = k:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
                             v = v:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
-                            paramPairs[k] = v
+                            params[k] = v
                             self.logger:d("Param: " .. k .. " = " .. v)
                         end
                     end
                 end
-                -- Let it through so the OS can handle the URL scheme
-                return false
+                -- Manually trigger the appropriate handler based on the host
+                if host == "selectItem" then
+                    hs.urlevent.handleURLEvent("selectItem", params)
+                elseif host == "toggleItem" then
+                    hs.urlevent.handleURLEvent("toggleItem", params)
+                elseif host == "editItem" then
+                    hs.urlevent.handleURLEvent("editItem", params)
+                elseif host == "deleteItem" then
+                    hs.urlevent.handleURLEvent("deleteItem", params)
+                elseif host == "moveItem" then
+                    hs.urlevent.handleURLEvent("moveItem", params)
+                elseif host == "openActionEditor" then
+                    hs.urlevent.handleURLEvent("openActionEditor", params)
+                end
+
+                -- Return true to prevent the OS from trying to handle the URL
+                return true
             elseif action:match("^http[s]?://") then
-                -- Also let through normal web URLs
+                -- Let through normal web URLs
                 return false
             end
         end
@@ -886,93 +895,13 @@ function obj:generateTreeHTML()
                 });
             }
             
-            function deleteItem(id, name, event) {
-                if (event) event.stopPropagation();
-                // Instead of using confirm dialog, create a better delete confirmation UI
-                const confirmDeleteModal = document.createElement('div');
-                confirmDeleteModal.className = 'delete-confirm-modal';
-                confirmDeleteModal.innerHTML = `
-                    <div class="delete-confirm-content">
-                        <h3>Confirm Delete</h3>
-                        <p>Are you sure you want to delete "${name}"?</p>
-                        <div class="delete-confirm-buttons">
-                            <button class="btn-cancel">Cancel</button>
-                            <button class="btn-delete">Delete</button>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.appendChild(confirmDeleteModal);
-                
-                // Style the modal
-                const style = document.createElement('style');
-                style.textContent = `
-                    .delete-confirm-modal {
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background-color: rgba(0, 0, 0, 0.5);
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        z-index: 1000;
-                    }
-                    .delete-confirm-content {
-                        background-color: var(--bg-color);
-                        border-radius: 8px;
-                        padding: 20px;
-                        width: 300px;
-                        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-                    }
-                    .delete-confirm-content h3 {
-                        margin-top: 0;
-                    }
-                    .delete-confirm-buttons {
-                        display: flex;
-                        justify-content: flex-end;
-                        gap: 10px;
-                        margin-top: 20px;
-                    }
-                    .btn-cancel {
-                        background-color: var(--active-color);
-                        color: var(--text-color);
-                        border: none;
-                        padding: 8px 16px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                    }
-                    .btn-delete {
-                        background-color: #772b2b;
-                        color: white;
-                        border: none;
-                        padding: 8px 16px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                    }
-                `;
-                document.head.appendChild(style);
-                
-                // Add event listeners
-                const cancelBtn = confirmDeleteModal.querySelector('.btn-cancel');
-                const deleteBtn = confirmDeleteModal.querySelector('.btn-delete');
-                
-                cancelBtn.addEventListener('click', () => {
-                    document.body.removeChild(confirmDeleteModal);
-                    document.head.removeChild(style);
-                });
-                
-                deleteBtn.addEventListener('click', () => {
-                    // First remove the modal
-                    document.body.removeChild(confirmDeleteModal);
-                    document.head.removeChild(style);
-                    
-                    // Then trigger the delete action with a slight delay to ensure UI updates first
-                    setTimeout(() => {
-                        sendCommand('deleteItem', { id: id });
-                    }, 50);
-                });
+            function deleteItem(id, name) {
+                console.log("Deleting item:", id, name);
+                const confirmed = confirm("Are you sure you want to delete '" + name + "'?");
+                if (confirmed) {
+                    return window.sendCommand('deleteItem', { id: id });
+                }
+                return false;
             }
             
             // Helper function to send commands to Hammerspoon
@@ -1032,7 +961,7 @@ function obj:generateTreeHTML()
                 <span class="name">%s</span>
                 <div class="actions">
                     <button class="edit" onclick="editItem('%s', '%s', event)" title="Edit">✏️</button>
-                    <button class="delete" onclick="deleteItem('%s', '%s', event)" title="Delete">🗑️</button>
+                    <button class="delete" onclick="deleteItem('%s', '%s')" title="Delete">🗑️</button>
                 </div>
             </div>
             <div class="drop-indicator"></div>
@@ -1339,6 +1268,11 @@ function obj:injectBridge()
             return false;
         };
 
+        // Create a bridge object for backwards compatibility
+        window.bridge = {
+            sendCommand: window.sendCommand
+        };
+
         // Item selection handler
         window.selectItemHandler = function(id) {
             console.log("Selecting item:", id);
@@ -1363,7 +1297,7 @@ function obj:injectBridge()
 
         // Delete item handler
         window.deleteItemHandler = function(id, name) {
-            console.log("Deleting item:", id, name);
+            console.log("Delete item:", id, name);
             const confirmed = confirm("Are you sure you want to delete '" + name + "'?");
             if (confirmed) {
                 return window.sendCommand('deleteItem', { id: id });

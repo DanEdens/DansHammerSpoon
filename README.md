@@ -146,33 +146,39 @@ The configuration can be customized by editing the following files:
 
 Several improvements have been made to the codebase:
 
-1. **HammerGhost URL Event Handling Fix** - Fixed WebKit-based communication in HammerGhost.spoon
+1. **Dynamic Hotkey Management** - Added smart dynamic hotkey display system
+   - Automatically tracks and categorizes all hotkey bindings
+   - Excludes temporary/placeholder functions from the hotkey list
+   - Groups hotkeys into logical categories for easier reference
+   - See [HotkeyManager_README.md](HotkeyManager_README.md) for details
+
+2. **HammerGhost URL Event Handling Fix** - Fixed WebKit-based communication in HammerGhost.spoon
    - Initialized the URL event watcher server that was missing
    - Added detailed URL parameter parsing and logging
    - Implemented testing utilities for URL event handling
    - See [Spoons/HammerGhost.spoon/FIX_URL_HANDLING.md](Spoons/HammerGhost.spoon/FIX_URL_HANDLING.md) for details
 
-2. **DragonGrid Multi-Screen Support** - Fixed UI issues with the precision grid system when operating across multiple monitors
+3. **DragonGrid Multi-Screen Support** - Fixed UI issues with the precision grid system when operating across multiple monitors
    - See [DragonGrid-MultiScreen-Fix.md](docs/DragonGrid-MultiScreen-Fix.md) for details
    - Enables seamless grid-based mouse positioning across all connected displays
    - Maintains consistent UI behavior between grid levels
 
-3. **HyperLogger for Debugging** - Enhanced logging system with clickable log messages
+4. **HyperLogger for Debugging** - Enhanced logging system with clickable log messages
    - Automatically captures file and line information
    - Displays clickable hyperlinks in the console
    - Makes debugging much easier by linking logs to source code
 
-4. **GitHub Desktop Enhancements** - Specialized project selection when opening GitHub Desktop
+5. **GitHub Desktop Enhancements** - Specialized project selection when opening GitHub Desktop
    - Choose between existing GitHub Desktop windows
    - Open different projects even when GitHub Desktop is already running
    - Enter custom paths directly in the selection UI
 
-5. **Hammerspoon OS Version Compatibility Fix** - Fixed error with operating system version reporting
+6. **Hammerspoon OS Version Compatibility Fix** - Fixed error with operating system version reporting
    - Updated to handle the table return format of `hs.host.operatingSystemVersion()`
    - Properly formats version as string using major.minor.patch format
    - Prevents "attempt to concatenate a table value" errors during initialization
 
-6. **Hotkey Binding Fix** - Fixed error with missing Finder function
+7. **Hotkey Binding Fix** - Fixed error with missing Finder function
    - Added missing `open_finder` function to AppManager module
    - Resolves "At least one of pressedfn, releasedfn or repeatfn must be a function" error
    - Ensures hyper+F hotkey correctly opens or focuses Finder

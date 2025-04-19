@@ -1,3 +1,51 @@
+# Changes - Docker Setup for Development and Deployment
+
+## Summary
+Added Docker configuration for development, testing, and deployment of the Hammerspoon configuration.
+
+## Feature Details
+- **Development Environment**: A Docker container based on Alpine Linux for code validation
+  - Includes Lua 5.3, LuaRocks, and code linting tools
+  - Provides a consistent environment for testing and validation
+  - Integrated with Docker Compose for easy usage
+- **Deployment Script**: A macOS-specific script to install Hammerspoon configuration
+  - Installs Homebrew and Hammerspoon if needed
+  - Backs up existing configurations
+  - Handles special cases like projects.json
+  - Reloads or starts Hammerspoon after installation
+- **CI/CD Integration**: GitHub Actions workflow for automated validation
+  - Runs validation checks on PRs and pushes to main branch
+  - Builds the Docker image and runs the validation script
+
+## Changes to Existing Files
+- `README.md`: Updated with Docker setup information
+- Added `.dockerignore` to exclude unnecessary files from the Docker context
+
+## New Files
+- `docker/dev/Dockerfile`: Defines the development environment
+- `docker/dev/docker-compose.yml`: Simplifies working with the Docker environment
+- `docker/deploy/install_macos.sh`: Script for macOS deployment
+- `docker/README.md`: Documentation for the Docker setup
+- `DOCKER_SETUP.md`: Comprehensive documentation for the Docker setup
+- `validate.sh`: Script to validate Lua syntax
+- `.github/workflows/validate.yml`: GitHub Actions workflow configuration
+
+## Implementation Notes
+- Docker cannot run macOS containers due to licensing restrictions
+- The development environment is primarily for code validation
+- The deployment script handles the actual installation on macOS
+- Used Alpine Linux for a small, efficient container
+
+## Lessons Learned
+- Separate development and deployment concerns
+- Provide scripts for both local development and CI/CD environments
+- Consider non-Docker users with detailed documentation
+
+## Next Steps
+- Add additional testing capabilities
+- Consider integration with other CI/CD platforms
+- Add support for Spoon validation
+
 # Changes - ProjectManager FileManager Integration
 
 ## Summary

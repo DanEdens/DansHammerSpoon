@@ -281,13 +281,27 @@ function HotkeyManager.showHotkeyList(modType)
     local y = (screenFrame.h - height) / 2
 
     local rect = hs.geometry.rect(x, y, width, height)
-    local webview = hs.webview.new(rect)
+    
+    -- Create the webview with proper error handling
+    local webview = nil
+    local success, result = pcall(function()
+        return hs.webview.new(rect)
+    end)
 
-    -- Style the webview
-    webview:windowStyle({ "utility", "borderless" })
-    webview:allowTextEntry(false)
-    webview:level(hs.drawing.windowLevels.floating)
-    webview:shadow(true)
+    if not success or not result then
+        log:e("Failed to create webview:", result)
+        return nil
+    end
+
+    webview = result
+
+    -- Style the webview with error handling
+    pcall(function()
+        webview:windowStyle({ "utility", "borderless" })
+        webview:allowTextEntry(false)
+        webview:level(hs.drawing.windowLevels.floating)
+        webview:shadow(true)
+    end)
 
     -- Set up HTML content
     local htmlContent = [[
@@ -358,78 +372,124 @@ function HotkeyManager.showHotkeyList(modType)
     </html>
     ]]
 
-    -- Load the HTML and store the webview
-    webview:html(htmlContent)
-    webview:alpha(0.0) -- Start with 0 opacity for fade in
-    webview:show()
-
-    -- Add message handler for close button
-    pcall(function()
-        webview:windowCallback("closeWindow", function()
-            HotkeyManager.hideHotkeyList(modType)
+    -- Load the HTML and store the webview with error handling
+    if webview then
+        pcall(function()
+            webview:html(htmlContent)
+            webview:alpha(0.0) -- Start with 0 opacity for fade in
+            webview:show()
         end)
-    end)
+    else
+        log:e("Cannot display hotkey list: webview creation failed")
+        return nil
+    end
 
-    -- Save the modType with the webview for callback context
-    webview.modType = modType
-
-    -- Add a click handler to close on any click
-    local clickWatcher = hs.eventtap.new({ hs.eventtap.event.types.leftMouseDown }, function(event)
-        -- Only process if our window still exists
-        if HotkeyManager.displayWindows[modType] then
-            local mousePoint = hs.mouse.absolutePosition()
-            local webviewFrame = HotkeyManager.displayWindows[modType]:frame()
-
-            -- If the mouse click is within the webview's frame, close it
-            if mousePoint.x >= webviewFrame.x and mousePoint.x <= webviewFrame.x + webviewFrame.w and
-                mousePoint.y >= webviewFrame.y and mousePoint.y <= webviewFrame.y + webviewFrame.h then
+    -- Add message handler for close button with error handling
+    if webview then
+        pcall(function()
+            webview:windowCallback("closeWindow", function()
                 HotkeyManager.hideHotkeyList(modType)
-                return true -- Consume the click
-            end
-        end
-        return false
-    end)
-    clickWatcher:start()
-    
-    -- Store the watcher with the window for cleanup
-    webview.clickWatcher = clickWatcher
-
-    -- Round the corners of the window
-    if webview:hswindow() and webview:hswindow().setWindowRadius then
-        webview:hswindow():setWindowRadius(HotkeyManager.config.cornerRadius)
+            end)
+        end)
     end
     
-    -- Fade in the window
-    webview:alpha(1.0, HotkeyManager.config.fadeInDuration)
+    -- Save the modType with the webview for callback context
+    if webview then
+        pcall(function() webview.modType = modType end)
+    end
+
+    -- Add a click handler to close on any click
+    local clickWatcher = nil
+    if webview then
+        clickWatcher = hs.eventtap.new({ hs.eventtap.event.types.leftMouseDown }, function(event)
+            -- Only process if our window still exists
+            if HotkeyManager.displayWindows[modType] then
+                local mousePoint = hs.mouse.absolutePosition()
+                local webviewFrame = HotkeyManager.displayWindows[modType]:frame()
+
+                -- If the mouse click is within the webview's frame, close it
+                if mousePoint.x >= webviewFrame.x and mousePoint.x <= webviewFrame.x + webviewFrame.w and
+                    mousePoint.y >= webviewFrame.y and mousePoint.y <= webviewFrame.y + webviewFrame.h then
+                    HotkeyManager.hideHotkeyList(modType)
+                    return true -- Consume the click
+                end
+            end
+            return false
+        end)
+        if clickWatcher then
+            clickWatcher:start()
+            if webview then
+                pcall(function() webview.clickWatcher = clickWatcher end)
+            end
+        end
+    end
+
+    -- Round the corners of the window with error handling
+    if webview then
+        pcall(function()
+            if webview:hswindow() and webview:hswindow().setWindowRadius then
+                webview:hswindow():setWindowRadius(HotkeyManager.config.cornerRadius)
+            end
+        end)
+    end
+    
+    -- Fade in the window with error handling
+    if webview then
+        pcall(function()
+            webview:alpha(1.0, HotkeyManager.config.fadeInDuration)
+        end)
+    end
+
+    -- Make sure we have a valid webview before storing it
+    if not webview then
+        log:e("Cannot display hotkey list: webview is nil")
+        return nil
+    end
 
     -- Store the webview for later reference
     HotkeyManager.displayWindows[modType] = webview
     
     -- Add an ESC key watcher to close the window with ESC
-    local escWatcher = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
-        -- Only process if our window still exists
-        if HotkeyManager.displayWindows[modType] then
-            local keyCode = event:getKeyCode()
-            if keyCode == 53 then -- ESC key
-                HotkeyManager.hideHotkeyList(modType)
-                return true       -- Consume the ESC key
+    local escWatcher = nil
+    if webview then
+        escWatcher = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
+            -- Only process if our window still exists
+            if HotkeyManager.displayWindows[modType] then
+                local keyCode = event:getKeyCode()
+                if keyCode == 53 then -- ESC key
+                    HotkeyManager.hideHotkeyList(modType)
+                    return true       -- Consume the ESC key
+                end
             end
+            return false
+        end)
+
+        if escWatcher then
+            escWatcher:start()
+            -- Store the watcher with the window for cleanup
+            pcall(function()
+                if webview then
+                    webview.escWatcher = escWatcher
+                end
+            end)
         end
-        return false
-    end)
-    escWatcher:start()
-    
-    -- Store the watcher with the window for cleanup
-    webview.escWatcher = escWatcher
+    end
 
     -- Add a timer to verify the window exists and is accessible after initialization
     hs.timer.doAfter(0.05, function()
         -- Check if the window got deleted somehow or if our reference is stale
-        if HotkeyManager.displayWindows[modType] and not HotkeyManager.displayWindows[modType]:hswindow() then
-            log:w("Window was lost shortly after initialization - cleaning up")
-            HotkeyManager.hideHotkeyList(modType)
+        if HotkeyManager.displayWindows[modType] then
+            local success, hasWindow = pcall(function()
+                return HotkeyManager.displayWindows[modType]:hswindow() ~= nil
+            end)
+
+            if not success or not hasWindow then
+                log:w("Window was lost shortly after initialization - cleaning up")
+                HotkeyManager.hideHotkeyList(modType)
+            end
         end
     end)
+    
     return webview
 end
 

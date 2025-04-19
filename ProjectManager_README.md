@@ -10,6 +10,7 @@ The ProjectManager module provides a convenient way to manage your projects/jobs
 - **Persistent Storage**: Project data automatically saved and loaded between sessions
 - **Keyboard Shortcuts**: Quick access to project management functionality
 - **UI Control**: Toggle, show, hide, and reset UI functions to prevent stuck windows
+- **FileManager Integration**: Import projects from FileManager's projects_list
 
 ## Usage
 
@@ -29,6 +30,14 @@ If you encounter a stuck project window or need to programmatically control the 
 3. **Hide UI**: `ProjectManager.hideUI()` - Hides all UI elements without deleting them
 4. **Reset UI**: `ProjectManager.resetUI()` - Completely resets UI state, closing all windows
 
+### FileManager Integration
+
+The ProjectManager module integrates with the FileManager module:
+
+1. **Automatic Import**: On first run, projects are automatically imported from FileManager
+2. **Manual Import**: Projects can be imported at any time via the "Import from FileManager" option
+3. **Export**: Projects can be exported to FileManager (for future integration) via project actions
+
 ### Project Definition
 
 Each project includes:
@@ -43,25 +52,29 @@ Each project includes:
    - Select "Create New Project" 
    - Fill in the details and save
 
-2. **Set Active Project**:
+2. **Import Projects**:
+   - Press `Cmd+Ctrl+Alt+J` to toggle the Project Manager
+   - Select "Import from FileManager"
+
+3. **Set Active Project**:
    - Press `Cmd+Ctrl+Alt+J` to toggle the Project Manager
    - Select a project from the list
    - Choose "Set as Active Project"
 
-3. **View Project Info**:
+4. **View Project Info**:
    - Press `Cmd+Shift+Ctrl+Alt+J` to see the active project information
 
-4. **Edit Project**:
+5. **Edit Project**:
    - Press `Cmd+Ctrl+Alt+J` to toggle the Project Manager
    - Select a project from the list
    - Choose "Edit Project Details"
 
-5. **Delete Project**:
+6. **Delete Project**:
    - Press `Cmd+Ctrl+Alt+J` to toggle the Project Manager
    - Select a project from the list
    - Choose "Delete Project"
 
-6. **If UI Gets Stuck**:
+7. **If UI Gets Stuck**:
    - Press `Cmd+Ctrl+Alt+K` to reset the Project Manager UI
 
 ## Project Actions
@@ -70,6 +83,7 @@ For any project, you can:
 - Open the project folder in Finder
 - Open the project in a code editor
 - Open a terminal session in the project directory
+- Export the project to FileManager (future integration)
 
 ## Implementation Details
 
@@ -78,6 +92,7 @@ The ProjectManager module uses:
 - `hs.webview` for dialogs
 - `hs.json` for persistent storage
 - `hs.dialog` for file selection and confirmation
+- `FileManager` integration for project data sharing
 
 Project data is stored in `~/.hammerspoon/projects.json`.
 
@@ -90,8 +105,15 @@ Possible future improvements:
 - Custom actions per project
 - Recently opened projects list
 - Project statistics and activity tracking
+- Complete bidirectional sync with FileManager
 
 ## Changelog
+
+### v1.2.0
+- Added FileManager integration for project data sharing
+- Added automatic import from FileManager on first run
+- Added manual import option in the UI
+- Added export functionality (placeholder for future full integration)
 
 ### v1.1.0
 - Added UI control functions to prevent stuck windows

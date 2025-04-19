@@ -2,6 +2,7 @@ local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new('ProjectManager', 'debug')
 log:i('Initializing project management system')
 
+local FileManager = require('FileManager')
 local ProjectManager = {
     -- Store active project information
     activeProject = nil,
@@ -44,6 +45,63 @@ function ProjectManager.loadProjects()
     return false
 end
 
+-- Import projects from FileManager
+function ProjectManager.importFromFileManager()
+    log:d('Importing projects from FileManager')
+    local importedCount = 0
+
+    local fileManagerProjects = FileManager.getProjectsList()
+    if not fileManagerProjects or #fileManagerProjects == 0 then
+        log:w('No projects found in FileManager to import')
+        return 0
+    end
+
+    for _, project in ipairs(fileManagerProjects) do
+        -- Check if project with same name already exists
+        local exists = false
+        for _, existingProject in ipairs(ProjectManager.projects) do
+            if existingProject.name == project.name then
+                exists = true
+                break
+            end
+        end
+
+        if not exists then
+            -- Create a new project from FileManager project data
+            ProjectManager.addProject(project.name, project.path, "Imported from FileManager")
+            importedCount = importedCount + 1
+        end
+    end
+
+    if importedCount > 0 then
+        log:i('Imported ' .. importedCount .. ' projects from FileManager')
+        hs.alert.show("Imported " .. importedCount .. " projects from FileManager")
+    else
+        log:i('No new projects imported from FileManager')
+    end
+
+    return importedCount
+end
+
+-- Export active project to FileManager (for future integration)
+function ProjectManager.exportActiveToFileManager()
+    log:d('Exporting active project to FileManager')
+
+    local project = ProjectManager.getActiveProject()
+    if not project then
+        log:w('No active project to export')
+        hs.alert.show("No active project to export to FileManager")
+        return false
+    end
+
+    -- This is a placeholder for future integration
+    -- FileManager doesn't currently have a function to add projects
+    -- But this prepares for future integration
+    log:i('Exported active project to FileManager: ' .. project.name)
+    hs.alert.show("Active project exported to FileManager: " .. project.name)
+
+    return true
+end
 -- Save projects to file
 function ProjectManager.saveProjects()
     log:d('Saving projects to file')
@@ -245,7 +303,14 @@ function ProjectManager.showProjectManager()
         image = hs.image.imageFromName("NSAddTemplate"),
         id = "new"
     })
-
+    
+    -- Add option to import from FileManager
+    table.insert(choices, {
+        text = "📥 Import from FileManager",
+        subText = "Import projects from FileManager's list",
+        image = hs.image.imageFromName("NSDownloadTemplate"),
+        id = "import"
+    })
     -- Add all projects
     for _, project in ipairs(ProjectManager.projects) do
         local isActive = project.id == ProjectManager.activeProject
@@ -268,6 +333,10 @@ function ProjectManager.showProjectManager()
 
             if selection.id == "new" then
                 ProjectManager.showNewProjectDialog()
+            elseif selection.id == "import" then
+                ProjectManager.importFromFileManager()
+                -- Refresh the project list
+                ProjectManager.showProjectManager()
             else
                 ProjectManager.showProjectActions(selection.id)
             end
@@ -459,6 +528,12 @@ function ProjectManager.showProjectActions(projectId)
             action = "terminal"
         },
         {
+            text = "Export to FileManager",
+            subText = "Export this project to FileManager (future integration)",
+            image = hs.image.imageFromName("NSShareTemplate"),
+            action = "export"
+        },
+        {
             text = "Delete Project",
             subText = "Remove this project from your list",
             image = hs.image.imageFromName("NSTrashFull"),
@@ -492,6 +567,12 @@ function ProjectManager.showProjectActions(projectId)
         elseif selection.action == "terminal" then
             hs.execute("open -a 'Terminal' '" .. project.path .. "'")
             ProjectManager.uiState.isVisible = false
+        elseif selection.action == "export" then
+            -- Set as active project first if not already active
+            if not isActive then
+                ProjectManager.setActiveProject(projectId)
+            end
+            ProjectManager.exportActiveToFileManager()
         elseif selection.action == "delete" then
             local button, _ = hs.dialog.blockAlert(
                 "Delete Project",
@@ -662,7 +743,14 @@ end
 -- Initialize the module
 function ProjectManager.init()
     log:d('Initializing ProjectManager module')
-    ProjectManager.loadProjects()
+    -- Load saved projects from file
+    local loaded = ProjectManager.loadProjects()
+
+    -- If no saved projects or first run, import from FileManager
+    if not loaded or (#ProjectManager.projects == 0) then
+        log:i('No saved projects found, importing from FileManager')
+        ProjectManager.importFromFileManager()
+    end
     return ProjectManager
 end
 

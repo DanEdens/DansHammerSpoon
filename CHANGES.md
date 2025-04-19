@@ -1,3 +1,46 @@
+# Changes - ProjectManager FileManager Integration
+
+## Summary
+Added integration between ProjectManager and FileManager to share project definitions and provide a seamless project management experience.
+
+## Feature Details
+- **Automatic Import**: Projects are automatically imported from FileManager on first run
+  - ProjectManager checks for existing saved projects first
+  - If no projects exist, it imports from FileManager's projects_list
+- **Manual Import**: Added UI option to import projects from FileManager at any time
+  - Accessible from the main Project Manager menu
+  - Skips projects that already exist in ProjectManager
+- **Export Functionality**: Added placeholder for future bidirectional integration
+  - Projects can be exported to FileManager (currently just shows a message)
+  - Prepares for future complete integration
+
+## Changes to Existing Files
+- `ProjectManager.lua`: 
+  - Added FileManager import at the top of the file
+  - Added importFromFileManager function to populate from FileManager's list
+  - Added exportActiveToFileManager function (placeholder for future integration)
+  - Updated init function to automatically import on first run
+  - Added UI options for importing and exporting
+- `ProjectManager_README.md`: 
+  - Updated documentation to include FileManager integration features
+  - Added section specifically for FileManager integration
+  - Updated changelog with v1.2.0 details
+
+## Implementation Notes
+- The integration is currently one-way (FileManager to ProjectManager)
+- The export functionality is a placeholder for future bidirectional sync
+- Projects are imported with a default description of "Imported from FileManager"
+- Duplicate project names are skipped during import
+
+## Lessons Learned
+- Reusing existing data structures prevents duplication and provides consistency
+- Placeholder functions for future integration make it easier to add functionality later
+
+## Next Steps
+- Implement bidirectional sync between ProjectManager and FileManager
+- Add export of all projects (not just active)
+- Consider merging the project lists entirely in a future update
+
 # Changes - ProjectManager UI Control Improvements
 
 ## Summary

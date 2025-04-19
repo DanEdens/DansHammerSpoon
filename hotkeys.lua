@@ -9,6 +9,7 @@ local WindowManager = require('WindowManager')
 local FileManager = require('FileManager')
 local AppManager = require('AppManager')
 local DeviceManager = require('DeviceManager')
+local HotkeyManager = require('HotkeyManager')
 
 -- Define modifier key combinations
 hammer = { "cmd", "ctrl", "alt" }
@@ -18,111 +19,111 @@ _meta = { "cmd", "shift", "alt" }
 -- Keybindings
 -- Window Management
 
-hs.hotkey.bind(hammer, "1", function() WindowManager.applyLayout("topLeft") end)
-hs.hotkey.bind(_hyper, "1", function() WindowManager.applyLayout("bottomLeft") end)
-hs.hotkey.bind(hammer, "2", function() WindowManager.applyLayout("topRight") end)
-hs.hotkey.bind(_hyper, "2", function() WindowManager.applyLayout("bottomRight") end)
-hs.hotkey.bind(_hyper, "r", function() WindowManager.resetShuffleCounters() end)
-hs.hotkey.bind(hammer, "3", function() WindowManager.applyLayout('fullScreen') end)
-hs.hotkey.bind(_hyper, "3", function() WindowManager.applyLayout('nearlyFull') end)
-hs.hotkey.bind(hammer, "4", function() WindowManager.applyLayout('leftWide') end)
-hs.hotkey.bind(_hyper, "4", function() WindowManager.miniShuffle() end)
+hs.hotkey.bind(hammer, "1", "Move Top-Left Corner", function() WindowManager.applyLayout("topLeft") end)
+hs.hotkey.bind(_hyper, "1", "Move Bottom-Left Corner", function() WindowManager.applyLayout("bottomLeft") end)
+hs.hotkey.bind(hammer, "2", "Move Top-Right Corner", function() WindowManager.applyLayout("topRight") end)
+hs.hotkey.bind(_hyper, "2", "Move Bottom-Right Corner", function() WindowManager.applyLayout("bottomRight") end)
+hs.hotkey.bind(_hyper, "r", "Reset Shuffle Counters", function() WindowManager.resetShuffleCounters() end)
+hs.hotkey.bind(hammer, "3", "Full Screen", function() WindowManager.applyLayout('fullScreen') end)
+hs.hotkey.bind(_hyper, "3", "Nearly Full Screen", function() WindowManager.applyLayout('nearlyFull') end)
+hs.hotkey.bind(hammer, "4", "Left Wide Layout", function() WindowManager.applyLayout('leftWide') end)
+hs.hotkey.bind(_hyper, "4", "Mini Shuffle", function() WindowManager.miniShuffle() end)
 
 -- Screen and display management
-hs.hotkey.bind(hammer, "5", function() WindowManager.applyLayout('splitVertical') end)
-hs.hotkey.bind(_hyper, "5", function() WindowManager.applyLayout('splitHorizontal') end)
-hs.hotkey.bind(hammer, "6", function() WindowManager.applyLayout('leftSmall') end)
-hs.hotkey.bind(_hyper, "6", function() WindowManager.applyLayout('leftHalf') end)
-hs.hotkey.bind(hammer, "7", function() WindowManager.applyLayout('rightSmall') end)
-hs.hotkey.bind(_hyper, "7", function() WindowManager.applyLayout('rightHalf') end)
-hs.hotkey.bind(hammer, "8", function() FileManager.showLayoutsMenu() end)
-hs.hotkey.bind(_hyper, "8", function() AppManager.open_system_preferences() end)
-hs.hotkey.bind(hammer, "9", function() WindowManager.moveWindowMouseCenter() end)
-hs.hotkey.bind(_hyper, "9", function() FileManager.openSelectedFile() end)
-hs.hotkey.bind(hammer, "0", function() WindowManager.halfShuffle(4, 3) end)
-hs.hotkey.bind(_hyper, "0", function() WindowManager.halfShuffle(12, 3) end)
+hs.hotkey.bind(hammer, "5", "Split Vertical", function() WindowManager.applyLayout('splitVertical') end)
+hs.hotkey.bind(_hyper, "5", "Split Horizontal", function() WindowManager.applyLayout('splitHorizontal') end)
+hs.hotkey.bind(hammer, "6", "Left Small Layout", function() WindowManager.applyLayout('leftSmall') end)
+hs.hotkey.bind(_hyper, "6", "Left Half Layout", function() WindowManager.applyLayout('leftHalf') end)
+hs.hotkey.bind(hammer, "7", "Right Small Layout", function() WindowManager.applyLayout('rightSmall') end)
+hs.hotkey.bind(_hyper, "7", "Right Half Layout", function() WindowManager.applyLayout('rightHalf') end)
+hs.hotkey.bind(hammer, "8", "Show Layouts Menu", function() FileManager.showLayoutsMenu() end)
+hs.hotkey.bind(_hyper, "8", "Open System Preferences", function() AppManager.open_system_preferences() end)
+hs.hotkey.bind(hammer, "9", "Move Window to Mouse", function() WindowManager.moveWindowMouseCenter() end)
+hs.hotkey.bind(_hyper, "9", "Open Selected File", function() FileManager.openSelectedFile() end)
+hs.hotkey.bind(hammer, "0", "Horizontal Shuffle", function() WindowManager.halfShuffle(4, 3) end)
+hs.hotkey.bind(_hyper, "0", "Vertical Shuffle", function() WindowManager.halfShuffle(12, 3) end)
 
 -- Window Movement
-hs.hotkey.bind(hammer, "left", function() WindowManager.moveWindow("left") end)
-hs.hotkey.bind(_hyper, "left", function() WindowManager.moveToScreen("previous", "right") end)
-hs.hotkey.bind(hammer, "right", function() WindowManager.moveWindow("right") end)
-hs.hotkey.bind(_hyper, "right", function() WindowManager.moveToScreen("next", "right") end)
-hs.hotkey.bind(hammer, "up", function() WindowManager.moveWindow("up") end)
-hs.hotkey.bind(_hyper, "up", function() WindowManager.applyLayout('centerScreen') end)
-hs.hotkey.bind(hammer, "down", function() WindowManager.moveWindow("down") end)
-hs.hotkey.bind(_hyper, "down", function() WindowManager.applyLayout('bottomHalf') end)
+hs.hotkey.bind(hammer, "left", "Move Window Left", function() WindowManager.moveWindow("left") end)
+hs.hotkey.bind(_hyper, "left", "Move to Previous Screen", function() WindowManager.moveToScreen("previous", "right") end)
+hs.hotkey.bind(hammer, "right", "Move Window Right", function() WindowManager.moveWindow("right") end)
+hs.hotkey.bind(_hyper, "right", "Move to Next Screen", function() WindowManager.moveToScreen("next", "right") end)
+hs.hotkey.bind(hammer, "up", "Move Window Up", function() WindowManager.moveWindow("up") end)
+hs.hotkey.bind(_hyper, "up", "Center Screen Layout", function() WindowManager.applyLayout('centerScreen') end)
+hs.hotkey.bind(hammer, "down", "Move Window Down", function() WindowManager.moveWindow("down") end)
+hs.hotkey.bind(_hyper, "down", "Bottom Half Layout", function() WindowManager.applyLayout('bottomHalf') end)
 
 
 -- Window Position Save/Restore
-hs.hotkey.bind(hammer, "F1", function() hs.toggleConsole() end)
-hs.hotkey.bind(_hyper, "F1", function() tempFunction() end)
-hs.hotkey.bind(hammer, "F2", function() tempFunction() end)
-hs.hotkey.bind(_hyper, "F2", function() tempFunction() end)
-hs.hotkey.bind("cmd", "F3", function() AppManager.open_github() end)
-hs.hotkey.bind(hammer, "F3", function() DeviceManager.toggleUSBLogging() end)
-hs.hotkey.bind(_hyper, "F3", function() tempFunction() end)
-hs.hotkey.bind(hammer, "F4", function() tempFunction() end)
-hs.hotkey.bind(_hyper, "F4", function() tempFunction() end)
-hs.hotkey.bind(hammer, "F5", function() hs.reload() end)
-hs.hotkey.bind(_hyper, "F5", function() tempFunction() end)
-hs.hotkey.bind(hammer, "F6", function() WindowManager.saveWindowPosition() end)
-hs.hotkey.bind(_hyper, "F6", function() WindowManager.saveAllWindowPositions() end)
-hs.hotkey.bind(hammer, "F7", function() WindowManager.restoreWindowPosition() end)
-hs.hotkey.bind(_hyper, "F7", function() WindowManager.restoreAllWindowPositions() end)
-hs.hotkey.bind(hammer, "F8", function() tempFunction() end)
-hs.hotkey.bind(_hyper, "F8", function() tempFunction() end)
-hs.hotkey.bind(hammer, "F9", function() tempFunction() end)
-hs.hotkey.bind(_hyper, "F9", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F1", "Toggle Console", function() hs.toggleConsole() end)
+hs.hotkey.bind(_hyper, "F1", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F2", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "F2", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind("cmd", "F3", "Open GitHub", function() AppManager.open_github() end)
+hs.hotkey.bind(hammer, "F3", "Toggle USB Logging", function() DeviceManager.toggleUSBLogging() end)
+hs.hotkey.bind(_hyper, "F3", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F4", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "F4", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F5", "Reload Hammerspoon", function() hs.reload() end)
+hs.hotkey.bind(_hyper, "F5", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F6", "Save Window Position", function() WindowManager.saveWindowPosition() end)
+hs.hotkey.bind(_hyper, "F6", "Save All Window Positions", function() WindowManager.saveAllWindowPositions() end)
+hs.hotkey.bind(hammer, "F7", "Restore Window Position", function() WindowManager.restoreWindowPosition() end)
+hs.hotkey.bind(_hyper, "F7", "Restore All Window Positions", function() WindowManager.restoreAllWindowPositions() end)
+hs.hotkey.bind(hammer, "F8", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "F8", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F9", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "F9", "Temporary Function", function() tempFunction() end)
 -- hs.hotkey.bind(hammer, "F10", function() tempFunction() end)
 -- hs.hotkey.bind(_hyper, "F10", function() tempFunction() end)
 -- hs.hotkey.bind(hammer, "F11", function() tempFunction() end)
 -- hs.hotkey.bind(_hyper, "F11", function() tempFunction() end)
 -- hs.hotkey.bind(hammer, "F12", function() tempFunction() end)
-hs.hotkey.bind(_hyper, "F12", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "F12", "Temporary Function", function() tempFunction() end)
 
 -- Application Launching
-hs.hotkey.bind(hammer, "p", function() AppManager.open_pycharm() end)
-hs.hotkey.bind(_hyper, "p", function() AppManager.open_cursor() end)
-hs.hotkey.bind(hammer, "b", function() AppManager.open_arc() end)
-hs.hotkey.bind(_hyper, "b", function() AppManager.open_chrome() end)
-hs.hotkey.bind(hammer, "d", function() AppManager.open_anythingllm() end)
-hs.hotkey.bind(_hyper, "d", function() AppManager.open_mongodb() end)
-hs.hotkey.bind(hammer, "l", function() AppManager.open_logi() end)
-hs.hotkey.bind(_hyper, "l", function() AppManager.open_system() end)
-hs.hotkey.bind(hammer, "s", function() AppManager.open_slack() end)
-hs.hotkey.bind(hammer, "g", function() AppManager.open_github() end)
-hs.hotkey.bind(hammer, "`", function() AppManager.open_cursor() end)
-hs.hotkey.bind(_hyper, "`", function() AppManager.open_vscode() end)
-hs.hotkey.bind(hammer, "Tab", function() AppManager.open_mission_control() end)
-hs.hotkey.bind(_hyper, "Tab", function() AppManager.open_launchpad() end)
-hs.hotkey.bind(hammer, "t", function() AppManager.open_barrier() end)
+hs.hotkey.bind(hammer, "p", "Open PyCharm", function() AppManager.open_pycharm() end)
+hs.hotkey.bind(_hyper, "p", "Open Cursor", function() AppManager.open_cursor() end)
+hs.hotkey.bind(hammer, "b", "Open Arc Browser", function() AppManager.open_arc() end)
+hs.hotkey.bind(_hyper, "b", "Open Chrome", function() AppManager.open_chrome() end)
+hs.hotkey.bind(hammer, "d", "Open AnythingLLM", function() AppManager.open_anythingllm() end)
+hs.hotkey.bind(_hyper, "d", "Open MongoDB Compass", function() AppManager.open_mongodb() end)
+hs.hotkey.bind(hammer, "l", "Open Logi Options+", function() AppManager.open_logi() end)
+hs.hotkey.bind(_hyper, "l", "Open System Settings", function() AppManager.open_system() end)
+hs.hotkey.bind(hammer, "s", "Open Slack", function() AppManager.open_slack() end)
+hs.hotkey.bind(hammer, "g", "Open GitHub Desktop", function() AppManager.open_github() end)
+hs.hotkey.bind(hammer, "`", "Open Cursor", function() AppManager.open_cursor() end)
+hs.hotkey.bind(_hyper, "`", "Open VS Code", function() AppManager.open_vscode() end)
+hs.hotkey.bind(hammer, "Tab", "Open Mission Control", function() AppManager.open_mission_control() end)
+hs.hotkey.bind(_hyper, "Tab", "Open Launchpad", function() AppManager.open_launchpad() end)
+hs.hotkey.bind(hammer, "t", "Open Barrier", function() AppManager.open_barrier() end)
 
 -- File Management
-hs.hotkey.bind(hammer, "i", function() FileManager.openMostRecentImage() end)
-hs.hotkey.bind(hammer, "e", function() FileManager.showFileMenu() end)
-hs.hotkey.bind(_hyper, "e", function() FileManager.showEditorMenu() end)
+hs.hotkey.bind(hammer, "i", "Open Most Recent Image", function() FileManager.openMostRecentImage() end)
+hs.hotkey.bind(hammer, "e", "Show File Menu", function() FileManager.showFileMenu() end)
+hs.hotkey.bind(_hyper, "e", "Show Editor Menu", function() FileManager.showEditorMenu() end)
 
 -- Device Management
 
 -- Dragon Grid (now using the Spoon)
-hs.hotkey.bind(hammer, "x", function() spoon.DragonGrid:toggleGridDisplay() end)
-hs.hotkey.bind(_hyper, "x", function() spoon.DragonGrid:showSettingsMenu() end)
+hs.hotkey.bind(hammer, "x", "Toggle Dragon Grid", function() spoon.DragonGrid:toggleGridDisplay() end)
+hs.hotkey.bind(_hyper, "x", "Dragon Grid Settings", function() spoon.DragonGrid:showSettingsMenu() end)
 
 -- Misc
-hs.hotkey.bind(hammer, "f", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy'") end)
+hs.hotkey.bind(hammer, "f", "Open Scrcpy", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy'") end)
 -- hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. FileManager.getEditor() .. "' ~/.zshrc") end)
 
 -- Help/Documentation
-hs.hotkey.bind(hammer, "Space", function() showHammerList() end)
-hs.hotkey.bind(_hyper, "Space", function() showHyperList() end)
+hs.hotkey.bind(hammer, "Space", "Show Hammer Hotkeys", function() showHammerList() end)
+hs.hotkey.bind(_hyper, "Space", "Show Hyper Hotkeys", function() showHyperList() end)
 
 -- Add additional hotkeys for unused keys
-hs.hotkey.bind(hammer, "y", function() AppManager.open_countdown_timer() end)
-hs.hotkey.bind(_hyper, "y", function() AppManager.toggle_do_not_disturb() end)
+hs.hotkey.bind(hammer, "y", "Open Countdown Timer", function() AppManager.open_countdown_timer() end)
+hs.hotkey.bind(_hyper, "y", "Toggle Do Not Disturb", function() AppManager.toggle_do_not_disturb() end)
 
 -- HammerGhost Hotkeys
-hs.hotkey.bind(hammer, "m", function() spoon.HammerGhost:toggle() end)
-hs.hotkey.bind(_hyper, "m", function() spoon.HammerGhost:showActionEditor() end)
+hs.hotkey.bind(hammer, "m", "Toggle HammerGhost", function() spoon.HammerGhost:toggle() end)
+hs.hotkey.bind(_hyper, "m", "HammerGhost Editor", function() spoon.HammerGhost:showActionEditor() end)
 
 -- Additional application and system shortcuts
 -- hs.hotkey.bind(hammer, "k", function() AppManager.lock_screen() end)
@@ -184,58 +185,8 @@ hs.hotkey.bind(_hyper, "m", function() spoon.HammerGhost:showActionEditor() end)
 -- hs.hotkey.bind(hammer, "/", function() tempFunction() end)
 -- hs.hotkey.bind(_hyper, "/", function() tempFunction() end)
 -- Help text functions
-function showHammerList()
-    hs.alert.show("\
-    P     -- PyCharm                                         B     -- Arc Browser  \
-    D     -- AnythingLLM                                Y     -- Countdown Timer  \
-    L     -- Logi Options+                                F     -- Scrcpy  \
-    M     -- Media Play/Pause                        S     -- Slack  \
-    G     -- GitHub Desktop                           E     -- Edit File Menu  \
-    T     -- Barrier                                              F1    -- Toggle HS Console  \
-    F2    -- Post S22                                        F3    -- Toggle USB Logging  \
-    F4    -- Toggle Key Logging                   F5    -- Reload HS  \
-    F6    -- Save Window Position              F7    -- Restore Window Position  \
-    F8    -- Set Target Window                    0     -- Horizontal Shuffle  \
-    1     -- Move Top-Left Corner                2     -- Move Top-Right Corner  \
-    3     -- Full Screen                                     4     -- Move Window 95/72 Left Side  \
-    6     -- Small Left Side                             7     -- Small Right Side  \
-    8     -- Layouts Menu                              9     -- Move Window to Mouse Center  \
-    Left  -- Move Window Left                   Right -- Move Window Right  \
-    Up    -- Move Window Up                     Down  -- Move Window Down  \
-    -     -- Show This List                               `     -- Cursor  \
-    Tab   -- Mission Control  \
-    ")
-end
 
-function showHyperList()
-    hs.alert.show("\
-    W     -- Aclock Show  \
-    P     -- Open Cursor  \
-    B     -- Chrome  \
-    D     -- MongoDB Compass  \
-    F3    -- Shuffle Layouts  \
-    F6    -- Save All Window Positions  \
-    F7    -- Restore All Window Positions  \
-    F11   -- Move Window One Space Left  \
-    F12   -- Move Window One Space Right  \
-    0     -- Vertical Shuffle (4 sections)  \
-    1     -- Move Window Bottom-Left Corner  \
-    2     -- Move Window Bottom-Right Corner  \
-    3     -- 80% Full Screen Centered  \
-    4     -- Mini Shuffle  \
-    6     -- Full Left Half  \
-    7     -- Full Right Half  \
-    9     -- Open Selected File  \
-    Left  -- Move to Previous Screen  \
-    Right -- Move to Next Screen  \
-    -     -- Show This List  \
-    `     -- Visual Studio Code  \
-    Tab   -- Launchpad  \
-    R     -- Reset Window Shuffle Counters  \
-    ")
-end
-
--- Add a definition for tempFunction at the end of the file, before the help text functions
+-- Add a definition for tempFunction at the end of the file
 function tempFunction()
     log:i('Temporary function called')
     hs.alert.show("Temporary Function Placeholder")

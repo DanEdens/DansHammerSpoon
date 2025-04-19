@@ -340,10 +340,18 @@ function HotkeyManager.showHotkeyList(modType)
                 color: rgba(200, 200, 200, 0.7);
             }
         </style>
+        <script>
+            function closeWindow() {
+                try {
+                    window.webkit.messageHandlers.closeWindow.postMessage("");
+                } catch(e) {
+                    console.log("Error sending close message");
+                }
+            }
+        </script>
     </head>
     <body>
-    <div class="close-button" onclick="window.location='hammerspoon://hotkey-manager/close?type=]] ..
-        modType .. [['">✕</div>
+    <div class="close-button" onclick="closeWindow()">✕</div>
     ]] .. displayText .. [[
     <div class="help-text">Press ESC or click anywhere to close</div>
     </body>
@@ -355,15 +363,9 @@ function HotkeyManager.showHotkeyList(modType)
     webview:alpha(0.0) -- Start with 0 opacity for fade in
     webview:show()
 
-    -- Add URL click handler
-    webview:setCallback(function(webview, message)
-        if message.urlParts and message.urlParts.scheme == "hammerspoon" then
-            if message.urlParts.host == "hotkey-manager" and message.urlParts.path == "/close" then
-                -- Close the hotkey window
-                HotkeyManager.hideHotkeyList(modType)
-                return true
-            end
-        end
+    -- Add message handler for close button
+    webview:windowCallback("closeWindow", function()
+        HotkeyManager.hideHotkeyList(modType)
     end)
     
     -- Add a click handler to close on any click

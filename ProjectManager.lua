@@ -6,7 +6,15 @@ local ProjectManager = {
     -- Store active project information
     activeProject = nil,
     projects = {},
-    projectsFilePath = hs.configdir .. "/projects.json"
+    projectsFilePath = hs.configdir .. "/projects.json",
+
+    -- UI state tracking
+    uiState = {
+        projectChooser = nil,
+        projectWebView = nil,
+        actionsChooser = nil,
+        isVisible = false
+    }
 }
 
 -- Load saved projects from file
@@ -157,10 +165,77 @@ function ProjectManager.updateProject(projectId, updates)
     return false
 end
 
+-- Hide any open UI elements
+function ProjectManager.hideUI()
+    log:d('Hiding ProjectManager UI elements')
+
+    -- Hide project chooser if open
+    if ProjectManager.uiState.projectChooser then
+        ProjectManager.uiState.projectChooser:hide()
+    end
+
+    -- Hide webview if open
+    if ProjectManager.uiState.projectWebView then
+        ProjectManager.uiState.projectWebView:hide()
+        -- Don't delete webview here, just hide it
+    end
+
+    -- Hide actions chooser if open
+    if ProjectManager.uiState.actionsChooser then
+        ProjectManager.uiState.actionsChooser:hide()
+    end
+
+    ProjectManager.uiState.isVisible = false
+    log:i('ProjectManager UI hidden')
+end
+
+-- Reset UI state by closing and clearing all UI elements
+function ProjectManager.resetUI()
+    log:d('Resetting ProjectManager UI state')
+
+    -- Close and clear project chooser
+    if ProjectManager.uiState.projectChooser then
+        ProjectManager.uiState.projectChooser:delete()
+        ProjectManager.uiState.projectChooser = nil
+    end
+
+    -- Close and clear webview
+    if ProjectManager.uiState.projectWebView then
+        ProjectManager.uiState.projectWebView:delete()
+        ProjectManager.uiState.projectWebView = nil
+    end
+
+    -- Close and clear actions chooser
+    if ProjectManager.uiState.actionsChooser then
+        ProjectManager.uiState.actionsChooser:delete()
+        ProjectManager.uiState.actionsChooser = nil
+    end
+
+    ProjectManager.uiState.isVisible = false
+    log:i('ProjectManager UI reset')
+    hs.alert.show("Project Manager UI reset")
+end
+
+-- Toggle project manager UI (show/hide)
+function ProjectManager.toggleProjectManager()
+    log:d('Toggling project manager UI')
+
+    if ProjectManager.uiState.isVisible then
+        ProjectManager.hideUI()
+        log:i('Project manager UI hidden')
+    else
+        ProjectManager.showProjectManager()
+        log:i('Project manager UI shown')
+    end
+end
 -- Show project management UI
 function ProjectManager.showProjectManager()
     log:d('Showing project manager UI')
-
+    
+    -- If UI is already visible, hide it first to prevent multiple instances
+    if ProjectManager.uiState.isVisible then
+        ProjectManager.hideUI()
+    end
     local choices = {}
 
     -- Add option to create new project
@@ -183,30 +258,47 @@ function ProjectManager.showProjectManager()
         })
     end
 
-    local chooser = hs.chooser.new(function(selection)
-        if not selection then return end
+    -- Create new chooser or reuse existing one
+    if not ProjectManager.uiState.projectChooser then
+        ProjectManager.uiState.projectChooser = hs.chooser.new(function(selection)
+            if not selection then
+                ProjectManager.uiState.isVisible = false
+                return
+            end
 
-        if selection.id == "new" then
-            ProjectManager.showNewProjectDialog()
-        else
-            ProjectManager.showProjectActions(selection.id)
-        end
-    end)
+            if selection.id == "new" then
+                ProjectManager.showNewProjectDialog()
+            else
+                ProjectManager.showProjectActions(selection.id)
+            end
+        end)
+    end
 
+    local chooser = ProjectManager.uiState.projectChooser
     chooser:searchSubText(true)
     chooser:choices(choices)
     chooser:placeholderText("Select or create a project")
     chooser:show()
+    ProjectManager.uiState.isVisible = true
 end
 
 -- Dialog to create a new project
 function ProjectManager.showNewProjectDialog()
     log:d('Showing new project dialog')
-
+    
+    -- Hide project chooser while editing
+    if ProjectManager.uiState.projectChooser then
+        ProjectManager.uiState.projectChooser:hide()
+    end
     -- Create a simple dialog for project creation
     local rect = hs.geometry.rect(100, 100, 600, 300)
+    -- Delete existing webview if it exists
+    if ProjectManager.uiState.projectWebView then
+        ProjectManager.uiState.projectWebView:delete()
+    end
     local webView = hs.webview.new(rect)
-
+    ProjectManager.uiState.projectWebView = webView
+    
     local html = [[
     <!DOCTYPE html>
     <html>
@@ -266,20 +358,22 @@ function ProjectManager.showNewProjectDialog()
     </body>
     </html>
     ]]
-
+    
     webView:html(html)
     webView:allowNewWindows(false)
     webView:allowTextEntry(true)
     webView:windowTitle("Create New Project")
     webView:bringToFront(true)
     webView:show()
-
+    
     webView:setCallback(function(webview, message)
         local action = message.urlParts.host
         local params = message.urlParts.queryItems
-
+        
         if action == "cancel" then
             webview:delete()
+            ProjectManager.uiState.projectWebView = nil
+            ProjectManager.uiState.isVisible = false
         elseif action == "create" then
             if params.name and params.path then
                 local project = ProjectManager.addProject(params.name, params.path, params.description)
@@ -291,6 +385,8 @@ function ProjectManager.showNewProjectDialog()
                 end
             end
             webview:delete()
+            ProjectManager.uiState.projectWebView = nil
+            ProjectManager.uiState.isVisible = false
         elseif action == "browse" then
             -- Show file picker dialog for project path
             hs.dialog.chooseFileOrFolder(function(path)
@@ -309,7 +405,11 @@ end
 -- Show actions for a specific project
 function ProjectManager.showProjectActions(projectId)
     log:d('Showing project actions for: ' .. projectId)
-
+    
+    -- Hide project chooser while showing actions
+    if ProjectManager.uiState.projectChooser then
+        ProjectManager.uiState.projectChooser:hide()
+    end
     local project = nil
     for _, p in ipairs(ProjectManager.projects) do
         if p.id == projectId then
@@ -317,15 +417,16 @@ function ProjectManager.showProjectActions(projectId)
             break
         end
     end
-
+    
     if not project then
         log:e('Project not found for actions: ' .. projectId)
         hs.alert.show("Project not found")
+        ProjectManager.uiState.isVisible = false
         return
     end
-
+    
     local isActive = projectId == ProjectManager.activeProject
-
+    
     local actions = {
         {
             text = isActive and "✓ Currently Active" or "Set as Active Project",
@@ -364,10 +465,17 @@ function ProjectManager.showProjectActions(projectId)
             action = "delete"
         }
     }
+    
+    -- Delete existing actions chooser if it exists
+    if ProjectManager.uiState.actionsChooser then
+        ProjectManager.uiState.actionsChooser:delete()
+    end
 
-    local chooser = hs.chooser.new(function(selection)
-        if not selection then return end
-
+    ProjectManager.uiState.actionsChooser = hs.chooser.new(function(selection)
+        if not selection then
+            ProjectManager.uiState.isVisible = false
+            return
+        end
         if selection.action == "activate" then
             if not isActive then
                 ProjectManager.setActiveProject(projectId)
@@ -377,10 +485,13 @@ function ProjectManager.showProjectActions(projectId)
             ProjectManager.showEditProjectDialog(project)
         elseif selection.action == "open" then
             hs.execute("open '" .. project.path .. "'")
+            ProjectManager.uiState.isVisible = false
         elseif selection.action == "editor" then
             hs.execute("open -a 'Code' '" .. project.path .. "'")
+            ProjectManager.uiState.isVisible = false
         elseif selection.action == "terminal" then
             hs.execute("open -a 'Terminal' '" .. project.path .. "'")
+            ProjectManager.uiState.isVisible = false
         elseif selection.action == "delete" then
             local button, _ = hs.dialog.blockAlert(
                 "Delete Project",
@@ -389,7 +500,7 @@ function ProjectManager.showProjectActions(projectId)
                 "Cancel",
                 "NSCriticalAlertStyle"
             )
-
+            
             if button == "Delete" then
                 if ProjectManager.removeProject(projectId) then
                     hs.alert.show("Project removed: " .. project.name)
@@ -399,7 +510,8 @@ function ProjectManager.showProjectActions(projectId)
             end
         end
     end)
-
+    
+    local chooser = ProjectManager.uiState.actionsChooser
     chooser:searchSubText(true)
     chooser:choices(actions)
     chooser:placeholderText("Actions for: " .. project.name)
@@ -409,10 +521,15 @@ end
 -- Edit project dialog
 function ProjectManager.showEditProjectDialog(project)
     log:d('Showing edit project dialog for: ' .. project.id)
-
+    
+    -- Delete existing webview if it exists
+    if ProjectManager.uiState.projectWebView then
+        ProjectManager.uiState.projectWebView:delete()
+    end
     local rect = hs.geometry.rect(100, 100, 600, 300)
     local webView = hs.webview.new(rect)
-
+    ProjectManager.uiState.projectWebView = webView
+    
     local html = string.format([[
     <!DOCTYPE html>
     <html>
@@ -477,20 +594,22 @@ function ProjectManager.showEditProjectDialog(project)
         project.description,
         project.id
     )
-
+    
     webView:html(html)
     webView:allowNewWindows(false)
     webView:allowTextEntry(true)
     webView:windowTitle("Edit Project")
     webView:bringToFront(true)
     webView:show()
-
+    
     webView:setCallback(function(webview, message)
         local action = message.urlParts.host
         local params = message.urlParts.queryItems
-
+        
         if action == "cancel" then
             webview:delete()
+            ProjectManager.uiState.projectWebView = nil
+            ProjectManager.uiState.isVisible = false
         elseif action == "update" then
             if params.id and params.name and params.path then
                 local updates = {
@@ -506,6 +625,8 @@ function ProjectManager.showEditProjectDialog(project)
                 end
             end
             webview:delete()
+            ProjectManager.uiState.projectWebView = nil
+            ProjectManager.uiState.isVisible = false
         elseif action == "browse" then
             hs.dialog.chooseFileOrFolder(function(path)
                 if path then

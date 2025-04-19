@@ -147,8 +147,10 @@ hs.hotkey.bind(_hyper, "m", "HammerGhost Editor", function() spoon.HammerGhost:s
 -- hs.hotkey.bind(_hyper, "k", function() AppManager.sleep_display() end)
 
 -- Project Management
-hs.hotkey.bind(hammer, "j", "Show Project Manager", function() ProjectManager.showProjectManager() end)
+hs.hotkey.bind(hammer, "j", "Toggle Project Manager", function() ProjectManager.toggleProjectManager() end)
 hs.hotkey.bind(_hyper, "j", "Show Active Project Info", function() ProjectManager.showActiveProjectInfo() end)
+hs.hotkey.bind(hammer, "k", "Reset Project Manager UI", function() ProjectManager.resetUI() end)
+hs.hotkey.bind(_hyper, "k", "Hide Project Manager UI", function() ProjectManager.hideUI() end)
 -- Clipboard and productivity tools
 -- hs.hotkey.bind(hammer, "c", function() FileManager.showClipboardManager() end)
 -- hs.hotkey.bind(_hyper, "c", function() FileManager.clearClipboard() end)

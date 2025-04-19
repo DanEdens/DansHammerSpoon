@@ -1,3 +1,44 @@
+# Changes - ProjectManager UI Control Improvements
+
+## Summary
+Added UI control functions to the ProjectManager module to prevent stuck windows and provide better user control over the interface.
+
+## Feature Details
+- **UI State Tracking**: Added comprehensive state tracking for all UI elements
+  - Tracks project chooser, webview, and actions chooser instances
+  - Prevents duplicate UI elements from being created
+  - Maintains visibility state for toggle functionality
+- **UI Control Functions**:
+  - Added `toggleProjectManager()` - Shows/hides UI based on current state
+  - Added `hideUI()` - Hides all UI elements without destroying them
+  - Added `resetUI()` - Completely resets UI state by closing all windows
+  - Updated `showProjectManager()` - Now checks for existing UI state
+
+## New Hotkeys
+- `hammer+k` (Cmd+Ctrl+Alt+K): Reset Project Manager UI
+- `hyper+k` (Cmd+Shift+Ctrl+Alt+K): Hide Project Manager UI
+- Updated `hammer+j` to toggle the UI instead of just showing it
+
+## Changes to Existing Files
+- `ProjectManager.lua`: Added UI state tracking and control functions
+- `hotkeys.lua`: Updated hotkeys for ProjectManager to use new functions
+- `ProjectManager_README.md`: Updated documentation with new UI control features
+
+## Implementation Notes
+- The UI state tracking allows for proper cleanup of UI elements
+- Reset function ensures users can recover from any stuck UI state
+- Toggle functionality provides better UX than separate show/hide functions
+
+## Lessons Learned
+- UI elements in Hammerspoon need proper state tracking to avoid leaks
+- Providing explicit reset functionality helps users recover from UI issues
+- Toggle patterns are more intuitive than separate show/hide functions
+
+## Next Steps
+- Consider adding a global hotkey to force-reset all Hammerspoon UI elements
+- Explore adding timeout auto-hide functionality to prevent abandoned UIs
+- Add visual indicators for active project status in the menu bar
+
 # Changes - Project Management System
 
 ## Summary

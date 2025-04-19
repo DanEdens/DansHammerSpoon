@@ -150,6 +150,8 @@ Several improvements have been made to the codebase:
    - Automatically tracks and categorizes all hotkey bindings
    - Excludes temporary/placeholder functions from the hotkey list
    - Groups hotkeys into logical categories for easier reference
+   - **Enhanced with persistent, toggleable window display**
+   - **Wider, more readable layout with styled HTML and color coding**
    - See [HotkeyManager_README.md](HotkeyManager_README.md) for details
 
 2. **HammerGhost URL Event Handling Fix** - Fixed WebKit-based communication in HammerGhost.spoon

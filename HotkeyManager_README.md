@@ -83,3 +83,21 @@ HotkeyManager.configureDisplay({
 ## Customization
 
 The categories and display format can be customized by modifying the `showHotkeyList` function in the module. 
+
+## Troubleshooting
+
+### Webview Display Issues
+
+If you encounter error messages like this:
+```
+attempt to index a hs.webview value (local 'webview')
+```
+
+This can happen due to timing issues with the webview component. The latest version has improved error handling to prevent these issues by:
+
+1. Adding proper null checking throughout the code
+2. Using safer reference handling for the webview object 
+3. Adding verification timers to catch potential race conditions
+4. Using pcall() for operations that might fail
+
+If you still encounter webview-related errors, try reloading Hammerspoon or check for conflicts with other extensions that might interfere with webview operations.

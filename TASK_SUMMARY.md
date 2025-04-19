@@ -1,27 +1,38 @@
-# Alert-based Hotkey Display Implementation
+# WindowToggler Task Summary
 
-## Tasks Completed
+## Task Completed
+Added a window management tool that tracks window positions by title and allows toggling between the current position and a "nearlyFull" layout.
 
-1. Added alert-specific display settings to `HotkeyManager.lua`:
-   - `alertDuration`: Set to 7 seconds by default
-   - `alertFontSize`: Set to 16 by default
-   - `alertTextColor`: Set to white (1,1,1,1) by default
-   - `alertBackgroundColor`: Set to semi-transparent black (0.1,0.1,0.1,0.85) by default
+## Implementation
+1. Created a new module `WindowToggler.lua` with the following features:
+   - Position storage by window title rather than ID
+   - Position toggle functionality between current position and nearlyFull layout
+   - Functions to list and clear saved positions
+   - Intelligent detection of window position to determine toggle behavior
 
-2. Created comprehensive README documentation:
-   - Documented all alert display settings
-   - Provided descriptions of feature capabilities
-   - Included usage instructions
+2. Added hotkeys to `hotkeys.lua`:
+   - `hammer+w`: Toggle window position
+   - `hyper+w`: List saved window positions
+   - `hammer+q`: Clear saved positions
+
+3. Created documentation:
+   - `WindowToggler_README.md`: Detailed module documentation
+   - Updated `README.md`: Added information about the new feature
+   - Created `CHANGES.md`: Documented the implementation details and lessons learned
+
+4. Workflow:
+   - Created a feature branch (`feature/window-toggle-by-title`)
+   - Made incremental commits
+   - Tested the implementation
+   - Merged back to main branch
 
 ## Benefits
+- More persistent window position tracking (survives application restarts)
+- Simpler toggle experience compared to manually saving/restoring positions
+- Improved workflow by allowing quick toggling between working positions and presentation mode
 
-- Allows for customizable alert appearance without modifying core code
-- Provides consistent visual styling across hotkey alerts
-- Improves user experience with appropriate default settings
-- Clear documentation makes future maintenance easier
-
-## Future Improvements
-
-- Implement positioning options for alert display
-- Add support for custom animations
-- Consider adding theme presets for quick visual style changes 
+## Possible Future Enhancements
+1. Save positions to disk for persistence across Hammerspoon restarts
+2. Support multiple saved positions per window title
+3. Add support for toggling between positions and other layouts beyond nearlyFull
+4. Deeper integration with the existing WindowManager module 

@@ -95,9 +95,18 @@ attempt to index a hs.webview value (local 'webview')
 
 This can happen due to timing issues with the webview component. The latest version has improved error handling to prevent these issues by:
 
-1. Adding proper null checking throughout the code
+1. Adding comprehensive null checking throughout the code
 2. Using safer reference handling for the webview object 
 3. Adding verification timers to catch potential race conditions
-4. Using pcall() for operations that might fail
+4. Using pcall() for all operations that might fail
+5. Graceful handling of webview creation failures
+6. Implementing timeout-based cleanup to prevent resource leaks
+7. Enhanced error logging to help diagnose issues
 
-If you still encounter webview-related errors, try reloading Hammerspoon or check for conflicts with other extensions that might interfere with webview operations.
+If you still encounter webview-related errors, try these solutions:
+1. Reload Hammerspoon
+2. Check for conflicts with other extensions that might interfere with webview operations
+3. Verify that you have the latest version of HotkeyManager
+4. Adjust the display configuration (width/height) to match your screen's capabilities
+
+The module includes multiple layers of error handling to provide the best possible user experience even in the event of internal errors.

@@ -13,6 +13,7 @@
 - [ ] Standardize alert/notification system across different modules
 
 ## Feature Improvements
+- [x] Implement project management system for tracking active jobs/projects
 - [ ] Complete HammerGhost implementation as outlined in AGENT_PLAN_HAMMERGHOST.md
 - [ ] Improve localStorage handling for window positions
 - [ ] Add error handling for all user-facing functions
@@ -48,6 +49,15 @@
 - [ ] Create proper documentation for all custom modules
 - [ ] Document hotkey bindings in a user-friendly format
 - [ ] Create setup/installation instructions for new users
+
+## ProjectManager Enhancements
+- [ ] Add project templates for quick project creation
+- [ ] Implement project-specific window layouts
+- [ ] Add version control system integration (Git status, operations)
+- [ ] Create project-specific environment configurations
+- [ ] Implement recently opened projects tracking
+- [ ] Add project search and filtering capabilities
+- [ ] Create project statistics and activity tracking
 
 ## Future Enhancements
 - [ ] Investigate integration with system events for more automation capabilities

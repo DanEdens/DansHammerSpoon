@@ -6,6 +6,9 @@ local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new('Main', 'info')
 log:i('Starting Hammerspoon initialization')
 
+-- Enable AppleScript support
+hs.allowAppleScript(true)
+log:i('AppleScript support enabled')
 -- Load core modules
 require("hs.ipc")
 log:d('Core IPC module loaded')
@@ -383,6 +386,11 @@ end
 log:d('Loading hotkeys module')
 dofile(hs.configdir .. "/hotkeys.lua")
 
+-- Load HotkeyManager module for dynamic hotkey lists
+log:d('Loading HotkeyManager module')
+local HotkeyManager = require('HotkeyManager')
+log:i('HotkeyManager loaded with ' ..
+#HotkeyManager.bindings.hammer .. ' hammer bindings and ' .. #HotkeyManager.bindings.hyper .. ' hyper bindings')
 log:i('Hammerspoon initialization complete')
 hs.alert.show("Config loaded")
 

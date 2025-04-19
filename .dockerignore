@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# Docker
+docker/
+
+# Generated files
+.DS_Store
+*.log
+logs/
+projects.json
+.secrets
+
+# Editor files
+.vscode/
+.idea/
+
+# Build files
+*.o
+*.a
+*.so
+
+# Large files and directories
+Spoons/

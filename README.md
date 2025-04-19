@@ -152,6 +152,15 @@ Shortcuts use these modifier combinations:
 
 3. Launch Hammerspoon or reload your configuration if already running
 
+### Docker Setup for Development and Deployment
+
+For development, testing, and deployment support, a Docker setup is available:
+
+- **Development Environment**: A Docker container for validating and testing Hammerspoon configuration
+- **Deployment Script**: For installing the configuration on actual macOS systems
+
+See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed instructions.
+
 ## Customization
 
 The configuration can be customized by editing the following files:

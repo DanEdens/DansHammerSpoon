@@ -1,0 +1,22 @@
+name: Validate Hammerspoon Configuration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    
+    - name: Build and run validation
+      run: |
+        docker build -t hammerspoon-dev -f docker/dev/Dockerfile .
+        docker run hammerspoon-dev ./validate.sh 

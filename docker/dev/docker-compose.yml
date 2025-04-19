@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  hammerspoon-dev:
+    build:
+      context: ../..
+      dockerfile: docker/dev/Dockerfile
+    volumes:
+      - ../..:/hammerspoon
+    working_dir: /hammerspoon
+    tty: true
+    stdin_open: true 

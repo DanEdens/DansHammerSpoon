@@ -327,3 +327,39 @@ log:i('Custom location message', 'path/to/file.lua', 42)
 ## Customization
 - Edit the `createClickableLog` function to change the styling of log messages
 - Modify the URL handler to use a different editor
+
+# Hammerspoon Configuration
+
+This repository contains the custom Hammerspoon configuration for managing hotkeys, window arrangements, and other productivity enhancements.
+
+## Features
+
+- **Hotkey Management**: HotkeyManager module provides a consistent interface for managing and displaying hotkeys.
+- **Alert-based Display**: Shows pressed hotkeys in an elegant alert window with configurable appearance.
+- **Category-based Organization**: Hotkeys are organized by categories with custom colors for better visual grouping.
+
+## Configuration
+
+The HotkeyManager can be configured through the `HotkeyManager.config` table in `HotkeyManager.lua`. Key settings include:
+
+### Display Settings
+- `width`: Width of the hotkey display (default: 800)
+- `height`: Height of the hotkey display (default: 600)
+- `cornerRadius`: Corner radius for the hotkey display (default: 10)
+- `font`: Font for the hotkey display (default: "Menlo")
+- `fontSize`: Font size for the hotkey display (default: 14)
+- `fadeInDuration`: Duration of fade in animation (default: 0.3s)
+- `fadeOutDuration`: Duration of fade out animation (default: 0.3s)
+
+### Alert Settings
+- `alertDuration`: Duration to show the hotkey alert (default: 7s)
+- `alertFontSize`: Font size for the alert text (default: 16)
+- `alertTextColor`: Text color for alerts (default: white)
+- `alertBackgroundColor`: Background color for alerts (default: semi-transparent dark)
+
+### Category Colors
+Custom colors can be defined for different categories of hotkeys to provide visual distinction.
+
+## Usage
+
+Press configured hotkeys to trigger actions and see them displayed in the alert window.

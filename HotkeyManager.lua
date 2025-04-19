@@ -25,26 +25,34 @@ HotkeyManager.displayWindows = {
     hyper = nil
 }
 
--- Window display configuration
+-- Default configuration
 HotkeyManager.config = {
-    width = 800,                              -- Width of the display window
-    height = 600,                             -- Height of the display window
-    backgroundColor = { 0.1, 0.1, 0.1, 0.9 }, -- Dark background with some transparency
-    textColor = { 0.9, 0.9, 0.9, 1.0 },       -- Light text color
-    font = "Menlo",
-    fontSize = 14,
-    fadeInDuration = 0.2,
-    fadeOutDuration = 0.3,
-    cornerRadius = 10,
+    -- Display settings
+    width = 800,           -- Width of the hotkey display
+    height = 600,          -- Height of the hotkey display
+    cornerRadius = 10,     -- Corner radius for the hotkey display
+    font = "Menlo",        -- Font for the hotkey display
+    fontSize = 14,         -- Font size for the hotkey display
+    fadeInDuration = 0.3,  -- Duration of the fade in animation
+    fadeOutDuration = 0.3, -- Duration of the fade out animation
+
+    -- Alert settings
+    alertDuration = 7,                            -- Duration in seconds to show the hotkey alert
+    alertFontSize = 16,                           -- Font size for the alert text
+    alertTextColor = { 1, 1, 1, 1 },              -- White text
+    alertBackgroundColor = { 0.1, 0.1, 0.1, 0.85 }, -- Dark background with transparency
+
+    -- Category colors for the hotkey display
     categoryColors = {
-        ["Window Management"] = { 0.2, 0.6, 0.8, 1.0 }, -- Blue
-        ["Applications"] = { 0.8, 0.4, 0.2, 1.0 },      -- Orange
-        ["Files"] = { 0.2, 0.8, 0.4, 1.0 },             -- Green
-        ["UI & Display"] = { 0.6, 0.3, 0.8, 1.0 },      -- Purple
-        ["System"] = { 0.8, 0.3, 0.3, 1.0 },            -- Red
-        ["Other"] = { 0.7, 0.7, 0.7, 1.0 }              -- Gray
+        ["Window Management"] = { 0.4, 0.7, 0.9 },
+        ["Applications"] = { 0.9, 0.5, 0.5 },
+        ["Files"] = { 0.5, 0.9, 0.6 },
+        ["UI & Display"] = { 0.8, 0.7, 0.3 },
+        ["System"] = { 0.9, 0.5, 0.9 },
+        ["Other"] = { 0.7, 0.7, 0.7 }
     }
 }
+
 -- Register a hotkey binding
 function HotkeyManager.registerBinding(modifiers, key, callback, description)
     local modType = nil
@@ -125,19 +133,14 @@ function HotkeyManager.showHotkeyList(modType)
         log:e("Unknown modifier type:", modType)
         return
     end
-    
+
     local bindings = HotkeyManager.bindings[modType]
     if #bindings == 0 then
         log:w("No bindings registered for:", modType)
         hs.alert.show("No hotkeys registered")
         return
     end
-    
-    -- Check if the window is already showing, if so, close it and return
-    if HotkeyManager.displayWindows[modType] then
-        HotkeyManager.hideHotkeyList(modType)
-        return
-    end
+
     -- Group bindings by category
     local categories = {}
 
@@ -182,372 +185,103 @@ function HotkeyManager.showHotkeyList(modType)
 
     -- Generate the display text with categories
     local displayText = ""
-    
+
     -- Add a title
     local titleText = modType == HotkeyManager.MODIFIERS.HAMMER and "Hammer Mode Hotkeys" or "Hyper Mode Hotkeys"
-    displayText = displayText .. string.format("<span style='font-size:18pt; font-weight:bold;'>%s</span>\n", titleText)
-    displayText = displayText ..
-        "<span style='font-size:10pt; color:gray;'>(Press the same hotkey again to close this window)</span>\n\n"
+    displayText = displayText .. titleText .. "\n\n"
 
     -- Order of categories
     local categoryOrder = { "Window Management", "Applications", "Files", "UI & Display", "System" }
+    
     -- Add categories in preferred order
     for _, catName in ipairs(categoryOrder) do
         if categories[catName] and #categories[catName] > 0 then
-            -- Add category header with color
-            local color = HotkeyManager.config.categoryColors[catName]
-            local colorStr = string.format("rgb(%d,%d,%d)", math.floor(color[1] * 255), math.floor(color[2] * 255),
-                math.floor(color[3] * 255))
-            displayText = displayText ..
-                string.format("<span style='font-size:16pt; font-weight:bold; color:%s;'>%s</span>\n", colorStr, catName)
+            -- Add category header
+            displayText = displayText .. "— " .. catName .. " —\n"
 
-            -- Add hotkeys in this category
-            displayText = displayText .. "<table style='width:100%; border-spacing:5px;'>\n"
-            local rowCount = 0
+            -- Create two columns of hotkeys
+            local colWidth = 40
+            local col = 0
+            local row = ""
 
-            for i = 1, #categories[catName], 2 do
-                rowCount = rowCount + 1
-                displayText = displayText .. "<tr>\n"
+            for i, binding in ipairs(categories[catName]) do
+                local hotkeyText = string.format("%-6s -- %-25s", binding.key, binding.description)
 
-                -- First column
-                displayText = displayText .. string.format(
-                    "<td style='width:45%%;'><span style='font-weight:bold;'>%s</span> — %s</td>\n",
-                    categories[catName][i].key,
-                    categories[catName][i].description
-                )
-
-                -- Second column if available
-                if i + 1 <= #categories[catName] then
-                    displayText = displayText .. string.format(
-                        "<td style='width:45%%;'><span style='font-weight:bold;'>%s</span> — %s</td>\n",
-                        categories[catName][i + 1].key,
-                        categories[catName][i + 1].description
-                    )
+                if col > 0 then
+                    row = row .. string.rep(" ", colWidth - #hotkeyText) .. hotkeyText
                 else
-                    displayText = displayText .. "<td style='width:45%;'></td>\n"
+                    row = row .. hotkeyText
                 end
+                
+                col = col + 1
 
-                displayText = displayText .. "</tr>\n"
+                if col >= 2 or i == #categories[catName] then
+                    displayText = displayText .. row .. "\n"
+                    row = ""
+                    col = 0
+                end
             end
-
-            displayText = displayText .. "</table>\n<br>\n"
+            
+            displayText = displayText .. "\n"
         end
     end
 
     -- Handle "Other" category last
     if categories["Other"] and #categories["Other"] > 0 then
-        local color = HotkeyManager.config.categoryColors["Other"]
-        local colorStr = string.format("rgb(%d,%d,%d)", math.floor(color[1] * 255), math.floor(color[2] * 255),
-            math.floor(color[3] * 255))
-        displayText = displayText ..
-            string.format("<span style='font-size:16pt; font-weight:bold; color:%s;'>%s</span>\n", colorStr, "Other")
+        displayText = displayText .. "— Other —\n"
 
-        displayText = displayText .. "<table style='width:100%; border-spacing:5px;'>\n"
+        -- Create two columns of hotkeys
+        local colWidth = 40
+        local col = 0
+        local row = ""
 
-        for i = 1, #categories["Other"], 2 do
-            displayText = displayText .. "<tr>\n"
+        for i, binding in ipairs(categories["Other"]) do
+            local hotkeyText = string.format("%-6s -- %-25s", binding.key, binding.description)
 
-            -- First column
-            displayText = displayText .. string.format(
-                "<td style='width:45%%;'><span style='font-weight:bold;'>%s</span> — %s</td>\n",
-                categories["Other"][i].key,
-                categories["Other"][i].description
-            )
-
-            -- Second column if available
-            if i + 1 <= #categories["Other"] then
-                displayText = displayText .. string.format(
-                    "<td style='width:45%%;'><span style='font-weight:bold;'>%s</span> — %s</td>\n",
-                    categories["Other"][i + 1].key,
-                    categories["Other"][i + 1].description
-                )
+            if col > 0 then
+                row = row .. string.rep(" ", colWidth - #hotkeyText) .. hotkeyText
             else
-                displayText = displayText .. "<td style='width:45%;'></td>\n"
+                row = row .. hotkeyText
             end
 
-            displayText = displayText .. "</tr>\n"
-        end
+            col = col + 1
 
-        displayText = displayText .. "</table>\n"
-    end
-
-    -- Create a webview to display the content with HTML
-    local screen = hs.screen.mainScreen()
-    local screenFrame = screen:frame()
-
-    local width = HotkeyManager.config.width
-    local height = HotkeyManager.config.height
-    local x = (screenFrame.w - width) / 2
-    local y = (screenFrame.h - height) / 2
-
-    local rect = hs.geometry.rect(x, y, width, height)
-    
-    -- Create the webview with proper error handling
-    local webview = nil
-    local success, result = pcall(function()
-        return hs.webview.new(rect)
-    end)
-
-    if not success or not result then
-        log:e("Failed to create webview:", result)
-        return nil
-    end
-
-    webview = result
-
-    -- Style the webview with error handling
-    pcall(function()
-        webview:windowStyle({ "utility", "borderless" })
-        webview:allowTextEntry(false)
-        webview:level(hs.drawing.windowLevels.floating)
-        webview:shadow(true)
-    end)
-
-    -- Set up HTML content
-    local htmlContent = [[
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body {
-                font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
-                color: rgb(230, 230, 230);
-                background-color: rgba(40, 40, 40, 0.95);
-                margin: 15px;
-                line-height: 1.4;
-                cursor: default;
-                user-select: none;
-                -webkit-user-select: none;
-            }
-            table {
-                border-collapse: separate;
-            }
-            td {
-                padding: 5px 10px;
-                border-radius: 5px;
-                background-color: rgba(60, 60, 60, 0.6);
-            }
-            .close-button {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background-color: rgba(200, 50, 50, 0.7);
-                color: white;
-                width: 24px;
-                height: 24px;
-                border-radius: 12px;
-                text-align: center;
-                line-height: 24px;
-                font-weight: bold;
-                cursor: pointer;
-            }
-            .close-button:hover {
-                background-color: rgba(230, 50, 50, 0.9);
-            }
-            .help-text {
-                position: absolute;
-                bottom: 10px;
-                left: 0;
-                right: 0;
-                text-align: center;
-                font-size: 10pt;
-                color: rgba(200, 200, 200, 0.7);
-            }
-        </style>
-        <script>
-            function closeWindow() {
-                try {
-                    window.webkit.messageHandlers.closeWindow.postMessage("");
-                } catch(e) {
-                    console.log("Error sending close message");
-                }
-            }
-        </script>
-    </head>
-    <body>
-    <div class="close-button" onclick="closeWindow()">✕</div>
-    ]] .. displayText .. [[
-    <div class="help-text">Press ESC or click anywhere to close</div>
-    </body>
-    </html>
-    ]]
-
-    -- Load the HTML and store the webview with error handling
-    if webview then
-        pcall(function()
-            webview:html(htmlContent)
-            webview:alpha(0.0) -- Start with 0 opacity for fade in
-            webview:show()
-        end)
-    else
-        log:e("Cannot display hotkey list: webview creation failed")
-        return nil
-    end
-
-    -- Add message handler for close button with error handling
-    if webview then
-        pcall(function()
-            webview:windowCallback("closeWindow", function()
-                HotkeyManager.hideHotkeyList(modType)
-            end)
-        end)
-    end
-    
-    -- Save the modType with the webview for callback context
-    if webview then
-        pcall(function() webview.modType = modType end)
-    end
-
-    -- Add a click handler to close on any click
-    local clickWatcher = nil
-    if webview then
-        clickWatcher = hs.eventtap.new({ hs.eventtap.event.types.leftMouseDown }, function(event)
-            -- Only process if our window still exists
-            if HotkeyManager.displayWindows[modType] then
-                local mousePoint = hs.mouse.absolutePosition()
-                local webviewFrame = HotkeyManager.displayWindows[modType]:frame()
-
-                -- If the mouse click is within the webview's frame, close it
-                if mousePoint.x >= webviewFrame.x and mousePoint.x <= webviewFrame.x + webviewFrame.w and
-                    mousePoint.y >= webviewFrame.y and mousePoint.y <= webviewFrame.y + webviewFrame.h then
-                    HotkeyManager.hideHotkeyList(modType)
-                    return true -- Consume the click
-                end
-            end
-            return false
-        end)
-        if clickWatcher then
-            clickWatcher:start()
-            if webview then
-                pcall(function() webview.clickWatcher = clickWatcher end)
+            if col >= 2 or i == #categories["Other"] then
+                displayText = displayText .. row .. "\n"
+                row = ""
+                col = 0
             end
         end
     end
-
-    -- Round the corners of the window with error handling
-    if webview then
-        pcall(function()
-            if webview:hswindow() and webview:hswindow().setWindowRadius then
-                webview:hswindow():setWindowRadius(HotkeyManager.config.cornerRadius)
-            end
-        end)
-    end
     
-    -- Fade in the window with error handling
-    if webview then
-        pcall(function()
-            webview:alpha(1.0, HotkeyManager.config.fadeInDuration)
-        end)
-    end
+    -- Show alert with a large size and longer duration
+    local screenRect = hs.screen.mainScreen():frame()
+    local alertSize = { w = HotkeyManager.config.width, h = HotkeyManager.config.height }
 
-    -- Make sure we have a valid webview before storing it
-    if not webview then
-        log:e("Cannot display hotkey list: webview is nil")
-        return nil
-    end
-
-    -- Store the webview for later reference
-    HotkeyManager.displayWindows[modType] = webview
-    
-    -- Add an ESC key watcher to close the window with ESC
-    local escWatcher = nil
-    if webview then
-        escWatcher = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
-            -- Only process if our window still exists
-            if HotkeyManager.displayWindows[modType] then
-                local keyCode = event:getKeyCode()
-                if keyCode == 53 then -- ESC key
-                    HotkeyManager.hideHotkeyList(modType)
-                    return true       -- Consume the ESC key
-                end
-            end
-            return false
-        end)
-
-        if escWatcher then
-            escWatcher:start()
-            -- Store the watcher with the window for cleanup
-            pcall(function()
-                if webview then
-                    webview.escWatcher = escWatcher
-                end
-            end)
-        end
-    end
-
-    -- Add a timer to verify the window exists and is accessible after initialization
-    hs.timer.doAfter(0.05, function()
-        -- Check if the window got deleted somehow or if our reference is stale
-        if HotkeyManager.displayWindows[modType] then
-            local success, hasWindow = pcall(function()
-                return HotkeyManager.displayWindows[modType]:hswindow() ~= nil
-            end)
-
-            if not success or not hasWindow then
-                log:w("Window was lost shortly after initialization - cleaning up")
-                HotkeyManager.hideHotkeyList(modType)
-            end
-        end
-    end)
-    
-    return webview
+    -- Create alert with settings for wider display
+    hs.alert.closeAll()
+    hs.alert.show(
+        displayText,
+        {
+            strokeWidth = 0,
+            fillColor = { white = 0.1, alpha = 0.95 },
+            textColor = { white = 0.9, alpha = 1 },
+            textFont = HotkeyManager.config.font,
+            textSize = HotkeyManager.config.fontSize,
+            radius = HotkeyManager.config.cornerRadius,
+            atScreenEdge = 0,
+            fadeInDuration = HotkeyManager.config.fadeInDuration,
+            fadeOutDuration = HotkeyManager.config.fadeOutDuration,
+            padding = 20
+        },
+        15
+    )
 end
 
 -- Hide the hotkey list window for a specific modifier type
 function HotkeyManager.hideHotkeyList(modType)
-    if not HotkeyManager.displayWindows[modType] then
-        return
-    end
-
-    local webview = HotkeyManager.displayWindows[modType]
-    
-    -- Clear the reference first to prevent race conditions
-    HotkeyManager.displayWindows[modType] = nil
-
-    -- Safety check for webview
-    if not webview then
-        log:w("No webview found to hide for modType:", modType)
-        return
-    end
-    -- Safe cleanup of event watchers
-    local escWatcher = nil
-    pcall(function() escWatcher = webview.escWatcher end)
-    if escWatcher then
-        pcall(function()
-            escWatcher:stop()
-        end)
-        pcall(function()
-            webview.escWatcher = nil
-        end)
-    end
-
-    local clickWatcher = nil
-    pcall(function() clickWatcher = webview.clickWatcher end)
-    if clickWatcher then
-        pcall(function()
-            clickWatcher:stop()
-        end)
-        pcall(function()
-            webview.clickWatcher = nil
-        end)
-    end
-    
-    -- Fade out and close the window safely
-    pcall(function()
-        local fadeTime = HotkeyManager.config.fadeOutDuration or 0.3
-        webview:alpha(0.0, fadeTime, function()
-            pcall(function()
-                if webview then webview:delete() end
-            end)
-        end)
-    end)
-
-    -- Set a timeout to force delete the webview if the fade callback fails
-    hs.timer.doAfter(0.5, function()
-        pcall(function()
-            if webview then webview:delete() end
-        end)
-    end)
+    -- Simply close all alerts
+    hs.alert.closeAll()
 end
 
 -- Show hammer hotkey list or toggle it off if already showing

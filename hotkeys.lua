@@ -11,6 +11,7 @@ local AppManager = require('AppManager')
 local DeviceManager = require('DeviceManager')
 local HotkeyManager = require('HotkeyManager')
 local WindowToggler = require('WindowToggler')
+local ProjectManager = require('ProjectManager')
 
 -- Define modifier key combinations
 hammer = { "cmd", "ctrl", "alt" }
@@ -145,6 +146,9 @@ hs.hotkey.bind(_hyper, "m", "HammerGhost Editor", function() spoon.HammerGhost:s
 -- hs.hotkey.bind(hammer, "k", function() AppManager.lock_screen() end)
 -- hs.hotkey.bind(_hyper, "k", function() AppManager.sleep_display() end)
 
+-- Project Management
+hs.hotkey.bind(hammer, "j", "Show Project Manager", function() ProjectManager.showProjectManager() end)
+hs.hotkey.bind(_hyper, "j", "Show Active Project Info", function() ProjectManager.showActiveProjectInfo() end)
 -- Clipboard and productivity tools
 -- hs.hotkey.bind(hammer, "c", function() FileManager.showClipboardManager() end)
 -- hs.hotkey.bind(_hyper, "c", function() FileManager.clearClipboard() end)

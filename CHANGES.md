@@ -1,3 +1,48 @@
+# Changes - Project Management System
+
+## Summary
+Added a new ProjectManager module that provides a UI for managing projects/jobs and setting an active project for easy access to tools and scripts.
+
+## Feature Details
+- **ProjectManager Module**: A new module for managing projects/job workspaces
+  - Create, edit, and delete project definitions with paths and descriptions
+  - Set and track active project for current work context
+  - Open projects in Finder, Terminal, or code editors
+  - Persistent storage of project data between sessions
+  - Web-based UI for creating and editing projects
+  - Quick access via keyboard shortcuts
+
+## New Files
+- `ProjectManager.lua`: Core module implementation
+- `ProjectManager_README.md`: Documentation for the feature
+- `projects.json`: Auto-generated file for storing project data (ignored in git)
+
+## Changes to Existing Files
+- `hotkeys.lua`: Added import for ProjectManager module and hotkeys for the new functionality
+  - `hammer+j`: Show project manager UI
+  - `hyper+j`: Show active project info
+- `init.lua`: Updated to load the ProjectManager module on startup
+- `README.md`: Updated to include information about the new ProjectManager module
+
+## Implementation Notes
+- Uses HTML/CSS for creating clean UI dialogs with `hs.webview`
+- Projects data is stored using `hs.json` for persistence
+- Implements URL-based communication between webview and Hammerspoon
+- Uses the chooser UI for project selection and actions
+- Integration with system dialogs for file path selection
+
+## Lessons Learned
+- WebView provides a powerful way to create rich UIs in Hammerspoon
+- URL-based communication with query parameters works well for form submissions
+- The chooser UI is excellent for presenting lists of actions and items
+
+## Next Steps
+- Add project templates for quick creation of common project types
+- Implement project-specific window layouts
+- Add integration with version control systems
+- Create custom actions per project
+- Track recently opened projects
+
 # Changes - Window Toggle by Title
 
 ## Summary

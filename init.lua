@@ -12,6 +12,8 @@ log:i('AppleScript support enabled')
 -- Load core modules
 require("hs.ipc")
 log:d('Core IPC module loaded')
+require("ProjectManager")
+log:d('Project Manager module loaded')
 -- dofile(hs.configdir .. "/workspace.lua")
 -- dofile(hs.configdir .. "/test_balena_handler.lua")
 -- dofile(hs.configdir .. "/temp.lua")

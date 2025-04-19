@@ -5,6 +5,7 @@
 *.out
 /.specstory
 .secrets
+projects.json
 
 .env
 *.pem

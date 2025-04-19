@@ -58,6 +58,18 @@ File and project management capabilities for quick access to commonly used files
 - Editor selection for opening files
 - Recent file tracking
 
+### ProjectManager
+
+Job/project management system to track and manage development projects.
+
+- Create, edit, and delete project definitions with paths and descriptions
+- Set and track active project for current work context
+- Open projects in Finder, Terminal, or code editors
+- Persistent storage of project data between sessions
+- Quick access via keyboard shortcuts
+
+See [ProjectManager_README.md](ProjectManager_README.md) for complete details.
+
 ### HyperLogger
 
 Enhanced logging system with clickable log messages for easier debugging.
@@ -110,6 +122,13 @@ Shortcuts use these modifier combinations:
 |----------|--------|
 | hammer+x | Toggle DragonGrid |
 | hyper+x | Show DragonGrid settings |
+
+### Project Management
+
+| Shortcut | Action |
+|----------|--------|
+| hammer+j | Show project manager UI |
+| hyper+j  | Show active project info |
 
 ### File Management
 

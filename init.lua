@@ -389,8 +389,18 @@ dofile(hs.configdir .. "/hotkeys.lua")
 -- Load HotkeyManager module for dynamic hotkey lists
 log:d('Loading HotkeyManager module')
 local HotkeyManager = require('HotkeyManager')
+-- Configure HotkeyManager's display window
+HotkeyManager.configureDisplay({
+    width = 1000, -- Wider window
+    height = 700, -- Taller window
+    fadeInDuration = 0.3,
+    fadeOutDuration = 0.2,
+    cornerRadius = 12
+})
+
 log:i('HotkeyManager loaded with ' ..
-#HotkeyManager.bindings.hammer .. ' hammer bindings and ' .. #HotkeyManager.bindings.hyper .. ' hyper bindings')
+    #HotkeyManager.bindings.hammer .. ' hammer bindings and ' ..
+    #HotkeyManager.bindings.hyper .. ' hyper bindings')
 log:i('Hammerspoon initialization complete')
 hs.alert.show("Config loaded")
 

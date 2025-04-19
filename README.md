@@ -82,7 +82,7 @@ Shortcuts use these modifier combinations:
 | hammer+3 | Full screen window |
 | hammer+4 | Left wide layout |
 | hammer+6 | Small left side |
-| hammer+7 | Small right side |
+| hammer+7 | Toggle between small right side and right half layouts |
 | hammer+0 | Horizontal split |
 | hyper+0 | Vertical split |
 | hammer+left/right/up/down | Move window in that direction |

@@ -16,6 +16,21 @@ hammer = { "cmd", "ctrl", "alt" }
 _hyper = { "cmd", "shift", "ctrl", "alt" }
 _meta = { "cmd", "shift", "alt" }
 
+-- Add state tracking for toggling right layouts
+local rightLayoutState = {
+    isSmall = true
+}
+
+function toggleRightLayout()
+    rightLayoutState.isSmall = not rightLayoutState.isSmall
+    if rightLayoutState.isSmall then
+        WindowManager.applyLayout('rightSmall')
+        hs.alert.show("Right Small Layout")
+    else
+        WindowManager.applyLayout('rightHalf')
+        hs.alert.show("Right Half Layout")
+    end
+end
 -- Keybindings
 -- Window Management
 
@@ -34,7 +49,7 @@ hs.hotkey.bind(hammer, "5", "Split Vertical", function() WindowManager.applyLayo
 hs.hotkey.bind(_hyper, "5", "Split Horizontal", function() WindowManager.applyLayout('splitHorizontal') end)
 hs.hotkey.bind(hammer, "6", "Left Small Layout", function() WindowManager.applyLayout('leftSmall') end)
 hs.hotkey.bind(_hyper, "6", "Left Half Layout", function() WindowManager.applyLayout('leftHalf') end)
-hs.hotkey.bind(hammer, "7", "Right Small Layout", function() WindowManager.applyLayout('rightSmall') end)
+hs.hotkey.bind(hammer, "7", "Toggle Right Layout", function() toggleRightLayout() end)
 hs.hotkey.bind(_hyper, "7", "Right Half Layout", function() WindowManager.applyLayout('rightHalf') end)
 hs.hotkey.bind(hammer, "8", "Show Layouts Menu", function() FileManager.showLayoutsMenu() end)
 hs.hotkey.bind(_hyper, "8", "Open System Preferences", function() AppManager.open_system_preferences() end)

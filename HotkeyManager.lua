@@ -500,24 +500,52 @@ function HotkeyManager.hideHotkeyList(modType)
     end
 
     local webview = HotkeyManager.displayWindows[modType]
+    
     -- Clear the reference first to prevent race conditions
     HotkeyManager.displayWindows[modType] = nil
 
+    -- Safety check for webview
+    if not webview then
+        log:w("No webview found to hide for modType:", modType)
+        return
+    end
     -- Safe cleanup of event watchers
-    if webview.escWatcher then
-        webview.escWatcher:stop()
-        webview.escWatcher = nil
+    local escWatcher = nil
+    pcall(function() escWatcher = webview.escWatcher end)
+    if escWatcher then
+        pcall(function()
+            escWatcher:stop()
+        end)
+        pcall(function()
+            webview.escWatcher = nil
+        end)
     end
 
-    if webview.clickWatcher then
-        webview.clickWatcher:stop()
-        webview.clickWatcher = nil
+    local clickWatcher = nil
+    pcall(function() clickWatcher = webview.clickWatcher end)
+    if clickWatcher then
+        pcall(function()
+            clickWatcher:stop()
+        end)
+        pcall(function()
+            webview.clickWatcher = nil
+        end)
     end
     
-    -- Fade out and close the window
+    -- Fade out and close the window safely
     pcall(function()
-        webview:alpha(0.0, HotkeyManager.config.fadeOutDuration, function()
-            pcall(function() webview:delete() end)
+        local fadeTime = HotkeyManager.config.fadeOutDuration or 0.3
+        webview:alpha(0.0, fadeTime, function()
+            pcall(function()
+                if webview then webview:delete() end
+            end)
+        end)
+    end)
+
+    -- Set a timeout to force delete the webview if the fade callback fails
+    hs.timer.doAfter(0.5, function()
+        pcall(function()
+            if webview then webview:delete() end
         end)
     end)
 end
@@ -572,40 +600,45 @@ end
 function HotkeyManager.configureDisplay(options)
     if type(options) ~= "table" then
         log:e("configureDisplay requires a table of options")
-        return
+        return HotkeyManager
     end
 
-    -- Apply each provided option
-    for key, value in pairs(options) do
-        if key == "width" or key == "height" or key == "fadeInDuration" or key == "fadeOutDuration" or key == "cornerRadius" or key == "fontSize" then
-            if type(value) == "number" then
-                HotkeyManager.config[key] = value
-            else
-                log:w("Invalid value for " .. key .. ", must be a number")
-            end
-        elseif key == "font" then
-            if type(value) == "string" then
-                HotkeyManager.config[key] = value
-            else
-                log:w("Invalid value for font, must be a string")
-            end
-        elseif key == "backgroundColor" or key == "textColor" then
-            if type(value) == "table" and #value >= 3 then
-                HotkeyManager.config[key] = value
-            else
-                log:w("Invalid value for " .. key .. ", must be a table of RGB(A) values")
-            end
-        elseif key == "categoryColors" and type(value) == "table" then
-            -- Merge new category colors with existing ones
-            for cat, color in pairs(value) do
-                if type(color) == "table" and #color >= 3 then
-                    HotkeyManager.config.categoryColors[cat] = color
+    -- Apply each provided option with proper error handling
+    pcall(function()
+        for key, value in pairs(options) do
+            if key == "width" or key == "height" or key == "fadeInDuration" or key == "fadeOutDuration" or key == "cornerRadius" or key == "fontSize" then
+                if type(value) == "number" then
+                    HotkeyManager.config[key] = value
+                else
+                    log:w("Invalid value for " .. key .. ", must be a number")
                 end
+            elseif key == "font" then
+                if type(value) == "string" then
+                    HotkeyManager.config[key] = value
+                else
+                    log:w("Invalid value for font, must be a string")
+                end
+            elseif key == "backgroundColor" or key == "textColor" then
+                if type(value) == "table" and #value >= 3 then
+                    HotkeyManager.config[key] = value
+                else
+                    log:w("Invalid value for " .. key .. ", must be a table of RGB(A) values")
+                end
+            elseif key == "categoryColors" and type(value) == "table" then
+                -- Merge new category colors with existing ones
+                for cat, color in pairs(value) do
+                    if type(color) == "table" and #color >= 3 then
+                        if not HotkeyManager.config.categoryColors then
+                            HotkeyManager.config.categoryColors = {}
+                        end
+                        HotkeyManager.config.categoryColors[cat] = color
+                    end
+                end
+            else
+                log:w("Unknown configuration option: " .. key)
             end
-        else
-            log:w("Unknown configuration option: " .. key)
         end
-    end
+    end)
 
     log:i("Display configuration updated")
     return HotkeyManager

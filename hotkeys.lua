@@ -10,6 +10,7 @@ local FileManager = require('FileManager')
 local AppManager = require('AppManager')
 local DeviceManager = require('DeviceManager')
 local HotkeyManager = require('HotkeyManager')
+local WindowToggler = require('WindowToggler')
 
 -- Define modifier key combinations
 hammer = { "cmd", "ctrl", "alt" }
@@ -206,3 +207,8 @@ function tempFunction()
     log:i('Temporary function called')
     hs.alert.show("Temporary Function Placeholder")
 end
+
+-- Add window toggle hotkeys
+hs.hotkey.bind(hammer, "w", "Toggle Window Position", function() WindowToggler.toggleWindowPosition() end)
+hs.hotkey.bind(_hyper, "w", "List Saved Windows", function() WindowToggler.listSavedWindows() end)
+hs.hotkey.bind(hammer, "q", "Clear Saved Window Positions", function() WindowToggler.clearSavedPositions() end)

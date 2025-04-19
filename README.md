@@ -152,6 +152,7 @@ Several improvements have been made to the codebase:
    - Groups hotkeys into logical categories for easier reference
    - **Enhanced with persistent, toggleable window display**
    - **Wider, more readable layout with styled HTML and color coding**
+   - **Fixed webview indexing errors for more reliable operation**
    - See [HotkeyManager_README.md](HotkeyManager_README.md) for details
 
 2. **HammerGhost URL Event Handling Fix** - Fixed WebKit-based communication in HammerGhost.spoon

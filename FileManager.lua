@@ -42,6 +42,7 @@ local projects_list = {
     { name = "Swarmonomicon",       path = "~/lab/madness_interactive/projects/common/Swarmonomicon" },
     { name = "lab",                 path = "~/lab" },
     { name = "regressiontestkit",   path = "~/lab/regressiontestkit" },
+    { name = "gateway_metrics",       path = "~/lab/regressiontestkit/gateway_metrics" },
     { name = "madness_interactive", path = "~/lab/madness_interactive" },
     -- RegressionTestKit ecosystem
     { name = "OculusTestKit",       path = "~/lab/regressiontestkit/OculusTestKit" },

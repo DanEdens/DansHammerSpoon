@@ -5,6 +5,11 @@
 ### Summary
 Implemented a new feature that allows users to open projects in both Cursor IDE and GitHub Desktop simultaneously with a single keyboard shortcut (_hyper+g). The feature ensures that GitHub Desktop gets the project path update while final focus remains on Cursor IDE.
 
+#### Update: Window Path Extraction
+- Added code to extract project paths from window titles by matching with known projects
+- This enables GitHub Desktop integration even when selecting existing Cursor windows
+- Implemented conditional handling to only update GitHub Desktop when valid paths are available
+
 ### Files Modified
 - **AppManager.lua**: Added new functions for the integrated application launching
   - `launchCursorWithGitHubDesktop()` - Main implementation

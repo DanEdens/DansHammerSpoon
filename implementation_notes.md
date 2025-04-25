@@ -44,6 +44,19 @@ The implementation follows the pattern of the existing `launchGitHubWithProjectS
 - Hammerspoon's HS.execute provides a simple way to chain application launches
 - The ordering of commands is important for determining final application focus
 - Reusing established patterns in the codebase made implementation straightforward
+- It's important to extract and pass project path information for window choices to maintain consistent behavior
+
+## Implementation Challenges and Fixes
+
+1. **Window Path Extraction**: 
+   - Initial implementation didn't include project paths for existing window choices
+   - Added code to attempt to match window titles with known project names
+   - When a match is found, the project path is included in the window choice object
+   - This ensures GitHub Desktop gets updated even when selecting existing Cursor windows
+
+2. **Conditional Path Handling**:
+   - Added a condition to only update GitHub Desktop when a valid path is available
+   - This prevents errors when path information couldn't be extracted from window titles
 
 ## Potential Future Enhancements
 

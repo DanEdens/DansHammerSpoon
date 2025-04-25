@@ -330,11 +330,22 @@ function AppManager.launchCursorWithGitHubDesktop()
         -- Add existing windows as choices
         for i, win in ipairs(windows) do
             local title = win:title()
+            -- Try to extract path information from window title or use empty string
+            local path = ""
+
+            -- Check if this window title matches any known project
+            for _, project in ipairs(FileManager.getProjectsList()) do
+                if title:match(project.name) then
+                    path = project.path
+                    break
+                end
+            end
             table.insert(choices, {
                 text = title,
                 subText = "Focus this " .. cursorAppName .. " window",
                 window = win,
-                type = "window"
+                type = "window",
+                path = path
             })
             openWindowTitles[title] = true
         end
@@ -363,7 +374,10 @@ function AppManager.launchCursorWithGitHubDesktop()
             if not choice then return end
 
             if choice.type == "window" then
-                -- Focus the selected window
+                -- Focus the selected window and update GitHub Desktop if we have a path
+                if choice.path and choice.path ~= "" then
+                    hs.execute("open -a '" .. githubAppName .. "' " .. choice.path)
+                end
                 choice.window:focus()
             elseif choice.type == "project" then
                 -- Open the selected project with both GitHub Desktop and Cursor

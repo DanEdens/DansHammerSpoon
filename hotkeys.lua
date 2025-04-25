@@ -109,6 +109,7 @@ hs.hotkey.bind(hammer, "l", "Open Logi Options+", function() AppManager.open_log
 hs.hotkey.bind(_hyper, "l", "Open System Settings", function() AppManager.open_system() end)
 hs.hotkey.bind(hammer, "s", "Open Slack", function() AppManager.open_slack() end)
 hs.hotkey.bind(hammer, "g", "Open GitHub Desktop", function() AppManager.open_github() end)
+hs.hotkey.bind(_hyper, "g", "Open Cursor with GitHub", function() AppManager.open_cursor_with_github() end)
 hs.hotkey.bind(hammer, "`", "Open Cursor", function() AppManager.open_cursor() end)
 hs.hotkey.bind(_hyper, "`", "Open VS Code", function() AppManager.open_vscode() end)
 hs.hotkey.bind(hammer, "Tab", "Open Mission Control", function() AppManager.open_mission_control() end)

@@ -256,6 +256,149 @@ function AppManager.launchGitHubWithProjectSelection()
         chooser:show()
     end
 end
+
+-- Special function for Cursor that also updates GitHub Desktop
+function AppManager.launchCursorWithGitHubDesktop()
+    local cursorAppName = "cursor"
+    local githubAppName = "GitHub Desktop"
+    local cursor = hs.application.find(cursorAppName)
+
+    if not cursor then
+        -- If Cursor isn't running, launch it with the selection menu
+        local choices = {}
+
+        -- Add a separator
+        table.insert(choices, {
+            text = "──────────────────────────────────",
+            subText = "Projects",
+            disabled = true
+        })
+
+        -- Add projects list as choices
+        local projects_list = FileManager.getProjectsList()
+        for _, project in ipairs(projects_list) do
+            table.insert(choices, {
+                text = project.name,
+                subText = "Open " .. project.path,
+                path = project.path,
+                type = "project"
+            })
+        end
+
+        local chooser = hs.chooser.new(function(choice)
+            if not choice then return end
+
+            if choice.type == "project" then
+                -- Open the selected project with both GitHub Desktop and Cursor
+                hs.execute("open -a '" .. githubAppName .. "' " .. choice.path)
+                hs.execute("open -a '" .. cursorAppName .. "' " .. choice.path)
+            elseif choice.type == "custom" then
+                -- Open the custom path with both GitHub Desktop and Cursor
+                hs.execute("open -a '" .. githubAppName .. "' " .. choice.path)
+                hs.execute("open -a '" .. cursorAppName .. "' " .. choice.path)
+            end
+        end)
+
+        -- Handle the query changed callback for custom paths
+        chooser:queryChangedCallback(function(query)
+            if query:match("^[~/]") then
+                -- If query starts with / or ~, show only one option for custom path
+                local customChoices = {}
+                for k, v in pairs(choices) do customChoices[k] = v end
+                table.insert(customChoices, 1, {
+                    text = "Open custom path: " .. query,
+                    subText = "Enter to open this path with " .. cursorAppName,
+                    path = query,
+                    type = "custom"
+                })
+
+                chooser:choices(customChoices)
+            else
+                -- Show normal filtered choices
+                chooser:choices(choices)
+            end
+        end)
+
+        chooser:choices(choices)
+        chooser:show()
+    else
+        -- If Cursor is running, get all its windows
+        local windows = cursor:allWindows()
+        local choices = {}
+        local openWindowTitles = {}
+
+        -- Add existing windows as choices
+        for i, win in ipairs(windows) do
+            local title = win:title()
+            table.insert(choices, {
+                text = title,
+                subText = "Focus this " .. cursorAppName .. " window",
+                window = win,
+                type = "window"
+            })
+            openWindowTitles[title] = true
+        end
+
+        -- Add a separator
+        table.insert(choices, {
+            text = "──────────────────────────────────",
+            subText = "Projects",
+            disabled = true
+        })
+
+        -- Add projects list as choices
+        local projects_list = FileManager.getProjectsList()
+        for _, project in ipairs(projects_list) do
+            if not openWindowTitles[project.name] then
+                table.insert(choices, {
+                    text = project.name,
+                    subText = "Open " .. project.path,
+                    path = project.path,
+                    type = "project"
+                })
+            end
+        end
+
+        local chooser = hs.chooser.new(function(choice)
+            if not choice then return end
+
+            if choice.type == "window" then
+                -- Focus the selected window
+                choice.window:focus()
+            elseif choice.type == "project" then
+                -- Open the selected project with both GitHub Desktop and Cursor
+                hs.execute("open -a '" .. githubAppName .. "' " .. choice.path)
+                hs.execute("open -a '" .. cursorAppName .. "' " .. choice.path)
+            elseif choice.type == "custom" then
+                -- Open the custom path with both GitHub Desktop and Cursor
+                hs.execute("open -a '" .. githubAppName .. "' " .. choice.path)
+                hs.execute("open -a '" .. cursorAppName .. "' " .. choice.path)
+            end
+        end)
+
+        -- Handle the query changed callback for custom paths
+        chooser:queryChangedCallback(function(query)
+            if query:match("^[~/]") then
+                -- If query starts with / or ~, show only one option for custom path
+                local customChoices = {}
+                for k, v in pairs(choices) do customChoices[k] = v end
+                table.insert(customChoices, 1, {
+                    text = "Open custom path: " .. query,
+                    subText = "Enter to open this path with " .. cursorAppName,
+                    path = query,
+                    type = "custom"
+                })
+
+                chooser:choices(customChoices)
+            else
+                -- Show normal filtered choices
+                chooser:choices(choices)
+            end
+        end)
+        chooser:choices(choices)
+        chooser:show()
+    end
+end
 -- Application Launch Functions
 function AppManager.open_github()
     AppManager.launchGitHubWithProjectSelection()
@@ -301,6 +444,9 @@ function AppManager.open_cursor()
     AppManager.launchOrFocusWithWindowSelection("cursor")
 end
 
+function AppManager.open_cursor_with_github()
+    AppManager.launchCursorWithGitHubDesktop()
+end
 function AppManager.open_barrier()
     hs.execute("open -a 'Barrier'")
 end

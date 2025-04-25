@@ -223,6 +223,10 @@ Several improvements have been made to the codebase:
    - Ensures hyper+F hotkey correctly opens or focuses Finder
    - See [Hotkey-Fix.md](docs/Hotkey-Fix.md) for details
 
+## Recent Updates
+
+- **Added Cursor with GitHub Desktop Integration**: Open projects in both Cursor IDE and GitHub Desktop simultaneously with hyper+g, ensuring final focus on Cursor while also updating GitHub Desktop with the selected project path.
+
 ## Contributing
 
 When contributing to this project:

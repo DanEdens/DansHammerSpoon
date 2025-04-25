@@ -377,6 +377,7 @@ function AppManager.launchCursorWithGitHubDesktop()
                 -- Focus the selected window and update GitHub Desktop if we have a path
                 if choice.path and choice.path ~= "" then
                     hs.execute("open -a '" .. githubAppName .. "' " .. choice.path)
+                    hs.execute("open -a '" .. cursorAppName .. "' " .. choice.path)
                 end
                 choice.window:focus()
             elseif choice.type == "project" then
@@ -461,6 +462,7 @@ end
 function AppManager.open_cursor_with_github()
     AppManager.launchCursorWithGitHubDesktop()
 end
+
 function AppManager.open_barrier()
     hs.execute("open -a 'Barrier'")
 end

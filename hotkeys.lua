@@ -33,6 +33,13 @@ function toggleRightLayout()
         hs.alert.show("Right Half Layout")
     end
 end
+function toggleLeftLayout()
+    leftLayoutState.isSmall = not leftLayoutState.isSmall
+    if leftLayoutState.isSmall then
+        WindowManager.applyLayout('leftSmall')
+        hs.alert.show("Left Small Layout")
+    end
+end
 -- Keybindings
 -- Window Management
 
@@ -49,7 +56,7 @@ hs.hotkey.bind(_hyper, "4", "Mini Shuffle", function() WindowManager.miniShuffle
 -- Screen and display management
 hs.hotkey.bind(hammer, "5", "Split Vertical", function() WindowManager.applyLayout('splitVertical') end)
 hs.hotkey.bind(_hyper, "5", "Split Horizontal", function() WindowManager.applyLayout('splitHorizontal') end)
-hs.hotkey.bind(hammer, "6", "Left Small Layout", function() WindowManager.applyLayout('leftSmall') end)
+hs.hotkey.bind(hammer, "6", "Left Small Layout", function() toggleLeftLayout() end)
 hs.hotkey.bind(_hyper, "6", "Left Half Layout", function() WindowManager.applyLayout('leftHalf') end)
 hs.hotkey.bind(hammer, "7", "Toggle Right Layout", function() toggleRightLayout() end)
 hs.hotkey.bind(_hyper, "7", "Right Half Layout", function() WindowManager.applyLayout('rightHalf') end)

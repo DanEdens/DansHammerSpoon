@@ -212,3 +212,13 @@ Added a new WindowToggler module that allows toggling windows between their curr
 - Consider adding persistence between Hammerspoon restarts by saving positions to a JSON file
 - Add support for multiple remembered positions per window title
 - Consider integrating with the existing WindowManager module more deeply 
+
+# Changelog
+
+## [Unreleased]
+
+### Added
+- Enhanced search functionality in the application chooser dialogs
+  - Typing in the search box now filters the project and window options
+  - If no matches are found, a custom path option is shown
+  - Maintains existing behavior for custom path handling starting with / or ~

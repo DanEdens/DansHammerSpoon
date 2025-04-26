@@ -109,8 +109,38 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
 
             chooser:choices(customChoices)
         else
-            -- Show normal filtered choices
-            chooser:choices(choices)
+            -- Filter choices based on the query
+            local filteredChoices = {}
+            local hasMatches = false
+
+            -- First add non-project items (like separators)
+            for _, choice in ipairs(choices) do
+                if choice.type ~= "project" and choice.type ~= "window" then
+                    table.insert(filteredChoices, choice)
+                end
+            end
+
+            -- Then add matching projects and windows
+            for _, choice in ipairs(choices) do
+                if choice.type == "project" or choice.type == "window" then
+                    if choice.text:lower():find(query:lower(), 1, true) then
+                        table.insert(filteredChoices, choice)
+                        hasMatches = true
+                    end
+                end
+            end
+
+            -- If no matches found and query is not empty, add custom path option
+            if not hasMatches and query ~= "" then
+                table.insert(filteredChoices, {
+                    text = "Open custom path: " .. query,
+                    subText = "Enter to open this path with " .. appName,
+                    path = query,
+                    type = "custom"
+                })
+            end
+
+            chooser:choices(filteredChoices)
         end
     end)
 
@@ -172,8 +202,38 @@ function AppManager.launchGitHubWithProjectSelection()
 
                 chooser:choices(customChoices)
             else
-                -- Show normal filtered choices
-                chooser:choices(choices)
+                -- Filter choices based on the query
+                local filteredChoices = {}
+                local hasMatches = false
+
+                -- First add non-project items (like separators)
+                for _, choice in ipairs(choices) do
+                    if choice.type ~= "project" and choice.type ~= "window" then
+                        table.insert(filteredChoices, choice)
+                    end
+                end
+
+                -- Then add matching projects and windows
+                for _, choice in ipairs(choices) do
+                    if choice.type == "project" or choice.type == "window" then
+                        if choice.text:lower():find(query:lower(), 1, true) then
+                            table.insert(filteredChoices, choice)
+                            hasMatches = true
+                        end
+                    end
+                end
+
+                -- If no matches found and query is not empty, add custom path option
+                if not hasMatches and query ~= "" then
+                    table.insert(filteredChoices, {
+                        text = "Open custom path: " .. query,
+                        subText = "Enter to open this path with " .. appName,
+                        path = query,
+                        type = "custom"
+                    })
+                end
+
+                chooser:choices(filteredChoices)
             end
         end)
 
@@ -247,8 +307,38 @@ function AppManager.launchGitHubWithProjectSelection()
 
                 chooser:choices(customChoices)
             else
-                -- Show normal filtered choices
-                chooser:choices(choices)
+                -- Filter choices based on the query
+                local filteredChoices = {}
+                local hasMatches = false
+
+                -- First add non-project items (like separators)
+                for _, choice in ipairs(choices) do
+                    if choice.type ~= "project" and choice.type ~= "window" then
+                        table.insert(filteredChoices, choice)
+                    end
+                end
+
+                -- Then add matching projects and windows
+                for _, choice in ipairs(choices) do
+                    if choice.type == "project" or choice.type == "window" then
+                        if choice.text:lower():find(query:lower(), 1, true) then
+                            table.insert(filteredChoices, choice)
+                            hasMatches = true
+                        end
+                    end
+                end
+
+                -- If no matches found and query is not empty, add custom path option
+                if not hasMatches and query ~= "" then
+                    table.insert(filteredChoices, {
+                        text = "Open custom path: " .. query,
+                        subText = "Enter to open this path with " .. appName,
+                        path = query,
+                        type = "custom"
+                    })
+                end
+
+                chooser:choices(filteredChoices)
             end
         end)
 
@@ -314,8 +404,38 @@ function AppManager.launchCursorWithGitHubDesktop()
 
                 chooser:choices(customChoices)
             else
-                -- Show normal filtered choices
-                chooser:choices(choices)
+                -- Filter choices based on the query
+                local filteredChoices = {}
+                local hasMatches = false
+
+                -- First add non-project items (like separators)
+                for _, choice in ipairs(choices) do
+                    if choice.type ~= "project" and choice.type ~= "window" then
+                        table.insert(filteredChoices, choice)
+                    end
+                end
+
+                -- Then add matching projects and windows
+                for _, choice in ipairs(choices) do
+                    if choice.type == "project" or choice.type == "window" then
+                        if choice.text:lower():find(query:lower(), 1, true) then
+                            table.insert(filteredChoices, choice)
+                            hasMatches = true
+                        end
+                    end
+                end
+
+                -- If no matches found and query is not empty, add custom path option
+                if not hasMatches and query ~= "" then
+                    table.insert(filteredChoices, {
+                        text = "Open custom path: " .. query,
+                        subText = "Enter to open this path with " .. cursorAppName,
+                        path = query,
+                        type = "custom"
+                    })
+                end
+
+                chooser:choices(filteredChoices)
             end
         end)
 
@@ -406,8 +526,38 @@ function AppManager.launchCursorWithGitHubDesktop()
 
                 chooser:choices(customChoices)
             else
-                -- Show normal filtered choices
-                chooser:choices(choices)
+                -- Filter choices based on the query
+                local filteredChoices = {}
+                local hasMatches = false
+
+                -- First add non-project items (like separators)
+                for _, choice in ipairs(choices) do
+                    if choice.type ~= "project" and choice.type ~= "window" then
+                        table.insert(filteredChoices, choice)
+                    end
+                end
+
+                -- Then add matching projects and windows
+                for _, choice in ipairs(choices) do
+                    if choice.type == "project" or choice.type == "window" then
+                        if choice.text:lower():find(query:lower(), 1, true) then
+                            table.insert(filteredChoices, choice)
+                            hasMatches = true
+                        end
+                    end
+                end
+
+                -- If no matches found and query is not empty, add custom path option
+                if not hasMatches and query ~= "" then
+                    table.insert(filteredChoices, {
+                        text = "Open custom path: " .. query,
+                        subText = "Enter to open this path with " .. cursorAppName,
+                        path = query,
+                        type = "custom"
+                    })
+                end
+
+                chooser:choices(filteredChoices)
             end
         end)
         chooser:choices(choices)

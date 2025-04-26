@@ -138,6 +138,13 @@ Shortcuts use these modifier combinations:
 | hyper+e | Show editor menu |
 | hammer+i | Open most recent image |
 
+### Application Management
+- **Quick App Switching & Project Launching**: Launch applications or focus them if already running
+  - For programming tools like Cursor and GitHub Desktop, also shows project selection menu
+  - **Search functionality** to filter projects and windows by typing
+  - Support for entering custom paths directly in search field
+  - List of projects comes from both the ProjectManager and a configurable source
+
 ## Setup and Installation
 
 1. Install Hammerspoon from [hammerspoon.org](https://www.hammerspoon.org/) or via Homebrew:

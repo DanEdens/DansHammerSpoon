@@ -112,21 +112,37 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
             -- Filter choices based on the query
             local filteredChoices = {}
             local hasMatches = false
+            local matchingChoices = {}
+            local separatorChoice = nil
 
-            -- First add non-project items (like separators)
+            -- First find the separator and matching items
             for _, choice in ipairs(choices) do
-                if choice.type ~= "project" and choice.type ~= "window" then
+                if choice.disabled then
+                    separatorChoice = choice
+                elseif choice.type == "project" or choice.type == "window" then
+                    if choice.text:lower():find(query:lower(), 1, true) then
+                        table.insert(matchingChoices, choice)
+                        hasMatches = true
+                    end
+                end
+            end
+
+            -- Add windows first if any
+            for _, choice in ipairs(matchingChoices) do
+                if choice.type == "window" then
                     table.insert(filteredChoices, choice)
                 end
             end
 
-            -- Then add matching projects and windows
-            for _, choice in ipairs(choices) do
-                if choice.type == "project" or choice.type == "window" then
-                    if choice.text:lower():find(query:lower(), 1, true) then
-                        table.insert(filteredChoices, choice)
-                        hasMatches = true
-                    end
+            -- Add separator if we have any matches
+            if hasMatches and separatorChoice then
+                table.insert(filteredChoices, separatorChoice)
+            end
+
+            -- Add projects
+            for _, choice in ipairs(matchingChoices) do
+                if choice.type == "project" then
+                    table.insert(filteredChoices, choice)
                 end
             end
 
@@ -205,21 +221,37 @@ function AppManager.launchGitHubWithProjectSelection()
                 -- Filter choices based on the query
                 local filteredChoices = {}
                 local hasMatches = false
+                local matchingChoices = {}
+                local separatorChoice = nil
 
-                -- First add non-project items (like separators)
+                -- First find the separator and matching items
                 for _, choice in ipairs(choices) do
-                    if choice.type ~= "project" and choice.type ~= "window" then
+                    if choice.disabled then
+                        separatorChoice = choice
+                    elseif choice.type == "project" or choice.type == "window" then
+                        if choice.text:lower():find(query:lower(), 1, true) then
+                            table.insert(matchingChoices, choice)
+                            hasMatches = true
+                        end
+                    end
+                end
+
+                -- Add windows first if any
+                for _, choice in ipairs(matchingChoices) do
+                    if choice.type == "window" then
                         table.insert(filteredChoices, choice)
                     end
                 end
 
-                -- Then add matching projects and windows
-                for _, choice in ipairs(choices) do
-                    if choice.type == "project" or choice.type == "window" then
-                        if choice.text:lower():find(query:lower(), 1, true) then
-                            table.insert(filteredChoices, choice)
-                            hasMatches = true
-                        end
+                -- Add separator if we have any matches
+                if hasMatches and separatorChoice then
+                    table.insert(filteredChoices, separatorChoice)
+                end
+
+                -- Add projects
+                for _, choice in ipairs(matchingChoices) do
+                    if choice.type == "project" then
+                        table.insert(filteredChoices, choice)
                     end
                 end
 
@@ -310,21 +342,37 @@ function AppManager.launchGitHubWithProjectSelection()
                 -- Filter choices based on the query
                 local filteredChoices = {}
                 local hasMatches = false
+                local matchingChoices = {}
+                local separatorChoice = nil
 
-                -- First add non-project items (like separators)
+                -- First find the separator and matching items
                 for _, choice in ipairs(choices) do
-                    if choice.type ~= "project" and choice.type ~= "window" then
+                    if choice.disabled then
+                        separatorChoice = choice
+                    elseif choice.type == "project" or choice.type == "window" then
+                        if choice.text:lower():find(query:lower(), 1, true) then
+                            table.insert(matchingChoices, choice)
+                            hasMatches = true
+                        end
+                    end
+                end
+
+                -- Add windows first if any
+                for _, choice in ipairs(matchingChoices) do
+                    if choice.type == "window" then
                         table.insert(filteredChoices, choice)
                     end
                 end
 
-                -- Then add matching projects and windows
-                for _, choice in ipairs(choices) do
-                    if choice.type == "project" or choice.type == "window" then
-                        if choice.text:lower():find(query:lower(), 1, true) then
-                            table.insert(filteredChoices, choice)
-                            hasMatches = true
-                        end
+                -- Add separator if we have any matches
+                if hasMatches and separatorChoice then
+                    table.insert(filteredChoices, separatorChoice)
+                end
+
+                -- Add projects
+                for _, choice in ipairs(matchingChoices) do
+                    if choice.type == "project" then
+                        table.insert(filteredChoices, choice)
                     end
                 end
 
@@ -407,21 +455,37 @@ function AppManager.launchCursorWithGitHubDesktop()
                 -- Filter choices based on the query
                 local filteredChoices = {}
                 local hasMatches = false
+                local matchingChoices = {}
+                local separatorChoice = nil
 
-                -- First add non-project items (like separators)
+                -- First find the separator and matching items
                 for _, choice in ipairs(choices) do
-                    if choice.type ~= "project" and choice.type ~= "window" then
+                    if choice.disabled then
+                        separatorChoice = choice
+                    elseif choice.type == "project" or choice.type == "window" then
+                        if choice.text:lower():find(query:lower(), 1, true) then
+                            table.insert(matchingChoices, choice)
+                            hasMatches = true
+                        end
+                    end
+                end
+
+                -- Add windows first if any
+                for _, choice in ipairs(matchingChoices) do
+                    if choice.type == "window" then
                         table.insert(filteredChoices, choice)
                     end
                 end
 
-                -- Then add matching projects and windows
-                for _, choice in ipairs(choices) do
-                    if choice.type == "project" or choice.type == "window" then
-                        if choice.text:lower():find(query:lower(), 1, true) then
-                            table.insert(filteredChoices, choice)
-                            hasMatches = true
-                        end
+                -- Add separator if we have any matches
+                if hasMatches and separatorChoice then
+                    table.insert(filteredChoices, separatorChoice)
+                end
+
+                -- Add projects
+                for _, choice in ipairs(matchingChoices) do
+                    if choice.type == "project" then
+                        table.insert(filteredChoices, choice)
                     end
                 end
 
@@ -529,21 +593,37 @@ function AppManager.launchCursorWithGitHubDesktop()
                 -- Filter choices based on the query
                 local filteredChoices = {}
                 local hasMatches = false
+                local matchingChoices = {}
+                local separatorChoice = nil
 
-                -- First add non-project items (like separators)
+                -- First find the separator and matching items
                 for _, choice in ipairs(choices) do
-                    if choice.type ~= "project" and choice.type ~= "window" then
+                    if choice.disabled then
+                        separatorChoice = choice
+                    elseif choice.type == "project" or choice.type == "window" then
+                        if choice.text:lower():find(query:lower(), 1, true) then
+                            table.insert(matchingChoices, choice)
+                            hasMatches = true
+                        end
+                    end
+                end
+
+                -- Add windows first if any
+                for _, choice in ipairs(matchingChoices) do
+                    if choice.type == "window" then
                         table.insert(filteredChoices, choice)
                     end
                 end
 
-                -- Then add matching projects and windows
-                for _, choice in ipairs(choices) do
-                    if choice.type == "project" or choice.type == "window" then
-                        if choice.text:lower():find(query:lower(), 1, true) then
-                            table.insert(filteredChoices, choice)
-                            hasMatches = true
-                        end
+                -- Add separator if we have any matches
+                if hasMatches and separatorChoice then
+                    table.insert(filteredChoices, separatorChoice)
+                end
+
+                -- Add projects
+                for _, choice in ipairs(matchingChoices) do
+                    if choice.type == "project" then
+                        table.insert(filteredChoices, choice)
                     end
                 end
 

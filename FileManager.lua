@@ -38,6 +38,7 @@ local projects_list = {
     { name = ".hammerspoon",        path = "~/.hammerspoon" },
     { name = "Chat History",        path = "/Users/d.edens/lab/madness_interactive/docs/cursor_chathistory" },
     { name = "Todomill_projectorium", path = "~/lab/madness_interactive/projects/python/Omnispindle/Todomill_projectorium" },
+    { name = "Inventorium",           path = "~/lab/madness_interactive/projects/common/Inventorium" },
     { name = "Omnispindle",         path = "~/lab/madness_interactive/projects/python/Omnispindle" },
     { name = "Swarmonomicon",       path = "~/lab/madness_interactive/projects/common/Swarmonomicon" },
     { name = "lab",                 path = "~/lab" },

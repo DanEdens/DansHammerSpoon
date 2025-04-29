@@ -1,65 +1,92 @@
-# Cursor with GitHub Desktop Integration Implementation Notes
+# Dynamic Layout Capture System - Implementation Notes
 
-## Feature Overview
+## Overview
 
-This feature enables users to open projects in both Cursor IDE and GitHub Desktop simultaneously, ensuring that:
-1. The selected project path is sent to both applications
-2. Final focus remains on Cursor IDE
-3. GitHub Desktop is updated with the project path for version control context
+The Dynamic Layout Capture system allows users to define custom window layouts by simply clicking on screen positions rather than writing code. This makes it much more accessible for users to create personalized window layouts.
+
+## Components
+
+1. **Hotkey Integration**
+   - `hammer+a` - Start layout capture mode
+   - `_hyper+a` - List all custom layouts
+
+2. **Mouse Event Capture**
+   - Uses `hs.eventtap` to listen for mouse clicks during layout capture mode
+   - Records click positions relative to screen coordinates
+   - Translates absolute coordinates to percentages of screen size for better cross-screen compatibility
+
+3. **Data Storage**
+   - Primary: MongoDB database for persistent storage
+   - Backup: Local JSON file (custom_layouts.json)
+   - Layouts are stored as serialized functions for precise window positioning
+
+4. **REST API Server**
+   - Python Flask-based API server (custom_layouts_api.py)
+   - Provides endpoints for CRUD operations on layouts
+   - Automatically launched when Hammerspoon starts
 
 ## Implementation Details
 
-The implementation follows the pattern of the existing `launchGitHubWithProjectSelection` function with modifications to:
-- Send commands to open both applications with the same path
-- Order the commands to ensure Cursor gets the final focus
+### Layout Capture Process
+1. User initiates capture with hotkey
+2. A dialog prompts for layout name
+3. User clicks top-left corner of desired area
+4. User clicks bottom-right corner of desired area
+5. System calculates relative coordinates and creates layout functions
+6. Layout is saved to MongoDB and in-memory cache
 
-### Key Components:
+### Layout Storage Format
+Layouts are stored as function strings that can be deserialized:
+```lua
+{
+  name = "custom_layout_name",
+  functions = {
+    x = "function(max) return max.x + (max.w * 0.25) end",
+    y = "function(max) return max.y + (max.h * 0.1) end",
+    w = "function(max) return max.w * 0.5 end",
+    h = "function(max) return max.h * 0.8 end"
+  }
+}
+```
 
-1. **New Function in AppManager.lua**: `launchCursorWithGitHubDesktop()`
-   - Creates a project selection interface similar to existing GitHub Desktop selector
-   - Modified to send open commands to both applications when a project is selected
+### API Server Integration
+The API server starts automatically with Hammerspoon and provides these endpoints:
+- `GET /api/layouts` - List all layouts
+- `POST /api/layouts` - Create new layout
+- `GET /api/layouts/<string:layout_name>` - Get specific layout
+- `DELETE /api/layouts/<string:layout_name>` - Delete layout
+- `GET /api/health` - Health check
 
-2. **Application Launch Helper**: `open_cursor_with_github()`
-   - Simple wrapper function to call the main implementation
+## Key Design Decisions
 
-3. **Hotkey Binding**: Added `_hyper+g` shortcut
-   - Used an unused key combination that complements the existing GitHub shortcut (`hammer+g`)
+1. **Using MongoDB**
+   - Allows for future remote syncing between devices
+   - Provides robust query capabilities for future enhancements
+   - Industry-standard database with good documentation
 
-## Design Considerations
+2. **Separate API Server**
+   - Separates concerns between window management and data storage
+   - Allows for future extensions like remote layout sharing
+   - Makes testing easier with clear API boundaries
 
-1. **Order of Operations**:
-   - GitHub Desktop is opened first, followed by Cursor
-   - This sequence ensures final focus lands on Cursor
+3. **Relative Coordinates**
+   - Using percentages rather than absolute pixels makes layouts work across different screen sizes
+   - Each layout function receives screen dimensions for adaptability
 
-2. **User Experience**:
-   - Maintains the familiar project selection interface
-   - Provides a logical key binding that builds on existing GitHub shortcut
+## Future Enhancements
 
-3. **Code Pattern**:
-   - Follows the established pattern for application launchers in the codebase
-   - Maintains consistency with existing implementations
+1. **Layout Sharing**
+   - Allow users to export/import layouts
+   - Cloud sync between multiple devices
 
-## Lessons Learned
+2. **Layout Templates**
+   - Pre-defined templates for common arrangements
+   - Categories for organization
 
-- Hammerspoon's HS.execute provides a simple way to chain application launches
-- The ordering of commands is important for determining final application focus
-- Reusing established patterns in the codebase made implementation straightforward
-- It's important to extract and pass project path information for window choices to maintain consistent behavior
+3. **Layout Editor**
+   - Visual editor to fine-tune saved layouts
+   - Preview functionality before applying
 
-## Implementation Challenges and Fixes
-
-1. **Window Path Extraction**: 
-   - Initial implementation didn't include project paths for existing window choices
-   - Added code to attempt to match window titles with known project names
-   - When a match is found, the project path is included in the window choice object
-   - This ensures GitHub Desktop gets updated even when selecting existing Cursor windows
-
-2. **Conditional Path Handling**:
-   - Added a condition to only update GitHub Desktop when a valid path is available
-   - This prevents errors when path information couldn't be extracted from window titles
-
-## Potential Future Enhancements
-
-- Add configuration option to customize which applications are paired
-- Save recently used project pairs for quicker access
-- Extend to support more complex workflows (e.g., opening terminal in the same directory) 
+4. **Layout Sequences**
+   - Define sequences of layouts for complex window arrangements
+   - Timeline-based animation for transitions 

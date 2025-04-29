@@ -409,3 +409,19 @@ Custom colors can be defined for different categories of hotkeys to provide visu
 ## Usage
 
 Press configured hotkeys to trigger actions and see them displayed in the alert window.
+
+# Dynamic Layout Capture
+
+One of the newest features is the ability to dynamically capture and save window layouts based on mouse clicks. This makes it much easier to define custom window positions without writing code:
+
+1. Press `hammer+a` to start layout capture mode
+2. Enter a name for your new layout when prompted
+3. Click on the top-left corner of where you want your window to position
+4. Click on the bottom-right corner
+5. The custom layout is saved and immediately available
+
+You can then:
+- Press `_hyper+a` to see a list of your custom layouts
+- Choose any custom layout to apply it to the current window
+
+The layouts are stored in MongoDB for persistence and can be shared across devices.

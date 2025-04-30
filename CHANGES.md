@@ -222,3 +222,23 @@ Added a new WindowToggler module that allows toggling windows between their curr
   - Typing in the search box now filters the project and window options
   - If no matches are found, a custom path option is shown
   - Maintains existing behavior for custom path handling starting with / or ~
+- Dynamic Layout Capture System
+  - New hammer+a hotkey to start layout capture mode
+  - New _hyper+a hotkey to list custom layouts
+  - Added MongoDB storage for custom layouts
+  - Simple REST API for storing and retrieving layouts
+  - Custom layouts can be created by clicking corner points
+
+## 2023-04-21
+
+### Added
+- DragonGrid Spoon improvements
+  - Better multi-screen handling
+  - Improved grid selection UI
+  - Fixed memory leaks when redrawing grid
+
+### Fixed
+- Window positioning accuracy across external displays
+- Invalid index errors when saving window positions
+
+## 2023-04-01

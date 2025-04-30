@@ -22,6 +22,49 @@ log:d('Project Manager module loaded')
 local secrets = require("load_secrets")
 log:d('Secrets module loaded')
 
+-- Custom Layouts API Server configuration
+-- local apiServerProcess = nil
+
+-- -- Function to start the Custom Layouts API server
+-- local function startLayoutAPIServer()
+--     -- Kill any existing API server process
+--     if apiServerProcess then
+--         log:i("Terminating existing API server process")
+--         apiServerProcess:terminate()
+--         apiServerProcess = nil
+--     end
+
+--     local script = hs.fs.pathToAbsolute(os.getenv("HOME") .. "/.hammerspoon/start_layout_api.sh")
+
+--     if not script then
+--         log:e("API server script not found at " .. os.getenv("HOME") .. "/.hammerspoon/start_layout_api.sh")
+--         return
+--     end
+
+--     log:i("Starting Custom Layouts API server")
+--     apiServerProcess = hs.task.new(script, nil)
+--     apiServerProcess:start()
+
+--     -- Check if the server started correctly after a short delay
+--     hs.timer.doAfter(3, function()
+--         if apiServerProcess:isRunning() then
+--             log:i("Custom Layouts API server started successfully")
+--         else
+--             log:e("Failed to start Custom Layouts API server")
+--         end
+--     end)
+-- end
+
+-- -- Start the API server when Hammerspoon initializes
+-- startLayoutAPIServer()
+
+-- Add shutdown handler to clean up the API server process
+-- hs.shutdownCallback = function()
+--     if apiServerProcess and apiServerProcess:isRunning() then
+--         log:i("Shutting down Custom Layouts API server")
+--         apiServerProcess:terminate()
+--     end
+-- end
 -- Configure environment variables from secrets
 local AWSIP = secrets.get("AWSIP", "localhost")
 local AWSIP2 = secrets.get("AWSIP2", "localhost")
@@ -429,3 +472,143 @@ end
 -- Watch config for changes
 local configFileWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig)
 -- configFileWatcher:start()
+
+
+
+
+-- -- Hammerspoon initialization
+-- -- ===================================================================
+
+-- local logger = hs.logger.new("Init", "debug")
+-- logger.i("Starting Hammerspoon initialization")
+
+-- -- Customize menu bar icon
+-- hs.menuIcon(true)
+
+-- -- Disable animation for window resizing
+-- hs.window.animationDuration = 0
+
+-- -- Experimental: API Server Process
+-- local apiServerProcess = nil
+
+-- -- Function to start the Custom Layouts API server
+-- local function startLayoutAPIServer()
+--     -- Kill any existing API server process
+--     if apiServerProcess then
+--         logger.i("Terminating existing API server process")
+--         apiServerProcess:terminate()
+--         apiServerProcess = nil
+--     end
+
+--     local script = hs.fs.pathToAbsolute(os.getenv("HOME") .. "/.hammerspoon/start_layout_api.sh")
+
+--     if not script then
+--         logger.e("API server script not found at " .. os.getenv("HOME") .. "/.hammerspoon/start_layout_api.sh")
+--         return
+--     end
+
+--     logger.i("Starting Custom Layouts API server")
+--     apiServerProcess = hs.task.new(script, nil)
+--     apiServerProcess:start()
+
+--     -- Check if the server started correctly after a short delay
+--     hs.timer.doAfter(3, function()
+--         if apiServerProcess:isRunning() then
+--             logger.i("Custom Layouts API server started successfully")
+--         else
+--             logger.e("Failed to start Custom Layouts API server")
+--         end
+--     end)
+-- end
+
+-- -- Start the API server when Hammerspoon initializes
+-- startLayoutAPIServer()
+
+-- -- Add shutdown handler to clean up the API server process
+-- hs.shutdownCallback = function()
+--     if apiServerProcess and apiServerProcess:isRunning() then
+--         logger.i("Shutting down Custom Layouts API server")
+--         apiServerProcess:terminate()
+--     end
+-- end
+
+-- -- ... existing initialization code ...
+
+-- -- Load SpoonInstall manager
+-- hs.loadSpoon("SpoonInstall")
+-- spoon.SpoonInstall.use_syncinstall = true
+
+-- -- Ensure all required spoons are installed
+-- local spoons = { "DragonGrid", "HammerGhost" }
+-- for _, spoonName in ipairs(spoons) do
+--     if not hs.spoons.use(spoonName) then
+--         logger.e("Failed to load " .. spoonName .. " spoon")
+--     end
+-- end
+
+-- -- Define variables
+-- hammer = { "cmd", "ctrl", "alt" }
+-- _hyper = { "cmd", "shift", "ctrl", "alt" }
+
+-- -- Load modules
+-- local WindowManager = require('WindowManager')
+-- local HotkeyManager = require('HotkeyManager')
+-- local loadConfig = require('loadConfig')
+-- local hotkeys = require('hotkeys')
+
+-- -- Load secrets if available
+-- local loadSecrets = loadfile('load_secrets.lua')
+-- if loadSecrets then
+--     logger.i("Loading secrets")
+--     loadSecrets()
+-- else
+--     logger.w("No secrets file found")
+-- end
+
+-- -- Reload configuration on file change
+-- -- function reloadConfig(files)
+-- --     local doReload = false
+-- --     for _, file in pairs(files) do
+-- --         if file:sub(-4) == ".lua" then
+-- --             doReload = true
+-- --         end
+-- --     end
+-- --     if doReload then
+-- --         hs.reload()
+-- --     end
+-- -- end
+
+-- -- Load configuration
+-- loadConfig()
+
+-- -- Set up HammerGhost spoon
+-- if spoon.HammerGhost then
+--     spoon.HammerGhost:setup()
+--     logger.i("HammerGhost spoon set up")
+-- else
+--     logger.w("HammerGhost spoon not available")
+-- end
+
+-- -- Set up DragonGrid spoon
+-- if spoon.DragonGrid then
+--     spoon.DragonGrid:setup()
+--     logger.i("DragonGrid spoon set up")
+-- else
+--     logger.w("DragonGrid spoon not available")
+-- end
+
+-- -- Add the config.lua path watcher
+-- -- configWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig)
+-- -- configWatcher:start()
+
+-- -- Success message
+-- logger.i("Hammerspoon configuration loaded")
+-- hs.alert.show("Hammerspoon config loaded")
+
+-- -- Bind a key to reload config
+-- hs.hotkey.bind({ "cmd", "alt", "ctrl" }, "R", function()
+--     hs.reload()
+--     -- startLayoutAPIServer() -- Restart the API server
+-- end)
+
+-- return logger

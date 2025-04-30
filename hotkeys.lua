@@ -40,6 +40,88 @@ function toggleLeftLayout()
         hs.alert.show("Left Small Layout")
     end
 end
+-- Dynamic Layout Capture System
+local layoutCapture = {
+    isActive = false,
+    clickCount = 0,
+    points = { topLeft = nil, bottomRight = nil },
+    layoutName = nil
+}
+
+function startLayoutCapture()
+    layoutCapture.isActive = true
+    layoutCapture.clickCount = 0
+    layoutCapture.points.topLeft = nil
+    layoutCapture.points.bottomRight = nil
+
+    -- Ask user for a layout name
+    local result, name = hs.dialog.textPrompt("Layout Name", "Enter a name for this layout:", "", "Save", "Cancel")
+    if result == "Save" and name ~= "" then
+        layoutCapture.layoutName = name
+        hs.alert.show("Click the top-left corner of your desired layout")
+        -- Start listening for mouse clicks
+        listenForLayoutClicks()
+    else
+        layoutCapture.isActive = false
+        hs.alert.show("Layout capture canceled")
+    end
+end
+
+function listenForLayoutClicks()
+    local mouseWatcher = hs.eventtap.new({ hs.eventtap.event.types.leftMouseDown }, function(event)
+        if not layoutCapture.isActive then return false end
+
+        local point = hs.mouse.absolutePosition()
+        local screen = hs.mouse.getCurrentScreen()
+        local screenFrame = screen:frame()
+
+        -- Normalize the point relative to the screen frame
+        local normalizedPoint = {
+            x = point.x - screenFrame.x,
+            y = point.y - screenFrame.y
+        }
+
+        layoutCapture.clickCount = layoutCapture.clickCount + 1
+
+        if layoutCapture.clickCount == 1 then
+            layoutCapture.points.topLeft = normalizedPoint
+            hs.alert.show("Top-left corner captured. Now click the bottom-right corner.")
+        elseif layoutCapture.clickCount == 2 then
+            layoutCapture.points.bottomRight = normalizedPoint
+            mouseWatcher:stop()
+            saveLayoutFromPoints()
+        end
+
+        return false -- Allow the click to pass through to the system
+    end)
+
+    mouseWatcher:start()
+end
+
+function saveLayoutFromPoints()
+    local topLeft = layoutCapture.points.topLeft
+    local bottomRight = layoutCapture.points.bottomRight
+    local screen = hs.mouse.getCurrentScreen()
+    local screenFrame = screen:frame()
+
+    -- Calculate width and height
+    local width = bottomRight.x - topLeft.x
+    local height = bottomRight.y - topLeft.y
+
+    -- Convert to relative values (percentages of screen)
+    local relativeLayout = {
+        x = function(max) return max.x + (max.w * (topLeft.x / screenFrame.w)) end,
+        y = function(max) return max.y + (max.h * (topLeft.y / screenFrame.h)) end,
+        w = function(max) return max.w * (width / screenFrame.w) end,
+        h = function(max) return max.h * (height / screenFrame.h) end
+    }
+
+    -- Add to standard layouts
+    WindowManager.addCustomLayout(layoutCapture.layoutName, relativeLayout)
+
+    hs.alert.show("Layout '" .. layoutCapture.layoutName .. "' saved!")
+    layoutCapture.isActive = false
+end
 -- Keybindings
 -- Window Management
 
@@ -128,6 +210,9 @@ hs.hotkey.bind(hammer, "i", "Open Most Recent Image", function() FileManager.ope
 hs.hotkey.bind(hammer, "e", "Show File Menu", function() FileManager.showFileMenu() end)
 hs.hotkey.bind(_hyper, "e", "Show Editor Menu", function() FileManager.showEditorMenu() end)
 
+-- Dynamic Layout Capture
+hs.hotkey.bind(hammer, "a", "Start Layout Capture", function() startLayoutCapture() end)
+hs.hotkey.bind(_hyper, "a", "List Custom Layouts", function() WindowManager.listCustomLayouts() end)
 -- Device Management
 
 -- Dragon Grid (now using the Spoon)

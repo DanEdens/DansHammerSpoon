@@ -59,12 +59,12 @@ log:d('Secrets module loaded')
 -- startLayoutAPIServer()
 
 -- Add shutdown handler to clean up the API server process
-hs.shutdownCallback = function()
-    if apiServerProcess and apiServerProcess:isRunning() then
-        log:i("Shutting down Custom Layouts API server")
-        apiServerProcess:terminate()
-    end
-end
+-- hs.shutdownCallback = function()
+--     if apiServerProcess and apiServerProcess:isRunning() then
+--         log:i("Shutting down Custom Layouts API server")
+--         apiServerProcess:terminate()
+--     end
+-- end
 -- Configure environment variables from secrets
 local AWSIP = secrets.get("AWSIP", "localhost")
 local AWSIP2 = secrets.get("AWSIP2", "localhost")

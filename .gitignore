@@ -10,3 +10,6 @@ projects.json
 .env
 *.pem
 *.key
+/venv
+.specstory/.what-is-this.md
+hammerghost_actions.json

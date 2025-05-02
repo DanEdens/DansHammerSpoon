@@ -5,12 +5,13 @@ hs.loadSpoon("ModalMgr")
 if not hspoon_list then
     hspoon_list = {
         "AClock",
+        "EmmyLua",
         -- "BingDaily",
         -- "CircleClock",
         -- "HSKeybindings",
         -- "SpoonInstall",
         "ClipShow",
-        -- "ClipboardTool",
+        "ClipboardTool",
         -- "CountDown",
         -- "HCalendar",
         -- "HSaria2",
@@ -27,20 +28,10 @@ for _, v in pairs(hspoon_list) do
     hs.loadSpoon(v)
 end
 
--- Function to check if a value exists in a list
-local function isInList(value, list)
-    for _, v in ipairs(list) do
-        if v == value then
-            return true
-        end
+-- Start each spoon that has a start function
+for _, spoon_name in pairs(hspoon_list) do
+    if spoon[spoon_name] and type(spoon[spoon_name].start) == "function" then
+        spoon[spoon_name]:start()
+        hs.alert.show(spoon_name .. " started")
     end
-    return false
-end
-
--- Check if ClipboardTool is in the hspoon_list and start it
-if isInList("ClipboardTool", hspoon_list) then
-    spoon.ClipboardTool:start()
-    hs.alert.show("ClipboardTool loaded")
-else
-    hs.alert.show("ClipboardTool not loaded")
 end

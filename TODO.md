@@ -24,7 +24,11 @@
 - [ ] Review currently loaded Spoons in loadConfig.lua and remove commented out entries
 - [ ] Implement conditional loading of Spoons based on user configuration
 - [ ] Add proper error handling for missing or failed Spoon loads
-- [ ] Create a better startup notification system for loaded Spoons
+- [x] Create a better startup notification system for loaded Spoons
+- [x] Implement automatic initialization of Spoons with start() methods
+- [ ] Add configuration options to enable/disable automatic Spoon starting
+- [ ] Implement error handling for Spoons that fail to start properly
+- [ ] Create a dependency system between Spoons for proper load order
 
 ## Configuration Management
 - [ ] Create a user-friendly configuration system

@@ -48,6 +48,7 @@ local projects_list = {
     -- RegressionTestKit ecosystem
     { name = "OculusTestKit",       path = "~/lab/regressiontestkit/OculusTestKit" },
     { name = "phoenix",             path = "~/lab/regressiontestkit/phoenix" },
+    { name = "hammerspoon-vs-extension",   path = "/Users/d.edens/.cursor/extensions/virgilsisoe.hammerspoon-0.5.2" },
     { name = "rust_ingest",         path = "~/lab/regressiontestkit/rust_ingest" },
     { name = "rtk-docs-host",       path = "~/lab/regressiontestkit/rtk-docs-host" },
     { name = "gateway_metrics",     path = "~/lab/regressiontestkit/gateway_metrics" },
@@ -114,6 +115,9 @@ local projects_list = {
     { name = "EntropyVector",       path = "~/lab/madness_interactive/projects/tasker/EntropyVector" },
     { name = "ContextOfficium",     path = "~/lab/madness_interactive/projects/tasker/ContextOfficium" },
     { name = "AnathemaHexVault",    path = "~/lab/madness_interactive/projects/tasker/AnathemaHexVault" },
+    -- Typescript projects
+    { name = "typescript-projects",        path = "~/lab/madness_interactive/projects/typescript" },
+    { name = "RaidShadowLegendsButItsMCP", path = "~/lab/madness_interactive/projects/typescript/RaidShadowLegendsButItsMCP" },
 }
 
 local editorList = {

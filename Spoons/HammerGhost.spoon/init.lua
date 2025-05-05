@@ -15,7 +15,7 @@ obj.__index = obj
 
 -- Metadata
 obj.name = "HammerGhost"
-obj.version = "1.0"
+obj.version = "1.1"
 obj.author = "Dan Edens"
 obj.homepage = "https://github.com/Hammerspoon/Spoons"
 obj.license = "MIT - https://opensource.org/licenses/MIT"
@@ -62,7 +62,7 @@ function obj:init()
     self.logger:i("Setting up URL event handlers")
     -- Make sure Hammerspoon handles the hammerspoon:// URL scheme
     hs.urlevent.setDefaultHandler('hammerspoon')
-    
+
     -- Enable URL event tracing for debugging
     self:addURLTracing()
     -- Initialize the callback table
@@ -1038,7 +1038,7 @@ function obj:generateTreeHTML()
 
         -- Format item name for use in JavaScript event handlers to avoid quote issues
         local escapedName = item.name:gsub("'", "\\'")
-        
+
         -- Build HTML in parts to avoid complex string formatting
         local html = '<div class="drop-indicator"></div>\n'
 

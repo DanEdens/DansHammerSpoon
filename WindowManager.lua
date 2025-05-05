@@ -4,6 +4,7 @@ log.i('Initializing window management system')
 local window = require "hs.window"
 local spaces = require "hs.spaces"
 
+hs.window.animationDuration = 0.0
 local WindowManager = {
     -- State variables
     gap = 5,
@@ -24,7 +25,10 @@ local WindowManager = {
     -- Layout state
     row = 0,
     sectionWidth = 0,
-    sectionHeight = 0
+    sectionHeight = 0,
+
+    -- Multi-window layout management
+    savedLayouts = {}
 }
 
 -- Layouts
@@ -150,30 +154,28 @@ function WindowManager.miniShuffle()
     local layout = miniLayouts[(WindowManager.counter % #miniLayouts) + 1]
 
     -- Create new frame using layout functions
-    local newFrame = {
-        x = layout.x(max),
-        y = layout.y(max),
-        w = layout.w(max),
-        h = layout.h(max)
-    }
+    local newFrame = hs.geometry.rect(
+        layout.x(max),
+        layout.y(max),
+        layout.w(max),
+        layout.h(max)
+    )
 
-    -- Apply the frame
-    win:setFrame(newFrame)
-    -- WindowManager.currentFrame = newFrame
+    -- Apply the frame using the robust helper
+    WindowManager.setFrameInScreenWithRetry(win, newFrame)
+    WindowManager.currentFrame = newFrame
 
     -- Increment counter
     WindowManager.counter = (WindowManager.counter + 1) % #miniLayouts
 end
 
 function WindowManager.halfShuffle(numRows, numCols)
-
     numRows = numRows or 3
     numCols = numCols or 2
 
     local win = hs.window.focusedWindow()
     if not win then return end
 
-    local f = win:frame()
     local screen = win:screen()
     local max = screen:frame()
 
@@ -183,90 +185,84 @@ function WindowManager.halfShuffle(numRows, numCols)
     local colCounter = WindowManager.colCounter
     local rowCounter = WindowManager.rowCounter
 
-    -- log.d('Current counters:', { row = WindowManager.rowCounter, col = WindowManager.colCounter })
     local x = max.x + (colCounter * sectionWidth)
     local y = max.y + (rowCounter * sectionHeight)
 
-    f.x = x
-    f.y = y
-    f.w = sectionWidth / 4
-    f.h = sectionHeight
+    -- Create a geometry object for the new frame
+    local newFrame = hs.geometry.rect(x, y, sectionWidth, sectionHeight)
     log.i('Half shuffle w/ position: ', rowCounter, colCounter)
 
-    win:setFrame(f)
-    -- WindowManager.currentFrame = f
-    -- log.d('Set frame:', { x = f.x, y = f.y, w = f.w, h = f.h })
+    -- Apply the frame using the robust helper
+    WindowManager.setFrameInScreenWithRetry(win, newFrame)
+    WindowManager.currentFrame = newFrame
 
     -- Update counters
     WindowManager.rowCounter = (WindowManager.rowCounter + 1) % numRows
     if WindowManager.rowCounter == 0 then
         WindowManager.colCounter = (WindowManager.colCounter + 1) % numCols
     end
-    -- log.d('Updated counters:', { row = WindowManager.rowCounter, col = WindowManager.colCounter })
 end
 
 function WindowManager.applyLayout(layoutName)
     local win = hs.window.focusedWindow()
     if not win then
-        log.w('No focused window found')
+        hs.alert.show('No focused window found')
         return
     end
 
     local layout = standardLayouts[layoutName]
     if not layout then
-        log.e('Invalid layout name:', layoutName)
+        hs.alert.show('Invalid layout name: ' .. layoutName)
         return
     end
 
     local screen = win:screen()
     local max = screen:frame()
-    local f = win:frame()
 
-    -- Calculate new frame
-    local newFrame = {
-        x = layout.x(max),
-        y = layout.y(max),
-        w = layout.w(max),
-        h = layout.h(max)
-    }
+    -- Calculate new frame using layout functions
+    local newFrame = hs.geometry.rect(
+        layout.x(max),
+        layout.y(max),
+        layout.w(max),
+        layout.h(max)
+    )
 
-    -- First move the window without changing size (maintaining current w/h)
-    local moveFrame = {
-        x = newFrame.x,
-        y = newFrame.y,
-        w = f.w,
-        h = f.h
-    }
-    win:setFrame(moveFrame, 0)
+    -- Save original frame for logging
+    local originalFrame = win:frame()
 
-    -- Small delay to let the move complete without blocking
-    hs.timer.usleep(100000)
+    -- Use our robust helper function to set the frame
+    local success = WindowManager.setFrameInScreenWithRetry(win, newFrame)
 
-    -- Then resize the window at the new position
-    win:setFrame(newFrame, 0)
+    -- Log the result
+    if success then
+        log.i('Successfully applied layout:', layoutName)
+    else
+        log.w('Applied layout with potential issues:', layoutName)
+    end
 
-    log.i('Applied layout:', layoutName)
+    log.d('Layout change details:', layoutName, 'from', hs.inspect(originalFrame), 'to', hs.inspect(newFrame))
 end
 
 function WindowManager.moveToScreen(direction, position)
     local win = hs.window.focusedWindow()
     local screen = win:screen()
     local nextScreen = (direction == "next") and screen:next() or screen:previous()
-    local f = win:frame()
     local max = nextScreen:frame()
 
+    -- Create a geometry object for the new frame
+    local newFrame
     if position == "left" then
-        f.x = max.x
-        f.y = max.y
+        newFrame = hs.geometry.rect(max.x, max.y, max.w / 2, max.h)
     else
-        f.x = max.x + (max.w / 2)
-        f.y = max.y
-        f.w = max.w / 2
-        f.h = max.h / 2
+        newFrame = hs.geometry.rect(max.x + (max.w / 2), max.y, max.w / 2, max.h / 2)
     end
 
-    win:setFrame(f)
+    -- First move to screen
     win:moveToScreen(nextScreen)
+    -- Then apply the frame using the robust helper
+    hs.timer.doAfter(0.1, function()
+        WindowManager.setFrameInScreenWithRetry(win, newFrame)
+    end)
 end
 
 function WindowManager.moveWindow(direction)
@@ -286,6 +282,7 @@ function WindowManager.moveWindow(direction)
     f.x = f.x + move.x
     f.y = f.y + move.y
 
+    hs.window.animationDuration = 0.0
     win:setFrame(f)
     -- WindowManager.currentFrame = f
 end
@@ -298,6 +295,7 @@ function WindowManager.moveWindowMouseCenter()
     local mouse = hs.mouse.absolutePosition()
     f.x = mouse.x - (f.w / 2)
     f.y = mouse.y - (f.h / 2)
+    hs.window.animationDuration = 0.0
     win:setFrame(f)
     -- WindowManager.currentFrame = f
 end
@@ -310,6 +308,7 @@ function WindowManager.moveWindowMouseCorner()
     local mouse = hs.mouse.absolutePosition()
     f.x = mouse.x
     f.y = mouse.y
+    hs.window.animationDuration = 0.0
     win:setFrame(f)
     --  WindowManager.currentFrame = f
 end
@@ -327,12 +326,57 @@ function WindowManager.saveWindowPosition()
     end
 end
 
+-- Helper function to set window frame with verification and retry
+function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
+    retryCount = retryCount or 3
+
+    -- Save original animation duration and temporarily disable animations
+    local originalDuration = hs.window.animationDuration
+    hs.window.animationDuration = 0
+
+    -- Try to set the frame
+    win:setFrame(newFrame)
+
+    -- Verify the frame was set correctly by comparing with a small tolerance
+    local resultFrame = win:frame()
+    local frameCorrect =
+        math.abs(resultFrame.x - newFrame.x) < 1 and
+        math.abs(resultFrame.y - newFrame.y) < 1 and
+        math.abs(resultFrame.w - newFrame.w) < 1 and
+        math.abs(resultFrame.h - newFrame.h) < 1
+
+    -- If frame wasn't applied correctly and we have retries left, try alternative methods
+    if not frameCorrect and retryCount > 0 then
+        log.w('Frame set attempt failed, trying alternative method. Attempts left:', retryCount)
+
+        -- Try with workarounds method
+        win:setFrameWithWorkarounds(newFrame)
+
+        -- Add a small delay
+        hs.timer.usleep(50000)
+
+        -- Try direct coordinate setting as a last resort
+        if retryCount == 1 then
+            win:setTopLeft(newFrame.topleft)
+            hs.timer.usleep(10000)
+            win:setSize(newFrame.size)
+        end
+
+        -- Recursive call with one fewer retry
+        return WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount - 1)
+    end
+
+    -- Restore original animation duration
+    hs.window.animationDuration = originalDuration
+
+    return frameCorrect
+end
 function WindowManager.restoreWindowPosition()
     log.i('Restoring window position')
     local win = hs.window.focusedWindow()
     if win and WindowManager.lastWindowPosition[win:id()] then
         log.d('Restoring position for window:', win:id(), hs.inspect(WindowManager.lastWindowPosition[win:id()]))
-        win:setFrame(WindowManager.lastWindowPosition[win:id()])
+        WindowManager.setFrameInScreenWithRetry(win, WindowManager.lastWindowPosition[win:id()])
         hs.alert.show("Window position restored")
     else
         log.w('No saved position found for window:', win and win:id() or 'no window focused')
@@ -352,7 +396,7 @@ function WindowManager.restoreAllWindowPositions()
     for _, win in ipairs(wins) do
         local savedPosition = WindowManager.lastWindowPositions[win:id()]
         if savedPosition then
-            win:setFrame(savedPosition)
+            win:setFrame(savedPosition, 0)
         end
     end
     hs.alert.show("All window positions restored")
@@ -370,5 +414,158 @@ function WindowManager.resetShuffleCounters()
     WindowManager.currentFrame = nil
     WindowManager.sectionWidth = 0
     WindowManager.sectionHeight = 0
+end
+-- Multi-window layout management
+function WindowManager.saveCurrentLayout(layoutName)
+    log.i('Saving multi-window layout:', layoutName)
+
+    -- Get all visible windows
+    local allVisibleWindows = hs.window.visibleWindows()
+    local savedWindows = {}
+
+    for _, win in ipairs(allVisibleWindows) do
+        -- Only include standard, non-minimized windows
+        if win:isStandard() and not win:isMinimized() then
+            -- Get information about each window
+            local app = win:application()
+            local appName = app and app:name() or "Unknown"
+            local windowTitle = win:title() or "Untitled Window"
+            local frame = win:frame()
+            local screen = win:screen():getUUID()
+
+            -- Store window information
+            table.insert(savedWindows, {
+                appName = appName,
+                appBundleID = app and app:bundleID() or nil,
+                windowTitle = windowTitle,
+                frame = frame,
+                screenUUID = screen,
+                windowID = win:id()
+            })
+
+            log.d('Saved window in layout:', appName, windowTitle, hs.inspect(frame))
+        end
+    end
+
+    -- Save layout
+    WindowManager.savedLayouts[layoutName] = {
+        windows = savedWindows,
+        timestamp = os.time(),
+        description = "Layout saved on " .. os.date("%Y-%m-%d %H:%M:%S")
+    }
+
+    hs.alert.show(string.format("Saved layout '%s' with %d windows", layoutName, #savedWindows))
+    return #savedWindows
+end
+
+function WindowManager.restoreLayout(layoutName)
+    log.i('Restoring layout:', layoutName)
+
+    local layout = WindowManager.savedLayouts[layoutName]
+    if not layout then
+        hs.alert.show(string.format("No layout found with name '%s'", layoutName))
+        return 0
+    end
+
+    local restoredCount = 0
+
+    -- Get screens by UUID
+    local screens = {}
+    for _, screen in ipairs(hs.screen.allScreens()) do
+        screens[screen:getUUID()] = screen
+    end
+
+    -- First focus all apps that need to be part of this layout
+    -- This gives apps time to launch before trying to position windows
+    for _, winInfo in ipairs(layout.windows) do
+        if winInfo.appBundleID then
+            hs.application.launchOrFocusByBundleID(winInfo.appBundleID)
+        end
+    end
+
+    -- Wait a moment for apps to launch
+    hs.timer.doAfter(0.5, function()
+        -- Now try to restore each window
+        for _, winInfo in ipairs(layout.windows) do
+            -- Find the window - first try direct ID matching
+            local win = hs.window.get(winInfo.windowID)
+
+            -- If window not found by ID, try to find by app and title
+            if not win and winInfo.appBundleID then
+                local app = hs.application.get(winInfo.appBundleID)
+                if app then
+                    -- Try to find by title
+                    for _, appWindow in ipairs(app:allWindows()) do
+                        if appWindow:title() == winInfo.windowTitle then
+                            win = appWindow
+                            break
+                        end
+                    end
+
+                    -- If still not found, just use the first window of the app
+                    if not win and #app:allWindows() > 0 then
+                        win = app:allWindows()[1]
+                    end
+                end
+            end
+
+            -- If we found a window to work with, set its position
+            if win then
+                local screen = screens[winInfo.screenUUID] or win:screen()
+                local newFrame = hs.geometry.rect(winInfo.frame)
+
+                -- Move to correct screen first if needed
+                if screen and screen:id() ~= win:screen():id() then
+                    win:moveToScreen(screen)
+                end
+
+                -- Apply the frame
+                local success = WindowManager.setFrameInScreenWithRetry(win, newFrame)
+                if success then
+                    restoredCount = restoredCount + 1
+                    log.d('Restored window position:', winInfo.appName, winInfo.windowTitle)
+                else
+                    log.w('Failed to restore window position:', winInfo.appName, winInfo.windowTitle)
+                end
+            else
+                log.w('Could not find window to restore:', winInfo.appName, winInfo.windowTitle)
+            end
+        end
+
+        hs.alert.show(string.format("Restored %d/%d windows from layout '%s'",
+            restoredCount, #layout.windows, layoutName))
+    end)
+
+    return true
+end
+
+function WindowManager.listSavedLayouts()
+    log.i('Listing all saved layouts')
+
+    local layouts = {}
+    for name, layout in pairs(WindowManager.savedLayouts) do
+        table.insert(layouts, {
+            name = name,
+            windowCount = #layout.windows,
+            timestamp = layout.timestamp,
+            description = layout.description
+        })
+    end
+
+    -- Sort by timestamp, most recent first
+    table.sort(layouts, function(a, b) return a.timestamp > b.timestamp end)
+
+    return layouts
+end
+
+function WindowManager.deleteLayout(layoutName)
+    if WindowManager.savedLayouts[layoutName] then
+        WindowManager.savedLayouts[layoutName] = nil
+        hs.alert.show(string.format("Deleted layout '%s'", layoutName))
+        return true
+    else
+        hs.alert.show(string.format("No layout found with name '%s'", layoutName))
+        return false
+    end
 end
 return WindowManager

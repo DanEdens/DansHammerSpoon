@@ -69,7 +69,7 @@ Job/project management system to track and manage development projects.
 - Persistent storage of project data between sessions
 - Quick access via keyboard shortcuts
 
-See [ProjectManager_README.md](ProjectManager_README.md) for complete details.
+See [ProjectManager_README.md](docs/ProjectManager_README.md) for complete details.
 
 ### HyperLogger
 
@@ -167,7 +167,7 @@ For development, testing, and deployment support, a Docker setup is available:
 - **Development Environment**: A Docker container for validating and testing Hammerspoon configuration
 - **Deployment Script**: For installing the configuration on actual macOS systems
 
-See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed instructions.
+See [DOCKER_SETUP.md](docs/DOCKER_SETUP.md) for detailed instructions.
 
 ## Customization
 
@@ -193,7 +193,7 @@ Several improvements have been made to the codebase:
    - Allows toggling between custom positions and the nearlyFull layout
    - Works across application restarts as long as window titles remain the same
    - Provides hotkeys for toggling (hammer+w), listing saved positions (hyper+w), and clearing positions (hammer+q)
-   - See [WindowToggler_README.md](WindowToggler_README.md) for details
+   - See [WindowToggler_README.md](docs/WindowToggler_README.md) for details
 
 3. **Dynamic Hotkey Management** - Added smart dynamic hotkey display system
    - Automatically tracks and categorizes all hotkey bindings
@@ -203,7 +203,7 @@ Several improvements have been made to the codebase:
    - **Wider, more readable layout with styled HTML and color coding**
    - **Fixed webview indexing errors with comprehensive error handling**
    - **Implemented multi-layered protection against resource leaks**
-   - See [HotkeyManager_README.md](HotkeyManager_README.md) for details
+   - See [HotkeyManager_README.md](docs/HotkeyManager_README.md) for details
 
 4. **HammerGhost URL Event Handling Fix** - Fixed WebKit-based communication in HammerGhost.spoon
    - Initialized the URL event watcher server that was missing
@@ -416,3 +416,89 @@ Custom colors can be defined for different categories of hotkeys to provide visu
 ## Usage
 
 Press configured hotkeys to trigger actions and see them displayed in the alert window.
+
+## Window Manager Improvements
+
+The window management system has been enhanced with more robust window positioning capabilities and new multi-window layout management features.
+
+### Robust Window Positioning
+
+The window manager now uses a more reliable approach to moving and resizing windows, with automatic verification and retries to ensure windows are positioned exactly as intended. This fixes issues where windows would occasionally not reach their intended position or size.
+
+Key improvements:
+- Robust frame application with verification
+- Multiple retry attempts with alternative methods
+- Better handling of window transitions between screens
+- Improved logging for debugging window positioning issues
+
+### Multi-Window Layout Management
+
+You can now save and restore entire desktop layouts, including multiple windows across multiple screens. This allows you to quickly switch between different workspace configurations.
+
+#### Saving a Layout
+
+Save your current window arrangement with a custom name:
+
+```lua
+-- In the Hammerspoon console or your configuration
+local WindowManager = require("WindowManager")
+WindowManager.saveCurrentLayout("coding")  -- Save a layout named "coding"
+```
+
+#### Restoring a Layout
+
+Restore a previously saved layout:
+
+```lua
+WindowManager.restoreLayout("coding")  -- Restore the "coding" layout
+```
+
+#### Managing Layouts
+
+Additional layout management functions:
+
+```lua
+-- List all saved layouts
+local layouts = WindowManager.listSavedLayouts()
+for _, layout in ipairs(layouts) do
+  print(layout.name, layout.windowCount, layout.description)
+end
+
+-- Delete a layout
+WindowManager.deleteLayout("coding")
+```
+
+#### Example Keybindings
+
+Add these keybindings to your `hotkeys.lua` file to quickly access layout features:
+
+```lua
+-- Save current layout
+hs.hotkey.bind({"ctrl", "alt", "cmd"}, "s", function()
+  local name = hs.dialog.textPrompt("Save Layout", "Enter a name for this layout:", "", "Save", "Cancel")
+  if name and name ~= "" then
+    WindowManager.saveCurrentLayout(name)
+  end
+end)
+
+-- Restore a layout
+hs.hotkey.bind({"ctrl", "alt", "cmd"}, "r", function()
+  local layouts = WindowManager.listSavedLayouts()
+  local choices = {}
+  for _, layout in ipairs(layouts) do
+    table.insert(choices, {
+      text = layout.name,
+      subText = layout.description .. " (" .. layout.windowCount .. " windows)"
+    })
+  end
+  
+  local chooser = hs.chooser.new(function(choice)
+    if choice then
+      WindowManager.restoreLayout(choice.text)
+    end
+  end)
+  
+  chooser:choices(choices)
+  chooser:show()
+end)
+```

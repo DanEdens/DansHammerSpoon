@@ -22,6 +22,9 @@ _meta = { "cmd", "shift", "alt" }
 local rightLayoutState = {
     isSmall = true
 }
+local leftLayoutState = {
+    isSmall = true
+}
 
 function toggleRightLayout()
     rightLayoutState.isSmall = not rightLayoutState.isSmall
@@ -38,6 +41,9 @@ function toggleLeftLayout()
     if leftLayoutState.isSmall then
         WindowManager.applyLayout('leftSmall')
         hs.alert.show("Left Small Layout")
+    else
+        WindowManager.applyLayout('leftHalf')
+        hs.alert.show("Left Half Layout")
     end
 end
 -- Keybindings
@@ -226,3 +232,69 @@ end
 hs.hotkey.bind(hammer, "w", "Toggle Window Position", function() WindowToggler.toggleWindowPosition() end)
 hs.hotkey.bind(_hyper, "w", "List Saved Windows", function() WindowToggler.listSavedWindows() end)
 hs.hotkey.bind(hammer, "q", "Clear Saved Window Positions", function() WindowToggler.clearSavedPositions() end)
+
+-- Window layout management hotkeys
+hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "s", function()
+    if not hs.dialog then
+        hs.alert.show("hs.dialog module not available. Update Hammerspoon.")
+        return
+    end
+
+    local name = hs.dialog.textPrompt("Save Layout", "Enter a name for this layout:", "", "Save", "Cancel")
+    if name and name ~= "" then
+        WindowManager.saveCurrentLayout(name)
+    end
+end)
+
+hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "o", function()
+    local layouts = WindowManager.listSavedLayouts()
+    if #layouts == 0 then
+        hs.alert.show("No saved layouts available")
+        return
+    end
+
+    local choices = {}
+    for _, layout in ipairs(layouts) do
+        table.insert(choices, {
+            text = layout.name,
+            subText = layout.description .. " (" .. layout.windowCount .. " windows)"
+        })
+    end
+
+    local chooser = hs.chooser.new(function(choice)
+        if choice then
+            WindowManager.restoreLayout(choice.text)
+        end
+    end)
+
+    chooser:placeholderText("Select a layout to restore")
+    chooser:choices(choices)
+    chooser:show()
+end)
+
+-- Delete layout keybinding
+hs.hotkey.bind({ "ctrl", "alt", "cmd", "shift" }, "o", function()
+    local layouts = WindowManager.listSavedLayouts()
+    if #layouts == 0 then
+        hs.alert.show("No saved layouts available")
+        return
+    end
+
+    local choices = {}
+    for _, layout in ipairs(layouts) do
+        table.insert(choices, {
+            text = layout.name,
+            subText = "Delete: " .. layout.description .. " (" .. layout.windowCount .. " windows)"
+        })
+    end
+
+    local chooser = hs.chooser.new(function(choice)
+        if choice then
+            WindowManager.deleteLayout(choice.text)
+        end
+    end)
+
+    chooser:placeholderText("Select a layout to DELETE")
+    chooser:choices(choices)
+    chooser:show()
+end)

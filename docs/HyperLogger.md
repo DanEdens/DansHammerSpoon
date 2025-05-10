@@ -30,6 +30,30 @@ Supported editors with special handling:
 
 For other editors, HyperLogger attempts to open the file with a generic command format.
 
+## Important Notes About Clickable Links
+
+The clickable hyperlinks in HyperLogger will **only work when viewed in the actual Hammerspoon console**. Due to limitations in how text is displayed in other contexts:
+
+1. Links will NOT be clickable when viewing logs in:
+   - Terminal output
+   - IDE consoles
+   - Redirected output
+   
+2. To use the clickable links, you must:
+   - Open the Hammerspoon console (press Command+Option+Control+C or run `hs.toggleConsole()`)
+   - View the logs directly in this window
+   - Click on the highlighted file/line references
+
+This is a limitation of how styled text and hyperlinks work in macOS, not a bug in HyperLogger itself.
+
+## Testing the Links
+
+To verify that the hyperlinks are working correctly:
+
+1. Open the Hammerspoon console
+2. Run: `dofile("test_hyperlinks.lua")`
+3. Try clicking on the various links displayed in the console
+
 ## Usage
 
 ### Basic Usage
@@ -75,7 +99,7 @@ A test script is provided to verify that the editor integration works correctly:
 
 ```lua
 -- Run the test script
-hs.execute("cd ~/.hammerspoon && hs -c 'dofile(\"test_hyperlogger.lua\")'")
+dofile("test_hyperlinks.lua")
 ```
 
 This will generate several log messages in the Hammerspoon console that you can click on to test the functionality.

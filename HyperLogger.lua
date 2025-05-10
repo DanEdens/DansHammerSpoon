@@ -24,23 +24,32 @@ end
 -- Create a styled text string with a clickable link
 local function createClickableLog(message, file, line)
     selfLogger.d('Creating clickable log for file: ' .. file .. ' line: ' .. line)
-    -- Create a string that will be clickable and open the file at the specified line
-    local clickableText = hs.styledtext.new(
-        message .. " [" .. file .. ":" .. line .. "]",
-        {
-            font = { name = "Menlo", size = 12 },
-            color = { red = 0.5, green = 0.7, blue = 1.0 },
-            underlineStyle = "single",
-            underlineColor = { red = 0.5, green = 0.7, blue = 1.0 }
-        }
-    )
+    -- First, the main message part
+    local messageText = hs.styledtext.new(message, {
+        font = { name = "Menlo", size = 12 },
+        color = { white = 0.9 }
+    })
 
-    -- Add metadata to make it clickable with properly encoded URL
-    clickableText = clickableText:setStyle({
+    -- Then, create a highly visible link part that looks distinctly like a link
+    local linkText = hs.styledtext.new(" [📄 " .. file .. ":" .. line .. "]", {
+        font = { name = "Menlo", size = 12 },
+        color = { red = 0.4, green = 0.7, blue = 1.0 },
+        underlineStyle = "single",
+        underlineColor = { red = 0.4, green = 0.7, blue = 1.0 },
+        backgroundColor = { red = 0.1, green = 0.1, blue = 0.2 },
         link = "hammerspoon://openFile?file=" .. urlEncode(file) .. "&line=" .. line
-    }, #message + 2, #clickableText)
+    })
 
-    return clickableText
+    -- Add a separator between message and link
+    local separatorText = hs.styledtext.new(" ", {
+        font = { name = "Menlo", size = 12 },
+        color = { white = 0.8 }
+    })
+
+    -- Combine them into one styled text object
+    local combinedText = messageText .. separatorText .. linkText
+
+    return combinedText
 end
 
 -- Create a new logger with the given namespace
@@ -186,10 +195,12 @@ hs.urlevent.bind("openFile", function(eventName, params)
         -- Check if the file exists
         if hs.fs.attributes(file) then
             selfLogger.i('Opening file in editor: ' .. file .. ':' .. line)
+            -- Show a toast to indicate the link was clicked
+            hs.alert.show("Opening " .. file .. ":" .. line, 1)
             -- Get the appropriate editor command
             local cmd = getEditorCommand(file, line)
             selfLogger.d('Executing command: ' .. cmd)
-
+            
             local success, output, descriptor = hs.execute(cmd)
             if not success then
                 selfLogger.e('Failed to open editor: ' .. (output or "Unknown error"))

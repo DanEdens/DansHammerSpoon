@@ -139,20 +139,62 @@ function HyperLogger.new(namespace, loglevel)
     return logger
 end
 
+-- Function to get editor command based on $EDITOR environment variable
+local function getEditorCommand(file, line)
+    -- Get the editor from environment variable or use a default
+    local editorEnv = hs.execute("echo $EDITOR"):gsub("%s+$", "")
+    local editor = editorEnv ~= "" and editorEnv or "cursor"
+    selfLogger.d('Using editor: ' .. editor)
+
+    -- Get the full path to the editor if it's not an absolute path already
+    local editorPath = editor
+    if not editor:match("^/") and not editor:match("^open ") then
+        -- Try to get the full path using 'which'
+        local fullPath = hs.execute("which " .. editor):gsub("%s+$", "")
+        if fullPath ~= "" then
+            editorPath = fullPath
+            selfLogger.d('Resolved editor path: ' .. editorPath)
+        end
+    end
+
+    -- Handle different editors with their specific line number syntax
+    if editor:match("v[si][m]?$") then -- vim, vi, nvim
+        return string.format("%s +%s \"%s\"", editorPath, line, file)
+    elseif editor:match("emacs") then
+        return string.format("%s +%s \"%s\"", editorPath, line, file)
+    elseif editor:match("code") or editor:match("vscode") then
+        return string.format("%s --goto \"%s\":%s", editorPath, file, line)
+    elseif editor:match("cursor") then
+        -- For cursor, we can use the macOS open -a with the line number in the URL
+        return string.format("open -a %s \"%s\":%s", editor, file, line)
+    elseif editor:match("nano") or editor:match("pico") then
+        return string.format("%s +%s \"%s\"", editorPath, line, file)
+    elseif editor:match("sublime") or editor:match("subl") then
+        return string.format("%s \"%s\":%s", editorPath, file, line)
+    else
+        -- Generic fallback - try to open the file and hope the editor can handle it
+        return string.format("%s \"%s\"", editorPath, file)
+    end
+end
 -- Register a URL handler to open files
 hs.urlevent.bind("openFile", function(eventName, params)
     selfLogger.d('URL handler called with params: ' .. hs.inspect(params))
     if params.file and params.line then
-        local editor = "cursor" -- Default editor
         local file = params.file
         local line = params.line
 
         -- Check if the file exists
         if hs.fs.attributes(file) then
             selfLogger.i('Opening file in editor: ' .. file .. ':' .. line)
-            -- For cursor, we can specify the line number in the URL
-            local cmd = string.format("/usr/bin/open -a %s \"%s\":%s", editor, file, line)
-            hs.execute(cmd)
+            -- Get the appropriate editor command
+            local cmd = getEditorCommand(file, line)
+            selfLogger.d('Executing command: ' .. cmd)
+
+            local success, output, descriptor = hs.execute(cmd)
+            if not success then
+                selfLogger.e('Failed to open editor: ' .. (output or "Unknown error"))
+                hs.alert.show("Failed to open file in editor")
+            end
         else
             selfLogger.w('File not found: ' .. file)
             hs.alert.show("Could not find file: " .. file)

@@ -37,6 +37,7 @@
 - [ ] Optimize the macro tree system for better usability
 - [ ] Create unified notification/alert system
 - [ ] Add system theme detection and support (light/dark mode)
+- [X] Make the hyperlinks to log location work as clickable hyper links (opens in $EDITOR)
 
 ## Window Management
 - [X] Consolidate duplicate window management functions between WindowManager.lua and init.lua

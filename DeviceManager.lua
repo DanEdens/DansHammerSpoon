@@ -2,7 +2,7 @@
 -- Using singleton pattern to avoid multiple initializations
 
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('DeviceMgr', 'debug')
+local log = HyperLogger.new()
 
 -- Check if module is already initialized
 if _G.DeviceManager then

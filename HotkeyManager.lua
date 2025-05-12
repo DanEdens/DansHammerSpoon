@@ -3,7 +3,7 @@
 -- Module for managing and displaying hotkeys dynamically
 
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('HotkeyManager', 'debug')
+local log = HyperLogger.new()
 
 local HotkeyManager = {}
 

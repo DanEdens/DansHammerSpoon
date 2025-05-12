@@ -1,7 +1,7 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 -- Use our custom HyperLogger instead of the standard logger
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('Hotkeys', 'debug')
+local log = HyperLogger.new()
 log:i('Initializing hotkey system')
 
 -- Access modules from the global environment if they've been loaded already

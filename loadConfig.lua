@@ -25,7 +25,7 @@ local hspoon_list = {
 
 -- Logger for Spoon loading
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('SpoonLoader', 'info')
+local log = HyperLogger.new()
 
 log:d('Loading Spoons')
 

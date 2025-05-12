@@ -2,7 +2,7 @@
 -- Using singleton pattern to avoid multiple initializations
 -- Use HyperLogger for clickable debugging logs
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('FileManager', 'debug')
+local log = HyperLogger.new()
 -- Check if module is already initialized
 if _G.FileManager then
     return _G.FileManager

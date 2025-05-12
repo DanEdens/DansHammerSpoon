@@ -11,7 +11,7 @@ end
 -- Initialize logger first, before any other code
 local log
 if not _G.WindowManagerLogger then
-    log = HyperLogger.new('WindowMgr', 'info')
+    log = HyperLogger.new()
     _G.WindowManagerLogger = log -- Cache the logger globally
 else
     log = _G.WindowManagerLogger -- Reuse existing logger

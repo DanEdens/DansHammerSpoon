@@ -46,7 +46,7 @@ end
 function obj:init()
     -- Create a logger for better debugging
     local HyperLogger = require('HyperLogger')
-    self.logger = HyperLogger.new('HammerGhost', 'info')
+    self.logger = HyperLogger.new()
     self.logger:setLogLevel('debug')
     self.logger:i("Initializing HammerGhost")
 

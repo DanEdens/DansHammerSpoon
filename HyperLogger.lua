@@ -52,7 +52,8 @@ end
 -- Create a new logger instance or return an existing one with the given namespace
 function HyperLogger.new(namespace, loglevel)
     -- Safety: ensure namespace is a string
-    namespace = tostring(namespace or "unnamed")
+    namespace = tostring(namespace or "Logger")
+    loglevel = tostring(loglevel or "info")
     -- Check if the logger already exists and return it
     if loggers[namespace] then
         local existingLogger = loggers[namespace]

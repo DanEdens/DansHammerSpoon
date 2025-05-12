@@ -6,7 +6,7 @@ hs.allowAppleScript(true)
 require("hs.ipc")
 -- Load HyperLogger for better debugging with clickable log messages
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('Main', 'info')
+local log = HyperLogger.new()
 log:d('Logger initialized')
 
 -- Load secrets management first so environment variables are available

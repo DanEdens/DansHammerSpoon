@@ -1,7 +1,7 @@
 -- ProjectManager.lua - Project management utilities
 -- Using singleton pattern to avoid multiple initializations
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('ProjectManager', 'debug')
+local log = HyperLogger.new()
 -- Check if module is already initialized
 if _G.ProjectManager then
     log:d('Returning existing ProjectManager module')

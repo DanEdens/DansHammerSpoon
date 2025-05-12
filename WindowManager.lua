@@ -1,5 +1,16 @@
-local log = hs.logger.new('WindowManager', 'debug')
-log.i('Initializing window management system')
+-- WindowManager.lua - Window management utilities
+-- Using singleton pattern to avoid multiple initializations
+
+local HyperLogger = require('HyperLogger')
+local log = HyperLogger.new('WindowMana', 'debug')
+
+-- Check if the module is already initialized
+if _G.WindowManager then
+    return _G.WindowManager
+end
+
+-- Initialize only once
+log:i('Initializing window management system')
 
 local window = require "hs.window"
 local spaces = require "hs.spaces"
@@ -568,4 +579,6 @@ function WindowManager.deleteLayout(layoutName)
         return false
     end
 end
+-- Save in global environment for module reuse
+_G.WindowManager = WindowManager
 return WindowManager

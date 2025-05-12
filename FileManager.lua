@@ -1,6 +1,12 @@
+-- FileManager.lua - File management utilities
+-- Using singleton pattern to avoid multiple initializations
 -- Use HyperLogger for clickable debugging logs
 local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new('FileManager', 'debug')
+-- Check if module is already initialized
+if _G.FileManager then
+    return _G.FileManager
+end
 log:i('Initializing file management system')
 
 local FileManager = {}
@@ -231,4 +237,6 @@ function FileManager.openMostRecentImage()
     end
 end
 
+-- Save in global environment for module reuse
+_G.FileManager = FileManager
 return FileManager

@@ -79,6 +79,7 @@ local consoleTB = toolbar.new("myConsole", {
 })
 :canCustomize(true)
 :autosaves(true)
+
 -- Apply the toolbar immediately
 hs.console.toolbar(consoleTB)
 log:d('Console toolbar created')
@@ -95,15 +96,27 @@ hs.timer.doAfter(0.1, function()
     end
 end)
 
+-- Helper function to load modules and expose them globally
+function loadModuleGlobally(name)
+    if not _G[name] then
+        log:d('Loading module: ' .. name)
+        _G[name] = require(name)
+    else
+        log:d('Module already loaded: ' .. name)
+    end
+    return _G[name]
+end
 -- Load core modules in dependency order
 dofile(hs.configdir .. "/loadConfig.lua") -- Load Spoons first
 log:d('Spoons loaded')
 
--- Load core system modules in proper order
-dofile(hs.configdir .. "/WindowManager.lua")
-local FileManager = require('FileManager')
-local AppManager = require('AppManager')
-local ProjectManager = require("ProjectManager")
+-- Load core system modules in proper order and expose them globally
+loadModuleGlobally('WindowManager')
+loadModuleGlobally('FileManager')
+loadModuleGlobally('AppManager')
+loadModuleGlobally('ProjectManager')
+loadModuleGlobally('DeviceManager')
+loadModuleGlobally('WindowToggler')
 log:d('Core system modules loaded')
 
 -- Load hotkeys after all systems are ready
@@ -112,7 +125,7 @@ log:d('Hotkeys configured')
 
 -- Load HotkeyManager module for dynamic hotkey lists
 log:d('Loading HotkeyManager module')
-local HotkeyManager = require('HotkeyManager')
+local HotkeyManager = loadModuleGlobally('HotkeyManager')
 -- Configure HotkeyManager's display window
 HotkeyManager.configureDisplay({
     width = 1000, -- Wider window

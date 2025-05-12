@@ -4,14 +4,28 @@ local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new('Hotkeys', 'debug')
 log:i('Initializing hotkey system')
 
--- Import modules
-local WindowManager = require('WindowManager')
-local FileManager = require('FileManager')
-local AppManager = require('AppManager')
-local DeviceManager = require('DeviceManager')
-local HotkeyManager = require('HotkeyManager')
-local WindowToggler = require('WindowToggler')
-local ProjectManager = require('ProjectManager')
+-- Access modules from the global environment if they've been loaded already
+-- This prevents redundant module initialization
+local function getModule(name)
+    if _G[name] then
+        log:d('Using existing module: ' .. name)
+        return _G[name]
+    else
+        log:d('Loading module: ' .. name)
+        local module = require(name)
+        _G[name] = module
+        return module
+    end
+end
+
+-- Import modules using the getModule helper
+local WindowManager = getModule('WindowManager')
+local FileManager = getModule('FileManager')
+local AppManager = getModule('AppManager')
+local DeviceManager = getModule('DeviceManager')
+local HotkeyManager = getModule('HotkeyManager')
+local WindowToggler = getModule('WindowToggler')
+local ProjectManager = getModule('ProjectManager')
 
 -- Define modifier key combinations
 hammer = { "cmd", "ctrl", "alt" }

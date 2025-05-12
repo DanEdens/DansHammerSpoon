@@ -128,8 +128,11 @@ local function runDiagnostics()
     printHeader("END OF REPORT")
 end
 
--- Check if the script is being run directly
-if not arg or not arg[0] then
+-- Check if file is being executed directly or imported as a module
+local info = debug.getinfo(1, 'S')
+local isImported = info.source ~= "=stdin" and info.source:sub(1, 1) == "@"
+
+if isImported then
     -- Being loaded as a library, return the functions
     return {
         reportLoggers = reportLoggers,

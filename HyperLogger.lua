@@ -4,14 +4,14 @@
 local HyperLogger = {}
 
 -- Create a self-logger for the HyperLogger module itself
--- local selfLogger = hs.logger.new('HyperLogger', 'debug')
 local selfLogger = hs.logger.new('HyperLogger', 'info')
-selfLogger.i('Initializing HyperLogger module')
+selfLogger.d('Initializing HyperLogger module')
 -- Table to store all logger instances
 local loggers = {}
 
 -- Registry of creation stacks to help track where loggers are created
 local creationStacks = {}
+
 -- Define colors for different log levels
 local LOG_COLORS = {
     info = { red = 0.3, green = 0.7, blue = 1.0 },    -- Light blue for info
@@ -19,6 +19,7 @@ local LOG_COLORS = {
     warning = { red = 0.9, green = 0.7, blue = 0.0 }, -- Orange for warnings
     error = { red = 1.0, green = 0.3, blue = 0.3 }    -- Light red for errors
 }
+
 -- Helper to get a formatted stack trace for logging creation points
 local function getStackTrace()
     local stack = {}
@@ -29,6 +30,7 @@ local function getStackTrace()
     end
     return table.concat(stack, " <- ")
 end
+
 -- URL encode a string
 local function urlEncode(str)
     if str then
@@ -41,7 +43,7 @@ local function urlEncode(str)
     return str
 end
 
--- Create a styled text string with a clickable link (CURRENTLY WORK IN PROGRESS. Links are not clickable)
+-- Create a styled text string with a clickable link
 local function createClickableLog(message, file, line, levelColor)
     selfLogger.d('Creating clickable log for file: ' .. file .. ' line: ' .. line)
     -- First, the main message part
@@ -89,6 +91,7 @@ local function createColoredLog(message, file, line, levelColor)
     -- Combine them
     return messageText .. fileInfoText
 end
+
 -- Create a new logger instance or return an existing one with the given namespace
 function HyperLogger.new(namespace, loglevel)
     -- Check if the logger already exists and return it
@@ -96,7 +99,7 @@ function HyperLogger.new(namespace, loglevel)
         local existingLogger = loggers[namespace]
         local existingLevel = existingLogger:getLogLevel()
 
-        -- Update log level if a different one was requested (but not on every call)
+        -- Update log level if a different one was requested
         if loglevel and loglevel ~= existingLevel then
             selfLogger.d('Updating log level for existing logger ' .. namespace ..
                 ' from ' .. existingLevel .. ' to ' .. loglevel)
@@ -118,6 +121,7 @@ function HyperLogger.new(namespace, loglevel)
 
     -- Store creation stack for debugging
     creationStacks[namespace] = getStackTrace()
+
     -- Create a standard logger as the base
     local baseLogger = hs.logger.new(namespace, loglevel or "info")
     selfLogger.d('Created base logger with level: ' .. (loglevel or "info"))
@@ -127,10 +131,6 @@ function HyperLogger.new(namespace, loglevel)
         _namespace = namespace,
         _baseLogger = baseLogger
     }
-
-    -- Store logger for reuse
-    loggers[namespace] = logger
-    selfLogger.d('Stored logger for namespace: ' .. namespace)
 
     -- Helper function to get caller info
     local function getCallerInfo()
@@ -203,6 +203,8 @@ function HyperLogger.new(namespace, loglevel)
         return self._baseLogger.getLogLevel()
     end
 
+    -- Store the logger
+    loggers[namespace] = logger
     return logger
 end
 
@@ -226,6 +228,7 @@ function HyperLogger.resetLoggers()
     creationStacks = {}
     selfLogger.i('All loggers have been reset')
 end
+
 -- Function to get editor command based on $EDITOR environment variable
 local function getEditorCommand(file, line)
     -- Get the editor from environment variable or use a default
@@ -263,6 +266,7 @@ local function getEditorCommand(file, line)
         return string.format("%s \"%s\"", editorPath, file)
     end
 end
+
 -- Register a URL handler to open files
 hs.urlevent.bind("openFile", function(eventName, params)
     selfLogger.d('URL handler called with params: ' .. hs.inspect(params))

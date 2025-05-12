@@ -10,7 +10,8 @@ local HotkeyManager = {}
 -- Store all hotkey bindings
 HotkeyManager.bindings = {
     hammer = {},
-    hyper = {}
+    hyper = {},
+    other = {}
 }
 
 -- Constants for modifiers
@@ -53,18 +54,34 @@ HotkeyManager.config = {
     }
 }
 
+-- Helper function to check if a table contains a value
+local function tableContains(tbl, element)
+    for _, value in pairs(tbl) do
+        if value == element then
+            return true
+        end
+    end
+    return false
+end
 -- Register a hotkey binding
 function HotkeyManager.registerBinding(modifiers, key, callback, description)
     local modType = nil
 
-    -- Determine if this is a hammer or hyper binding
-    if #modifiers == 3 and modifiers[1] == "cmd" and modifiers[2] == "ctrl" and modifiers[3] == "alt" then
+    -- Determine if this is a hammer or hyper binding by checking for presence of modifiers
+    -- regardless of their order
+    if #modifiers == 3 and
+        tableContains(modifiers, "cmd") and
+        tableContains(modifiers, "ctrl") and
+        tableContains(modifiers, "alt") then
         modType = HotkeyManager.MODIFIERS.HAMMER
-    elseif #modifiers == 4 and modifiers[1] == "cmd" and modifiers[2] == "shift" and modifiers[3] == "ctrl" and modifiers[4] == "alt" then
+    elseif #modifiers == 4 and
+        tableContains(modifiers, "cmd") and
+        tableContains(modifiers, "shift") and
+        tableContains(modifiers, "ctrl") and
+        tableContains(modifiers, "alt") then
         modType = HotkeyManager.MODIFIERS.HYPER
     else
-        log:w("Unknown modifier combination, not registering in HotkeyManager:", hs.inspect(modifiers))
-        return nil
+        modType = "other" -- Store all other combos in 'other'
     end
 
     -- Extract function name for description if not provided
@@ -187,12 +204,13 @@ function HotkeyManager.showHotkeyList(modType)
     local displayText = ""
 
     -- Add a title
-    local titleText = modType == HotkeyManager.MODIFIERS.HAMMER and "Hammer Mode Hotkeys" or "Hyper Mode Hotkeys"
+    local titleText = modType == HotkeyManager.MODIFIERS.HAMMER and "Hammer Mode Hotkeys" or
+        modType == HotkeyManager.MODIFIERS.HYPER and "Hyper Mode Hotkeys" or "Other Hotkeys"
     displayText = displayText .. titleText .. "\n\n"
 
     -- Order of categories
     local categoryOrder = { "Window Management", "Applications", "Files", "UI & Display", "System" }
-    
+
     -- Add categories in preferred order
     for _, catName in ipairs(categoryOrder) do
         if categories[catName] and #categories[catName] > 0 then
@@ -212,7 +230,7 @@ function HotkeyManager.showHotkeyList(modType)
                 else
                     row = row .. hotkeyText
                 end
-                
+
                 col = col + 1
 
                 if col >= 2 or i == #categories[catName] then
@@ -221,7 +239,7 @@ function HotkeyManager.showHotkeyList(modType)
                     col = 0
                 end
             end
-            
+
             displayText = displayText .. "\n"
         end
     end
@@ -253,7 +271,7 @@ function HotkeyManager.showHotkeyList(modType)
             end
         end
     end
-    
+
     -- Show alert with a large size and longer duration
     local screenRect = hs.screen.mainScreen():frame()
     local alertSize = { w = HotkeyManager.config.width, h = HotkeyManager.config.height }

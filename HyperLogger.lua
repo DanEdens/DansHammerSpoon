@@ -10,6 +10,8 @@ selfLogger.i('Initializing HyperLogger module')
 -- Table to store all logger instances
 local loggers = {}
 
+-- Registry of creation stacks to help track where loggers are created
+local creationStacks = {}
 -- Define colors for different log levels
 local LOG_COLORS = {
     info = { red = 0.3, green = 0.7, blue = 1.0 },    -- Light blue for info
@@ -17,6 +19,16 @@ local LOG_COLORS = {
     warning = { red = 0.9, green = 0.7, blue = 0.0 }, -- Orange for warnings
     error = { red = 1.0, green = 0.3, blue = 0.3 }    -- Light red for errors
 }
+-- Helper to get a formatted stack trace for logging creation points
+local function getStackTrace()
+    local stack = {}
+    for i = 3, 10 do -- Skip the first 2 levels (this function and caller)
+        local info = debug.getinfo(i, "Sl")
+        if not info then break end
+        table.insert(stack, string.format("%s:%d", info.short_src, info.currentline))
+    end
+    return table.concat(stack, " <- ")
+end
 -- URL encode a string
 local function urlEncode(str)
     if str then
@@ -77,15 +89,35 @@ local function createColoredLog(message, file, line, levelColor)
     -- Combine them
     return messageText .. fileInfoText
 end
--- Create a new logger with the given namespace
+-- Create a new logger instance or return an existing one with the given namespace
 function HyperLogger.new(namespace, loglevel)
-    selfLogger.i('Creating new HyperLogger instance for namespace: ' .. namespace)
-    -- Check if the logger already exists
+    -- Check if the logger already exists and return it
     if loggers[namespace] then
-        selfLogger.d('Returning existing logger for namespace: ' .. namespace)
-        return loggers[namespace]
+        local existingLogger = loggers[namespace]
+        local existingLevel = existingLogger:getLogLevel()
+
+        -- Update log level if a different one was requested (but not on every call)
+        if loglevel and loglevel ~= existingLevel then
+            selfLogger.d('Updating log level for existing logger ' .. namespace ..
+                ' from ' .. existingLevel .. ' to ' .. loglevel)
+            existingLogger:setLogLevel(loglevel)
+        else
+            selfLogger.d('Reusing existing logger for namespace: ' .. namespace)
+        end
+
+        -- Track where this logger is being requested from
+        if selfLogger:getLogLevel() == 'debug' then
+            selfLogger.d('Logger requested from: ' .. getStackTrace())
+        end
+
+        return existingLogger
     end
 
+    -- No existing logger found, create a new one
+    selfLogger.i('Creating new HyperLogger instance for namespace: ' .. namespace)
+
+    -- Store creation stack for debugging
+    creationStacks[namespace] = getStackTrace()
     -- Create a standard logger as the base
     local baseLogger = hs.logger.new(namespace, loglevel or "info")
     selfLogger.d('Created base logger with level: ' .. (loglevel or "info"))
@@ -174,6 +206,26 @@ function HyperLogger.new(namespace, loglevel)
     return logger
 end
 
+-- Function to get all registered loggers
+function HyperLogger.getLoggers()
+    local result = {}
+    for namespace, _ in pairs(loggers) do
+        table.insert(result, namespace)
+    end
+    return result
+end
+
+-- Function to get creation stack for a logger
+function HyperLogger.getCreationStack(namespace)
+    return creationStacks[namespace]
+end
+
+-- Function to reset all loggers (useful for testing)
+function HyperLogger.resetLoggers()
+    loggers = {}
+    creationStacks = {}
+    selfLogger.i('All loggers have been reset')
+end
 -- Function to get editor command based on $EDITOR environment variable
 local function getEditorCommand(file, line)
     -- Get the editor from environment variable or use a default

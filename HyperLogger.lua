@@ -46,7 +46,7 @@ local function createColoredLog(message, file, line, levelColor)
     })
 
     -- Combine them
-    return messageText .. fileInfoText
+    return fileInfoText .. ": " .. messageText
 end
 
 -- Create a new logger instance or return an existing one with the given namespace

@@ -1,5 +1,16 @@
-local log = hs.logger.new('AppManager', 'debug')
-log.i('Initializing application management system')
+-- AppManager.lua - Application management utilities
+-- Using singleton pattern to avoid multiple initializations
+
+local HyperLogger = require('HyperLogger')
+local log = HyperLogger.new('AppManager', 'debug')
+
+-- Check if module is already initialized
+if _G.AppManager then
+    log:d('Returning existing AppManager module')
+    return _G.AppManager
+end
+
+log:i('Initializing application management system')
 
 local FileManager = require('FileManager')
 
@@ -712,4 +723,6 @@ end
 function AppManager.open_finder()
     AppManager.launchOrFocusWithWindowSelection("Finder")
 end
+-- Save in global environment for module reuse
+_G.AppManager = AppManager
 return AppManager

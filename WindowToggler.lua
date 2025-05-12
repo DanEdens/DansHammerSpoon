@@ -1,5 +1,16 @@
-local log = hs.logger.new('WindowToggler', 'debug')
-log.i('Initializing window toggler system')
+-- WindowToggler.lua - Advanced Window Toggling Functions
+-- Using singleton pattern to avoid multiple initializations
+
+local HyperLogger = require('HyperLogger')
+local log = HyperLogger.new('WindowToggler', 'debug')
+
+-- Check if module is already initialized
+if _G.WindowToggler then
+    log:d('Returning existing WindowToggler module')
+    return _G.WindowToggler
+end
+
+log:i('Initializing window toggler system')
 
 local WindowManager = require('WindowManager')
 
@@ -81,4 +92,6 @@ function WindowToggler.listSavedWindows()
     hs.alert.show(result, 3)
 end
 
+-- Save in global environment for module reuse
+_G.WindowToggler = WindowToggler
 return WindowToggler

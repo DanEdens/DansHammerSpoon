@@ -5,16 +5,15 @@ hs.loadSpoon('EmmyLua')
 -- Load HyperLogger for better debugging with clickable log messages
 local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new('Main', 'info')
-log:i('Starting Hammerspoon initialization')
+log:d('Starting Hammerspoon initialization')
 
 -- Enable AppleScript support
 hs.allowAppleScript(true)
-log:i('AppleScript support enabled')
+
 -- Load core modules
 require("hs.ipc")
-log:d('Core IPC module loaded')
 require("ProjectManager")
-log:d('Project Manager module loaded')
+
 -- dofile(hs.configdir .. "/workspace.lua")
 -- dofile(hs.configdir .. "/test_balena_handler.lua")
 -- dofile(hs.configdir .. "/temp.lua")
@@ -118,7 +117,6 @@ end)
 
 
 -- Load hotkeys module
-log:d('Loading hotkeys module')
 dofile(hs.configdir .. "/hotkeys.lua")
 
 -- Load HotkeyManager module for dynamic hotkey lists

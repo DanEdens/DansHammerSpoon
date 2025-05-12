@@ -1,0 +1,183 @@
+Starting Hammerspoon initialization [/Users/d.edens/.hammerspoon/init.lua:8]
+Initializing project management system [/Users/d.edens/.hammerspoon/ProjectManager.lua:3]
+Initializing file management system [/Users/d.edens/.hammerspoon/FileManager.lua:4]
+Default editor set to: cursor [/Users/d.edens/.hammerspoon/FileManager.lua:10]
+Initializing ProjectManager module [/Users/d.edens/.hammerspoon/ProjectManager.lua:745]
+Loading projects from file [/Users/d.edens/.hammerspoon/ProjectManager.lua:23]
+Loaded 44 projects from file [/Users/d.edens/.hammerspoon/ProjectManager.lua:37]
+Secrets module loaded [/Users/d.edens/.hammerspoon/init.lua:23]
+Loading HammerGhost spoon [/Users/d.edens/.hammerspoon/init.lua:32]
+Initializing HammerGhost [...s/d.edens/.hammerspoon/Spoons/HammerGhost.spoon/init.lua:51]
+Initializing HTTP server for URL event handling [...s/d.edens/.hammerspoon/Spoons/HammerGhost.spoon/init.lua:60]
+Setting up URL event handlers [...s/d.edens/.hammerspoon/Spoons/HammerGhost.spoon/init.lua:62]
+Adding URL event tracing [...s/d.edens/.hammerspoon/Spoons/HammerGhost.spoon/init.lua:2059]
+HammerGhost hotkeys bound [/Users/d.edens/.hammerspoon/init.lua:34]
+Configuring console appearance [/Users/d.edens/.hammerspoon/init.lua:37]
+Console appearance configured [/Users/d.edens/.hammerspoon/init.lua:61]
+Creating console toolbar [/Users/d.edens/.hammerspoon/init.lua:76]
+Console toolbar created [/Users/d.edens/.hammerspoon/init.lua:108]
+Loading hotkeys module [/Users/d.edens/.hammerspoon/init.lua:120]
+Initializing hotkey system [/Users/d.edens/.hammerspoon/hotkeys.lua:5]
+Initializing HotkeyManager [/Users/d.edens/.hammerspoon/HotkeyManager.lua:354]
+Non-table modifiers passed to registerBinding: cmd [/Users/d.edens/.hammerspoon/HotkeyManager.lua:78]
+Loading HotkeyManager module [/Users/d.edens/.hammerspoon/init.lua:124]
+Display configuration updated [/Users/d.edens/.hammerspoon/HotkeyManager.lua:407]
+HotkeyManager loaded with 45 hammer bindings and 41 hyper bindings [/Users/d.edens/.hammerspoon/init.lua:135]
+Hammerspoon initialization complete [/Users/d.edens/.hammerspoon/init.lua:138]
+Hotload Disabled [/Users/d.edens/.hammerspoon/init.lua:168]
+2025-05-12 12:51:08: -- Lazy extension loading enabled
+2025-05-12 12:51:08: -- Loading ~/.hammerspoon/init.lua
+2025-05-12 12:51:08: -- Loading Spoon: ModalMgr
+2025-05-12 12:51:08: -- Loading extension: hotkey
+2025-05-12 12:51:08: 12:51:08     hotkey: Enabled hotkey ⌘⌃⇧Q: Initialize Modal Environment
+2025-05-12 12:51:08: -- Loading extension: canvas
+2025-05-12 12:51:08: -- Loading Spoon: AClock
+2025-05-12 12:51:08: -- Loading extension: logger
+2025-05-12 12:51:08: -- Loading extension: screen
+2025-05-12 12:51:08: -- Loading Spoon: EmmyLua
+2025-05-12 12:51:08: -- Loading extension: spoons
+2025-05-12 12:51:08: -- Loading extension: fs
+2025-05-12 12:51:08: -- Loading extension: json
+2025-05-12 12:51:08: -- Loading extension: inspect
+2025-05-12 12:51:08: -- Loading Spoon: ClipShow
+2025-05-12 12:51:08: -- Loading Spoon: ClipboardTool
+2025-05-12 12:51:08: -- Loading extension: settings
+2025-05-12 12:51:08: -- Loading Spoon: Layouts
+2025-05-12 12:51:08: -- Loading extension: urlevent
+2025-05-12 12:51:08: -- Loading extension: chooser
+2025-05-12 12:51:08: -- Loading extension: fnutils
+2025-05-12 12:51:08: -- Loading extension: timer
+2025-05-12 12:51:08: -- Loading extension: menubar
+2025-05-12 12:51:08: -- Loading extension: alert
+2025-05-12 12:51:08: -- Loading extension: image
+2025-05-12 12:51:08:          WindowMana: Initializing window management system
+2025-05-12 12:51:08: -- Loading extension: window
+2025-05-12 12:51:08: -- Spoon already loaded, returning existing copy: EmmyLua
+2025-05-12 12:51:08:          HyperLogge: Initializing HyperLogger module
+2025-05-12 12:51:08:          HyperLogge: HyperLogger module loaded successfully
+2025-05-12 12:51:08:          HyperLogge: Creating new HyperLogger instance for namespace: Main
+2025-05-12 12:51:08: -- Loading extension: styledtext
+2025-05-12 12:51:08: -- Loading extension: console
+2025-05-12 12:51:08:          HyperLogge: Creating new HyperLogger instance for namespace: ProjectManager
+2025-05-12 12:51:08:          ProjectMan: Initializing project management system [/Users/d.edens/.hammerspoon/ProjectManager.lua:3]
+2025-05-12 12:51:08:          HyperLogge: Creating new HyperLogger instance for namespace: FileManager
+2025-05-12 12:51:08:          FileManage: Initializing file management system [/Users/d.edens/.hammerspoon/FileManager.lua:4]
+2025-05-12 12:51:08:                          Default editor set to: cursor [/Users/d.edens/.hammerspoon/FileManager.lua:10]
+2025-05-12 12:51:08:          ProjectMan:     Initializing ProjectManager module [/Users/d.edens/.hammerspoon/ProjectManager.lua:745]
+2025-05-12 12:51:08:                          Loading projects from file [/Users/d.edens/.hammerspoon/ProjectManager.lua:23]
+2025-05-12 12:51:08:          ProjectMan: Loaded 44 projects from file [/Users/d.edens/.hammerspoon/ProjectManager.lua:37]
+2025-05-12 12:51:08:                Main: Loading HammerGhost spoon [/Users/d.edens/.hammerspoon/init.lua:32]
+2025-05-12 12:51:08: -- Loading Spoon: HammerGhost
+2025-05-12 12:51:08:          HyperLogge: Creating new HyperLogger instance for namespace: HammerGhost
+2025-05-12 12:51:08:          HammerGhos: Initializing HammerGhost [...s/d.edens/.hammerspoon/Spoons/HammerGhost.spoon/init.lua:51]
+2025-05-12 12:51:08:          HammerGhos: Initializing HTTP server for URL event handling [...s/d.edens/.hammerspoon/Spoons/HammerGhost.spoon/init.lua:60]
+2025-05-12 12:51:08:          HammerGhos: Setting up URL event handlers [...s/d.edens/.hammerspoon/Spoons/HammerGhost.spoon/init.lua:62]
+2025-05-12 12:51:08:          HammerGhos: Adding URL event tracing [...s/d.edens/.hammerspoon/Spoons/HammerGhost.spoon/init.lua:2059]
+2025-05-12 12:51:08:                Main: Configuring console appearance [/Users/d.edens/.hammerspoon/init.lua:37]
+2025-05-12 12:51:08:                Main: Creating console toolbar [/Users/d.edens/.hammerspoon/init.lua:76]
+2025-05-12 12:51:08:          HyperLogge: Creating new HyperLogger instance for namespace: Hotkeys
+2025-05-12 12:51:08:             Hotkeys: Initializing hotkey system [/Users/d.edens/.hammerspoon/hotkeys.lua:5]
+2025-05-12 12:51:08:          WindowMana: Initializing window management system
+2025-05-12 12:51:08:          AppManager: Initializing application management system
+2025-05-12 12:51:08:          DeviceMana: Initializing device management system
+2025-05-12 12:51:08: -- Loading extension: usb
+2025-05-12 12:51:08: USB is now enabled
+2025-05-12 12:51:08:          HyperLogge: Creating new HyperLogger instance for namespace: HotkeyManager
+2025-05-12 12:51:08:          HotkeyMana: Initializing HotkeyManager [/Users/d.edens/.hammerspoon/HotkeyManager.lua:354]
+2025-05-12 12:51:08:          WindowTogg: Initializing window toggler system
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥1: Move Top-Left Corner
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧1: Move Bottom-Left Corner
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥2: Move Top-Right Corner
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧2: Move Bottom-Right Corner
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧R: Reset Shuffle Counters
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥3: Full Screen
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧3: Nearly Full Screen
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥4: Left Wide Layout
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧4: Mini Shuffle
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥5: Split Vertical
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧5: Split Horizontal
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥6: Left Small Layout
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧6: Left Half Layout
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥7: Toggle Right Layout
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧7: Right Half Layout
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥8: Show Layouts Menu
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧8: Open System Preferences
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥9: Move Window to Mouse
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧9: Open Selected File
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥0: Horizontal Shuffle
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧0: Vertical Shuffle
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥LEFT: Move Window Left
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧LEFT: Move to Previous Screen
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥RIGHT: Move Window Right
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧RIGHT: Move to Next Screen
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥UP: Move Window Up
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧UP: Center Screen Layout
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥DOWN: Move Window Down
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧DOWN: Bottom Half Layout
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥F1: Toggle Console
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧F1: Temporary Function
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥F2: Temporary Function
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧F2: Temporary Function
+2025-05-12 12:51:08: 12:51:08 ** Warning:HotkeyMana: Non-table modifiers passed to registerBinding: cmd [/Users/d.edens/.hammerspoon/HotkeyManager.lua:78]
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘F3: Open GitHub
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥F3: Toggle USB Logging
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧F3: Temporary Function
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥F4: Temporary Function
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧F4: Temporary Function
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥F5: Reload Hammerspoon
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧F5: Temporary Function
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥F6: Save Window Position
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧F6: Save All Window Positions
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥F7: Restore Window Position
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧F7: Restore All Window Positions
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥F8: Temporary Function
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧F8: Temporary Function
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥F9: Temporary Function
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧F9: Temporary Function
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧F12: Temporary Function
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥P: Open PyCharm
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧P: Open Cursor
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥B: Open Arc Browser
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧B: Open Chrome
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥D: Open AnythingLLM
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧D: Open MongoDB Compass
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥L: Open Logi Options+
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧L: Open System Settings
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥S: Open Slack
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥G: Open GitHub Desktop
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧G: Open Cursor with GitHub
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥`: Open Cursor
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧`: Open Cursor
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥TAB: Open Mission Control
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧TAB: Open Launchpad
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥T: Open Barrier
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥I: Open Most Recent Image
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥E: Show File Menu
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧E: Show Editor Menu
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥X: Toggle Dragon Grid
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧X: Dragon Grid Settings
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥F: Open Scrcpy
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥SPACE: Show Hammer Hotkeys
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧SPACE: Show Hyper Hotkeys
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥Y: Open Countdown Timer
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧Y: Toggle Do Not Disturb
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥M: Toggle HammerGhost
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧M: HammerGhost Editor
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥J: Toggle Project Manager
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧J: Show Active Project Info
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥K: Reset Project Manager UI
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧K: Hide Project Manager UI
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥W: Toggle Window Position
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧W: List Saved Windows
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥Q: Clear Saved Window Positions
+2025-05-12 12:51:08:              hotkey: Disabled previous hotkey ⌘⌃⌥S: Open Slack
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥S
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ⌘⌃⌥O
+2025-05-12 12:51:08:              hotkey: Enabled hotkey ✧O
+2025-05-12 12:51:08:          HotkeyMana: Display configuration updated [/Users/d.edens/.hammerspoon/HotkeyManager.lua:407]
+2025-05-12 12:51:08:                Main: HotkeyManager loaded with 45 hammer bindings and 41 hyper bindings [/Users/d.edens/.hammerspoon/init.lua:135]
+2025-05-12 12:51:08:                Main: Hammerspoon initialization complete [/Users/d.edens/.hammerspoon/init.lua:138]
+2025-05-12 12:51:08: -- Loading Spoon: DragonGrid
+2025-05-12 12:51:08:          DragonGrid: Initializing DragonGrid Spoon
+2025-05-12 12:51:08: -- Loading extension: pathwatcher
+2025-05-12 12:51:08: -- Done.

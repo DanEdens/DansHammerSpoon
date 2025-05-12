@@ -75,9 +75,17 @@ function HotkeyManager.registerBinding(modifiers, key, callback, description)
 
     -- Ensure modifiers is a table
     if type(modifiers) ~= "table" then
+        -- Convert single string modifiers to a table
         log:w("Non-table modifiers passed to registerBinding: " .. tostring(modifiers))
-        modType = "other"
-    else
+        if type(modifiers) == "string" then
+            modifiers = { modifiers }
+        else
+            modType = "other"
+        end
+    end
+
+    -- Now we ensure modifiers is a table, determine the type
+    if type(modifiers) == "table" then
         -- Determine if this is a hammer or hyper binding by checking for presence of modifiers
         -- regardless of their order
         if #modifiers == 3 and
@@ -94,6 +102,8 @@ function HotkeyManager.registerBinding(modifiers, key, callback, description)
         else
             modType = "other" -- Store all other combos in 'other'
         end
+    else
+        modType = "other"
     end
 
     -- Extract function name for description if not provided

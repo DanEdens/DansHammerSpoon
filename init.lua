@@ -1,25 +1,15 @@
-dofile(hs.configdir .. "/loadConfig.lua")
-dofile(hs.configdir .. "/WindowManager.lua")
-dofile(hs.configdir .. "/hotkeys.lua")
--- hs.loadSpoon('EmmyLua')
+-- Hammerspoon init.lua
+-- Primary configuration file for Hammerspoon
+
+-- Enable AppleScript support
+hs.allowAppleScript(true)
 
 -- Load HyperLogger for better debugging with clickable log messages
 local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new('Main', 'info')
 log:d('Logger initialized')
 
--- Enable AppleScript support
-hs.allowAppleScript(true)
-
--- Load core modules
-require("hs.ipc")
-require("ProjectManager")
-
--- dofile(hs.configdir .. "/workspace.lua")
--- dofile(hs.configdir .. "/test_balena_handler.lua")
--- dofile(hs.configdir .. "/temp.lua")
-
--- Load secrets management
+-- Load secrets management first so environment variables are available
 local secrets = require("load_secrets")
 log:d('Secrets module loaded')
 
@@ -27,7 +17,7 @@ log:d('Secrets module loaded')
 local AWSIP = secrets.get("AWSIP", "localhost")
 local AWSIP2 = secrets.get("AWSIP2", "localhost")
 local MCP_PORT = secrets.get("MCP_PORT", "8000")
-log:d('Environment variables configured: ' .. AWSIP .. ', ' .. AWSIP2 .. ', ' .. MCP_PORT)
+log:d('Environment variables configured')
 
 -- Configure Console Dark Mode
 log:i('Configuring console appearance')
@@ -55,18 +45,6 @@ hs.console.consoleResultColor({ white = 0.9 }) -- Slightly dimmer than regular t
 hs.console.alpha(0.95)                    -- Slightly transparent
 hs.console.titleVisibility("hidden")      -- Hide the title bar for a cleaner look
 log:d('Console appearance configured')
-
--- Wait a bit for the console window to be ready before setting appearance
-hs.timer.doAfter(0.1, function()
-    log:d('Setting console window appearance')
-    local consoleWindow = hs.console.hswindow()
-    if consoleWindow and consoleWindow.setAppearance then
-        consoleWindow:setAppearance(hs.drawing.windowAppearance.darkAqua)
-        log:d('Console appearance set to darkAqua')
-    else
-        log:d('Failed to set console appearance - window or method not available')
-    end
-end)
 
 -- Create and configure console toolbar
 log:i('Creating console toolbar')
@@ -101,19 +79,36 @@ local consoleTB = toolbar.new("myConsole", {
 })
 :canCustomize(true)
 :autosaves(true)
+-- Apply the toolbar immediately
+hs.console.toolbar(consoleTB)
 log:d('Console toolbar created')
 
--- Apply the toolbar after a short delay to ensure console is ready
-hs.timer.doAfter(0.2, function()
-    log:d('Setting console toolbar')
-    hs.console.toolbar(consoleTB)
+-- Apply window appearance after a short delay to ensure console is ready
+hs.timer.doAfter(0.1, function()
+    log:d('Setting console window appearance')
+    local consoleWindow = hs.console.hswindow()
+    if consoleWindow and consoleWindow.setAppearance then
+        consoleWindow:setAppearance(hs.drawing.windowAppearance.darkAqua)
+        log:d('Console appearance set to darkAqua')
+    else
+        log:d('Failed to set console appearance - window or method not available')
+    end
 end)
 
+-- Load core modules in dependency order
+dofile(hs.configdir .. "/loadConfig.lua") -- Load Spoons first
+log:d('Spoons loaded')
 
+-- Load core system modules in proper order
+dofile(hs.configdir .. "/WindowManager.lua")
+local FileManager = require('FileManager')
+local AppManager = require('AppManager')
+local ProjectManager = require("ProjectManager")
+log:d('Core system modules loaded')
 
-
--- Load hotkeys module
-
+-- Load hotkeys after all systems are ready
+dofile(hs.configdir .. "/hotkeys.lua")
+log:d('Hotkeys configured')
 
 -- Load HotkeyManager module for dynamic hotkey lists
 log:d('Loading HotkeyManager module')
@@ -130,15 +125,9 @@ HotkeyManager.configureDisplay({
 log:i('HotkeyManager loaded with ' ..
     #HotkeyManager.bindings.hammer .. ' hammer bindings and ' ..
     #HotkeyManager.bindings.hyper .. ' hyper bindings')
-log:d('Hammerspoon initialization complete')
+log:i('Hammerspoon initialization complete')
 
--- Initialize modules
--- Load DragonGrid as a Spoon instead of requiring the module
-
-
-local AppManager = require('AppManager')
-local FileManager = require('FileManager')
-
+-- Configure hot reloading
 local function reloadConfig(files)
     local doReload = false
     for _, file in pairs(files) do
@@ -156,7 +145,7 @@ local configFileWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon
 local hotloadhammer = os.getenv("HAMMER_HOTLOAD")
 if hotloadhammer then
     configFileWatcher:start()
-    log:d("Hotloading hammerspoon")
+    log:d("Hotload enabled")
 else
-    log:d("Hotload Disabled")
+    log:d("Hotload disabled")
 end

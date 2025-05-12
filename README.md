@@ -418,3 +418,33 @@ To see the colored output in action, run the test script in the Hammerspoon cons
 ```lua
 dofile("test_hyperlogger_colors.lua")
 ```
+
+## Recent Changes
+
+### Initialization Process Cleanup
+
+The Hammerspoon initialization process has been refactored to improve:
+
+1. **Loading Order** - Core components now load in a logical dependency order
+2. **Error Handling** - Better error handling for Spoon loading
+3. **Redundancy Removal** - Eliminated duplicate module initialization
+4. **Performance** - Console setup operations now happen in parallel
+
+Key improvements:
+
+- Spoons now load with proper error handling and dependency management
+- Fixed non-table modifiers warning in HotkeyManager
+- Added test_init_flow.lua to monitor loading process and detect redundancies
+
+## Debugging Tools
+
+### Testing the Initialization Process
+
+To test the initialization flow and identify potential issues, run:
+
+```lua
+dofile(hs.configdir .. "/test_init_flow.lua")
+hs.reload()
+```
+
+This will track module loading order, timing, and detect any redundancies in the initialization process.

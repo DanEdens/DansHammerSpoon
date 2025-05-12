@@ -7,7 +7,7 @@ local log = HyperLogger.new('FileManager', 'debug')
 if _G.FileManager then
     return _G.FileManager
 end
-log:i('Initializing file management system')
+log:d('Initializing file management system')
 
 local FileManager = {}
 

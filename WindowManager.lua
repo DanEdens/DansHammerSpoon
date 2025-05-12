@@ -10,7 +10,7 @@ if _G.WindowManager then
 end
 
 -- Initialize only once
-log:i('Initializing window management system')
+log:d('Initializing window management system')
 
 local window = require "hs.window"
 local spaces = require "hs.spaces"

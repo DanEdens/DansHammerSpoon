@@ -1,6 +1,6 @@
 local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new('ProjectManager', 'debug')
-log:i('Initializing project management system')
+log:d('Initializing project management system')
 
 local FileManager = require('FileManager')
 local ProjectManager = {

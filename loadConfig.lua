@@ -1,8 +1,4 @@
--- custom_config = hs.fs.pathToAbsolute(os.getenv("HOME") .. '/.config/hammerspoon/private/config.lua')
--- Load ModalMgr first as it's a dependency for other Spoons
-if not spoon.ModalMgr then
-    hs.loadSpoon("ModalMgr")
-end
+hs.loadSpoon("ModalMgr")
 
 -- Define default Spoons which will be loaded
 local hspoon_list = {

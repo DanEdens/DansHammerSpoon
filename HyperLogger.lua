@@ -4,7 +4,8 @@
 local HyperLogger = {}
 
 -- Create a self-logger for the HyperLogger module itself
-local selfLogger = hs.logger.new('HyperLogger', 'debug')
+-- local selfLogger = hs.logger.new('HyperLogger', 'debug')
+local selfLogger = hs.logger.new('HyperLogger', 'info')
 selfLogger.i('Initializing HyperLogger module')
 -- Table to store all logger instances
 local loggers = {}
@@ -28,7 +29,7 @@ local function urlEncode(str)
     return str
 end
 
--- Create a styled text string with a clickable link
+-- Create a styled text string with a clickable link (CURRENTLY WORK IN PROGRESS. Links are not clickable)
 local function createClickableLog(message, file, line, levelColor)
     selfLogger.d('Creating clickable log for file: ' .. file .. ' line: ' .. line)
     -- First, the main message part
@@ -126,7 +127,7 @@ function HyperLogger.new(namespace, loglevel)
         end
         local logMsg = string.format("%s [%s:%s]", message, file, line)
         self._baseLogger.d(logMsg)
-        
+
         -- Print with color
         local coloredText = createColoredLog(message, file, line, LOG_COLORS.debug)
         hs.console.printStyledtext(coloredText)
@@ -139,7 +140,7 @@ function HyperLogger.new(namespace, loglevel)
         end
         local logMsg = string.format("%s [%s:%s]", message, file, line)
         self._baseLogger.w(logMsg)
-        
+
         -- Print with color
         local coloredText = createColoredLog(message, file, line, LOG_COLORS.warning)
         hs.console.printStyledtext(coloredText)
@@ -152,7 +153,7 @@ function HyperLogger.new(namespace, loglevel)
         end
         local logMsg = string.format("%s [%s:%s]", message, file, line)
         self._baseLogger.e(logMsg)
-        
+
         -- Print with color
         local coloredText = createColoredLog(message, file, line, LOG_COLORS.error)
         hs.console.printStyledtext(coloredText)
@@ -225,7 +226,7 @@ hs.urlevent.bind("openFile", function(eventName, params)
             -- Get the appropriate editor command
             local cmd = getEditorCommand(file, line)
             selfLogger.d('Executing command: ' .. cmd)
-            
+
             local success, output, descriptor = hs.execute(cmd)
             if not success then
                 selfLogger.e('Failed to open editor: ' .. (output or "Unknown error"))

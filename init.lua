@@ -1,11 +1,12 @@
 dofile(hs.configdir .. "/loadConfig.lua")
 dofile(hs.configdir .. "/WindowManager.lua")
-hs.loadSpoon('EmmyLua')
+dofile(hs.configdir .. "/hotkeys.lua")
+-- hs.loadSpoon('EmmyLua')
 
 -- Load HyperLogger for better debugging with clickable log messages
 local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new('Main', 'info')
-log:d('Starting Hammerspoon initialization')
+log:d('Logger initialized')
 
 -- Enable AppleScript support
 hs.allowAppleScript(true)
@@ -27,11 +28,6 @@ local AWSIP = secrets.get("AWSIP", "localhost")
 local AWSIP2 = secrets.get("AWSIP2", "localhost")
 local MCP_PORT = secrets.get("MCP_PORT", "8000")
 log:d('Environment variables configured: ' .. AWSIP .. ', ' .. AWSIP2 .. ', ' .. MCP_PORT)
-
--- Load HammerGhost
-log:i('Loading HammerGhost spoon')
-hs.loadSpoon("HammerGhost")
-log:d('HammerGhost hotkeys bound')
 
 -- Configure Console Dark Mode
 log:i('Configuring console appearance')
@@ -117,7 +113,7 @@ end)
 
 
 -- Load hotkeys module
-dofile(hs.configdir .. "/hotkeys.lua")
+
 
 -- Load HotkeyManager module for dynamic hotkey lists
 log:d('Loading HotkeyManager module')
@@ -134,13 +130,11 @@ HotkeyManager.configureDisplay({
 log:i('HotkeyManager loaded with ' ..
     #HotkeyManager.bindings.hammer .. ' hammer bindings and ' ..
     #HotkeyManager.bindings.hyper .. ' hyper bindings')
-log:i('Hammerspoon initialization complete')
-hs.alert.show("Config loaded")
+log:d('Hammerspoon initialization complete')
 
 -- Initialize modules
 -- Load DragonGrid as a Spoon instead of requiring the module
 
-hs.loadSpoon("DragonGrid")
 
 local AppManager = require('AppManager')
 local FileManager = require('FileManager')

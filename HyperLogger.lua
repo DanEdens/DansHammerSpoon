@@ -241,5 +241,5 @@ hs.urlevent.bind("openFile", function(eventName, params)
     end
 end)
 
-selfLogger.i('HyperLogger module loaded successfully')
+selfLogger.d('HyperLogger module loaded successfully')
 return HyperLogger

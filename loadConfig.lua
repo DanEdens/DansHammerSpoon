@@ -13,6 +13,8 @@ if not hspoon_list then
         "ClipShow",
         "ClipboardTool",
         -- "CountDown",
+        "DragonGrid",
+        -- "HammerGhost",
         -- "HCalendar",
         -- "HSaria2",
         -- "HSearch",

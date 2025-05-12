@@ -7,7 +7,7 @@ local ProjectManager = {
     -- Store active project information
     activeProject = nil,
     projects = {},
-    projectsFilePath = hs.configdir .. "/projects.json",
+    projectsFilePath = hs.configdir .. "/data/projects.json",
 
     -- UI state tracking
     uiState = {
@@ -289,7 +289,7 @@ end
 -- Show project management UI
 function ProjectManager.showProjectManager()
     log:d('Showing project manager UI')
-    
+
     -- If UI is already visible, hide it first to prevent multiple instances
     if ProjectManager.uiState.isVisible then
         ProjectManager.hideUI()
@@ -303,7 +303,7 @@ function ProjectManager.showProjectManager()
         image = hs.image.imageFromName("NSAddTemplate"),
         id = "new"
     })
-    
+
     -- Add option to import from FileManager
     table.insert(choices, {
         text = "📥 Import from FileManager",
@@ -354,7 +354,7 @@ end
 -- Dialog to create a new project
 function ProjectManager.showNewProjectDialog()
     log:d('Showing new project dialog')
-    
+
     -- Hide project chooser while editing
     if ProjectManager.uiState.projectChooser then
         ProjectManager.uiState.projectChooser:hide()
@@ -367,7 +367,7 @@ function ProjectManager.showNewProjectDialog()
     end
     local webView = hs.webview.new(rect)
     ProjectManager.uiState.projectWebView = webView
-    
+
     local html = [[
     <!DOCTYPE html>
     <html>
@@ -427,18 +427,18 @@ function ProjectManager.showNewProjectDialog()
     </body>
     </html>
     ]]
-    
+
     webView:html(html)
     webView:allowNewWindows(false)
     webView:allowTextEntry(true)
     webView:windowTitle("Create New Project")
     webView:bringToFront(true)
     webView:show()
-    
+
     webView:setCallback(function(webview, message)
         local action = message.urlParts.host
         local params = message.urlParts.queryItems
-        
+
         if action == "cancel" then
             webview:delete()
             ProjectManager.uiState.projectWebView = nil
@@ -474,7 +474,7 @@ end
 -- Show actions for a specific project
 function ProjectManager.showProjectActions(projectId)
     log:d('Showing project actions for: ' .. projectId)
-    
+
     -- Hide project chooser while showing actions
     if ProjectManager.uiState.projectChooser then
         ProjectManager.uiState.projectChooser:hide()
@@ -486,16 +486,16 @@ function ProjectManager.showProjectActions(projectId)
             break
         end
     end
-    
+
     if not project then
         log:e('Project not found for actions: ' .. projectId)
         hs.alert.show("Project not found")
         ProjectManager.uiState.isVisible = false
         return
     end
-    
+
     local isActive = projectId == ProjectManager.activeProject
-    
+
     local actions = {
         {
             text = isActive and "✓ Currently Active" or "Set as Active Project",
@@ -540,7 +540,7 @@ function ProjectManager.showProjectActions(projectId)
             action = "delete"
         }
     }
-    
+
     -- Delete existing actions chooser if it exists
     if ProjectManager.uiState.actionsChooser then
         ProjectManager.uiState.actionsChooser:delete()
@@ -581,7 +581,7 @@ function ProjectManager.showProjectActions(projectId)
                 "Cancel",
                 "NSCriticalAlertStyle"
             )
-            
+
             if button == "Delete" then
                 if ProjectManager.removeProject(projectId) then
                     hs.alert.show("Project removed: " .. project.name)
@@ -591,7 +591,7 @@ function ProjectManager.showProjectActions(projectId)
             end
         end
     end)
-    
+
     local chooser = ProjectManager.uiState.actionsChooser
     chooser:searchSubText(true)
     chooser:choices(actions)
@@ -602,7 +602,7 @@ end
 -- Edit project dialog
 function ProjectManager.showEditProjectDialog(project)
     log:d('Showing edit project dialog for: ' .. project.id)
-    
+
     -- Delete existing webview if it exists
     if ProjectManager.uiState.projectWebView then
         ProjectManager.uiState.projectWebView:delete()
@@ -610,7 +610,7 @@ function ProjectManager.showEditProjectDialog(project)
     local rect = hs.geometry.rect(100, 100, 600, 300)
     local webView = hs.webview.new(rect)
     ProjectManager.uiState.projectWebView = webView
-    
+
     local html = string.format([[
     <!DOCTYPE html>
     <html>
@@ -675,18 +675,18 @@ function ProjectManager.showEditProjectDialog(project)
         project.description,
         project.id
     )
-    
+
     webView:html(html)
     webView:allowNewWindows(false)
     webView:allowTextEntry(true)
     webView:windowTitle("Edit Project")
     webView:bringToFront(true)
     webView:show()
-    
+
     webView:setCallback(function(webview, message)
         local action = message.urlParts.host
         local params = message.urlParts.queryItems
-        
+
         if action == "cancel" then
             webview:delete()
             ProjectManager.uiState.projectWebView = nil

@@ -46,7 +46,7 @@ local function createColoredLog(message, file, line, levelColor)
     })
 
     -- Combine them
-    return fileInfoText .. ": " .. messageText
+    return messageText .. fileInfoText
 end
 
 -- Create a new logger instance or return an existing one with the given namespace
@@ -99,12 +99,7 @@ function HyperLogger.new(namespace, loglevel)
         if not file or not line then
             file, line = getCallerInfo()
         end
-        local logMsg = string.format("%s [%s:%s]", message, file, line)
-        if self._baseLogger then
-            self._baseLogger.i(logMsg)
-        end
-
-        -- Print with color regardless of baseLogger state
+        -- Only create a styled text log message - don't use the baseLogger which causes duplication
         local coloredText = createColoredLog(message, file, line, LOG_COLORS.info)
         hs.console.printStyledtext(coloredText)
         return self
@@ -114,12 +109,7 @@ function HyperLogger.new(namespace, loglevel)
         if not file or not line then
             file, line = getCallerInfo()
         end
-        local logMsg = string.format("%s [%s:%s]", message, file, line)
-        if self._baseLogger then
-            self._baseLogger.d(logMsg)
-        end
-
-        -- Print with color regardless of baseLogger state
+        -- Only create a styled text log message - don't use the baseLogger which causes duplication
         local coloredText = createColoredLog(message, file, line, LOG_COLORS.debug)
         hs.console.printStyledtext(coloredText)
         return self
@@ -129,12 +119,7 @@ function HyperLogger.new(namespace, loglevel)
         if not file or not line then
             file, line = getCallerInfo()
         end
-        local logMsg = string.format("%s [%s:%s]", message, file, line)
-        if self._baseLogger then
-            self._baseLogger.w(logMsg)
-        end
-
-        -- Print with color regardless of baseLogger state
+        -- Only create a styled text log message - don't use the baseLogger which causes duplication
         local coloredText = createColoredLog(message, file, line, LOG_COLORS.warning)
         hs.console.printStyledtext(coloredText)
         return self
@@ -144,12 +129,7 @@ function HyperLogger.new(namespace, loglevel)
         if not file or not line then
             file, line = getCallerInfo()
         end
-        local logMsg = string.format("%s [%s:%s]", message, file, line)
-        if self._baseLogger then
-            self._baseLogger.e(logMsg)
-        end
-
-        -- Print with color regardless of baseLogger state
+        -- Only create a styled text log message - don't use the baseLogger which causes duplication
         local coloredText = createColoredLog(message, file, line, LOG_COLORS.error)
         hs.console.printStyledtext(coloredText)
         return self

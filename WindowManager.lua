@@ -2,18 +2,28 @@
 -- Using singleton pattern to avoid multiple initializations
 
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('WindowMana', 'debug')
 
 -- Check if the module is already initialized
 if _G.WindowManager then
     return _G.WindowManager
 end
 
--- Initialize only once
-log:d('Initializing window management system')
+-- Initialize logger first, before any other code
+local log
+if not _G.WindowManagerLogger then
+    log = HyperLogger.new('WindowMgr', 'info')
+    _G.WindowManagerLogger = log -- Cache the logger globally
+else
+    log = _G.WindowManagerLogger -- Reuse existing logger
+end
 
-local window = require "hs.window"
-local spaces = require "hs.spaces"
+-- Verify logger is working
+if log then
+    log:d('Initializing window management system')
+else
+    print("WARNING: Failed to initialize WindowManager logger")
+end
+
 
 hs.window.animationDuration = 0.0
 local WindowManager = {
@@ -25,6 +35,7 @@ local WindowManager = {
     rowCounter = 0,
     colCounter = 0,
     moveStep = 150,
+
     lastWindowPosition = {},
     lastWindowPositions = {},
 
@@ -347,14 +358,15 @@ function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
 
     -- Try to set the frame
     win:setFrame(newFrame)
+    hs.timer.usleep(50000)
 
     -- Verify the frame was set correctly by comparing with a small tolerance
     local resultFrame = win:frame()
     local frameCorrect =
-        math.abs(resultFrame.x - newFrame.x) < 1 and
-        math.abs(resultFrame.y - newFrame.y) < 1 and
-        math.abs(resultFrame.w - newFrame.w) < 1 and
-        math.abs(resultFrame.h - newFrame.h) < 1
+        math.abs(resultFrame.x - newFrame.x) < 10 and
+        math.abs(resultFrame.y - newFrame.y) < 10 and
+        math.abs(resultFrame.w - newFrame.w) < 10 and
+        math.abs(resultFrame.h - newFrame.h) < 10
 
     -- If frame wasn't applied correctly and we have retries left, try alternative methods
     if not frameCorrect and retryCount > 0 then

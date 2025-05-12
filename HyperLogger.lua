@@ -31,49 +31,6 @@ local function getStackTrace()
     return table.concat(stack, " <- ")
 end
 
--- URL encode a string
-local function urlEncode(str)
-    if str then
-        selfLogger.d('URL encoding string')
-        str = string.gsub(str, "\n", "\r\n")
-        str = string.gsub(str, "([^%w %-%_%.%~])",
-            function(c) return string.format("%%%02X", string.byte(c)) end)
-        str = string.gsub(str, " ", "+")
-    end
-    return str
-end
-
--- Create a styled text string with a clickable link
-local function createClickableLog(message, file, line, levelColor)
-    selfLogger.d('Creating clickable log for file: ' .. file .. ' line: ' .. line)
-    -- First, the main message part
-    local messageText = hs.styledtext.new(message, {
-        font = { name = "Menlo", size = 12 },
-        color = levelColor or { white = 0.9 }
-    })
-
-    -- Then, create a highly visible link part that looks distinctly like a link
-    local linkText = hs.styledtext.new(" [📄 " .. file .. ":" .. line .. "]", {
-        font = { name = "Menlo", size = 12 },
-        color = { red = 0.4, green = 0.7, blue = 1.0 },
-        underlineStyle = "single",
-        underlineColor = { red = 0.4, green = 0.7, blue = 1.0 },
-        backgroundColor = { red = 0.1, green = 0.1, blue = 0.2 },
-        link = "hammerspoon://openFile?file=" .. urlEncode(file) .. "&line=" .. line
-    })
-
-    -- Add a separator between message and link
-    local separatorText = hs.styledtext.new(" ", {
-        font = { name = "Menlo", size = 12 },
-        color = { white = 0.8 }
-    })
-
-    -- Combine them into one styled text object
-    local combinedText = messageText .. separatorText .. linkText
-
-    return combinedText
-end
-
 -- Create a colored styled text for non-clickable logs
 local function createColoredLog(message, file, line, levelColor)
     -- Message with color based on log level
@@ -89,42 +46,38 @@ local function createColoredLog(message, file, line, levelColor)
     })
 
     -- Combine them
-    return messageText .. fileInfoText
+    return fileInfoText .. ": " .. messageText
 end
 
 -- Create a new logger instance or return an existing one with the given namespace
 function HyperLogger.new(namespace, loglevel)
+    -- Safety: ensure namespace is a string
+    namespace = tostring(namespace or "unnamed")
     -- Check if the logger already exists and return it
     if loggers[namespace] then
         local existingLogger = loggers[namespace]
-        local existingLevel = existingLogger:getLogLevel()
-
-        -- Update log level if a different one was requested
-        if loglevel and loglevel ~= existingLevel then
-            selfLogger.d('Updating log level for existing logger ' .. namespace ..
-                ' from ' .. existingLevel .. ' to ' .. loglevel)
-            existingLogger:setLogLevel(loglevel)
-        else
-            selfLogger.d('Reusing existing logger for namespace: ' .. namespace)
+        -- Verify the logger is valid, recreate if _baseLogger is nil
+        if not existingLogger._baseLogger then
+            -- Create a new base logger
+            local newBaseLogger = hs.logger.new(namespace, loglevel or "info")
+            existingLogger._baseLogger = newBaseLogger
+            print("Repaired broken logger: " .. namespace)
         end
 
-        -- Track where this logger is being requested from
-        if selfLogger:getLogLevel() == 'debug' then
-            selfLogger.d('Logger requested from: ' .. getStackTrace())
+        -- Update log level if a different one was requested
+        local existingLevel = existingLogger:getLogLevel()
+        if loglevel and loglevel ~= existingLevel and existingLevel ~= "unknown" then
+            existingLogger:setLogLevel(loglevel)
         end
 
         return existingLogger
     end
 
     -- No existing logger found, create a new one
-    selfLogger.i('Creating new HyperLogger instance for namespace: ' .. namespace)
-
-    -- Store creation stack for debugging
-    creationStacks[namespace] = getStackTrace()
+    print('Creating new HyperLogger instance: ' .. namespace)
 
     -- Create a standard logger as the base
     local baseLogger = hs.logger.new(namespace, loglevel or "info")
-    selfLogger.d('Created base logger with level: ' .. (loglevel or "info"))
 
     -- Create our custom logger object
     local logger = {
@@ -135,8 +88,10 @@ function HyperLogger.new(namespace, loglevel)
     -- Helper function to get caller info
     local function getCallerInfo()
         local info = debug.getinfo(3, "Sl") -- 3 levels up: getCallerInfo > log function > caller
-        selfLogger.d('Retrieved caller info: ' .. info.short_src .. ':' .. info.currentline)
-        return info.short_src, info.currentline
+        if not info then
+            return "unknown", 0
+        end
+        return info.short_src or "unknown", info.currentline or 0
     end
 
     -- Define log levels with file/line tracking and colors
@@ -145,9 +100,11 @@ function HyperLogger.new(namespace, loglevel)
             file, line = getCallerInfo()
         end
         local logMsg = string.format("%s [%s:%s]", message, file, line)
-        self._baseLogger.i(logMsg)
+        if self._baseLogger then
+            self._baseLogger.i(logMsg)
+        end
 
-        -- Print with color
+        -- Print with color regardless of baseLogger state
         local coloredText = createColoredLog(message, file, line, LOG_COLORS.info)
         hs.console.printStyledtext(coloredText)
         return self
@@ -158,9 +115,11 @@ function HyperLogger.new(namespace, loglevel)
             file, line = getCallerInfo()
         end
         local logMsg = string.format("%s [%s:%s]", message, file, line)
-        self._baseLogger.d(logMsg)
+        if self._baseLogger then
+            self._baseLogger.d(logMsg)
+        end
 
-        -- Print with color
+        -- Print with color regardless of baseLogger state
         local coloredText = createColoredLog(message, file, line, LOG_COLORS.debug)
         hs.console.printStyledtext(coloredText)
         return self
@@ -171,9 +130,11 @@ function HyperLogger.new(namespace, loglevel)
             file, line = getCallerInfo()
         end
         local logMsg = string.format("%s [%s:%s]", message, file, line)
-        self._baseLogger.w(logMsg)
+        if self._baseLogger then
+            self._baseLogger.w(logMsg)
+        end
 
-        -- Print with color
+        -- Print with color regardless of baseLogger state
         local coloredText = createColoredLog(message, file, line, LOG_COLORS.warning)
         hs.console.printStyledtext(coloredText)
         return self
@@ -184,9 +145,11 @@ function HyperLogger.new(namespace, loglevel)
             file, line = getCallerInfo()
         end
         local logMsg = string.format("%s [%s:%s]", message, file, line)
-        self._baseLogger.e(logMsg)
+        if self._baseLogger then
+            self._baseLogger.e(logMsg)
+        end
 
-        -- Print with color
+        -- Print with color regardless of baseLogger state
         local coloredText = createColoredLog(message, file, line, LOG_COLORS.error)
         hs.console.printStyledtext(coloredText)
         return self
@@ -194,13 +157,26 @@ function HyperLogger.new(namespace, loglevel)
 
     -- Set log level
     logger.setLogLevel = function(self, loglevel)
-        selfLogger.d('Setting log level for ' .. self._namespace .. ' to: ' .. loglevel)
-        self._baseLogger.setLogLevel(loglevel)
+        if self._baseLogger then
+            self._baseLogger.setLogLevel(loglevel)
+        else
+            -- Just silently ignore if baseLogger is nil
+            local errorText = hs.styledtext.new(
+                "Error: Cannot set log level - _baseLogger is nil in " .. self._namespace, {
+                    color = LOG_COLORS.error
+                })
+            hs.console.printStyledtext(errorText)
+        end
         return self
     end
 
     logger.getLogLevel = function(self)
-        return self._baseLogger.getLogLevel()
+        if self._baseLogger then
+            return self._baseLogger.getLogLevel()
+        else
+            -- Return a default level when baseLogger is nil
+            return "unknown"
+        end
     end
 
     -- Store the logger

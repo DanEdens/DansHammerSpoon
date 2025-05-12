@@ -3,7 +3,7 @@
 
 -- Enable AppleScript support
 hs.allowAppleScript(true)
-
+require("hs.ipc")
 -- Load HyperLogger for better debugging with clickable log messages
 local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new('Main', 'info')
@@ -100,7 +100,14 @@ end)
 function loadModuleGlobally(name)
     if not _G[name] then
         log:d('Loading module: ' .. name)
-        _G[name] = require(name)
+        local status, module = pcall(require, name)
+        if status then
+            _G[name] = module
+            log:d('Successfully loaded module: ' .. name)
+        else
+            log:e('Failed to load module: ' .. name .. ' - ' .. tostring(module))
+            return nil
+        end
     else
         log:d('Module already loaded: ' .. name)
     end
@@ -149,6 +156,7 @@ local function reloadConfig(files)
         end
     end
     if doReload then
+
         hs.reload()
     end
 end

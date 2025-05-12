@@ -189,6 +189,7 @@ Several improvements have been made to the codebase:
    - Different syntax for different editors (line number formatting)
    - Provides robust error handling for file not found or editor launch failures
    - Makes debugging significantly easier with direct navigation to log source locations
+   - **Fixed duplicate logging issue that caused every message to appear twice in the console**
 
 2. **Automatic Spoon Initialization** - Enhanced the Spoon loading system to automatically start Spoons
    - Automatically detects and calls the `start()` method for each loaded Spoon
@@ -248,6 +249,7 @@ Several improvements have been made to the codebase:
 ## Recent Updates
 
 - **Added Cursor with GitHub Desktop Integration**: Open projects in both Cursor IDE and GitHub Desktop simultaneously with hyper+g, ensuring final focus on Cursor while also updating GitHub Desktop with the selected project path.
+- **Fixed HyperLogger Duplicate Messages**: Eliminated duplicate log entries in the console by preventing the custom logger from sending messages to both the standard logger and the styled console output.
 
 ## Contributing
 

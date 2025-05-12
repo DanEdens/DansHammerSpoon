@@ -9,6 +9,13 @@ selfLogger.i('Initializing HyperLogger module')
 -- Table to store all logger instances
 local loggers = {}
 
+-- Define colors for different log levels
+local LOG_COLORS = {
+    info = { red = 0.3, green = 0.7, blue = 1.0 },    -- Light blue for info
+    debug = { white = 0.8 },                          -- Light gray for debug
+    warning = { red = 0.9, green = 0.7, blue = 0.0 }, -- Orange for warnings
+    error = { red = 1.0, green = 0.3, blue = 0.3 }    -- Light red for errors
+}
 -- URL encode a string
 local function urlEncode(str)
     if str then
@@ -22,12 +29,12 @@ local function urlEncode(str)
 end
 
 -- Create a styled text string with a clickable link
-local function createClickableLog(message, file, line)
+local function createClickableLog(message, file, line, levelColor)
     selfLogger.d('Creating clickable log for file: ' .. file .. ' line: ' .. line)
     -- First, the main message part
     local messageText = hs.styledtext.new(message, {
         font = { name = "Menlo", size = 12 },
-        color = { white = 0.9 }
+        color = levelColor or { white = 0.9 }
     })
 
     -- Then, create a highly visible link part that looks distinctly like a link
@@ -52,6 +59,23 @@ local function createClickableLog(message, file, line)
     return combinedText
 end
 
+-- Create a colored styled text for non-clickable logs
+local function createColoredLog(message, file, line, levelColor)
+    -- Message with color based on log level
+    local messageText = hs.styledtext.new(message, {
+        font = { name = "Menlo", size = 12 },
+        color = levelColor or { white = 0.9 }
+    })
+
+    -- File and line info with a distinct color
+    local fileInfoText = hs.styledtext.new(" [" .. file .. ":" .. line .. "]", {
+        font = { name = "Menlo", size = 12 },
+        color = { red = 0.4, green = 0.7, blue = 1.0 }
+    })
+
+    -- Combine them
+    return messageText .. fileInfoText
+end
 -- Create a new logger with the given namespace
 function HyperLogger.new(namespace, loglevel)
     selfLogger.i('Creating new HyperLogger instance for namespace: ' .. namespace)
@@ -82,19 +106,17 @@ function HyperLogger.new(namespace, loglevel)
         return info.short_src, info.currentline
     end
 
-    -- Define log levels with file/line tracking
+    -- Define log levels with file/line tracking and colors
     logger.i = function(self, message, file, line)
         if not file or not line then
             file, line = getCallerInfo()
         end
+        local logMsg = string.format("%s [%s:%s]", message, file, line)
+        self._baseLogger.i(logMsg)
 
-        -- Base logger for console output and regular logging
-        self._baseLogger.i(message)
-
-        -- Create clickable styled text and print to console
-        local styledText = createClickableLog(message, file, line)
-        hs.console.printStyledtext(styledText)
-
+        -- Print with color
+        local coloredText = createColoredLog(message, file, line, LOG_COLORS.info)
+        hs.console.printStyledtext(coloredText)
         return self
     end
 
@@ -102,11 +124,12 @@ function HyperLogger.new(namespace, loglevel)
         if not file or not line then
             file, line = getCallerInfo()
         end
-
-        self._baseLogger.d(message)
-        local styledText = createClickableLog(message, file, line)
-        hs.console.printStyledtext(styledText)
-
+        local logMsg = string.format("%s [%s:%s]", message, file, line)
+        self._baseLogger.d(logMsg)
+        
+        -- Print with color
+        local coloredText = createColoredLog(message, file, line, LOG_COLORS.debug)
+        hs.console.printStyledtext(coloredText)
         return self
     end
 
@@ -114,11 +137,12 @@ function HyperLogger.new(namespace, loglevel)
         if not file or not line then
             file, line = getCallerInfo()
         end
-
-        self._baseLogger.w(message)
-        local styledText = createClickableLog(message, file, line)
-        hs.console.printStyledtext(styledText)
-
+        local logMsg = string.format("%s [%s:%s]", message, file, line)
+        self._baseLogger.w(logMsg)
+        
+        -- Print with color
+        local coloredText = createColoredLog(message, file, line, LOG_COLORS.warning)
+        hs.console.printStyledtext(coloredText)
         return self
     end
 
@@ -126,11 +150,12 @@ function HyperLogger.new(namespace, loglevel)
         if not file or not line then
             file, line = getCallerInfo()
         end
-
-        self._baseLogger.e(message)
-        local styledText = createClickableLog(message, file, line)
-        hs.console.printStyledtext(styledText)
-
+        local logMsg = string.format("%s [%s:%s]", message, file, line)
+        self._baseLogger.e(logMsg)
+        
+        -- Print with color
+        local coloredText = createColoredLog(message, file, line, LOG_COLORS.error)
+        hs.console.printStyledtext(coloredText)
         return self
     end
 

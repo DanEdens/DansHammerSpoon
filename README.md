@@ -389,124 +389,32 @@ log:i('Custom location message', 'path/to/file.lua', 42)
 - Edit the `createClickableLog` function to change the styling of log messages
 - Modify the URL handler to use a different editor
 
-# Hammerspoon Configuration
+## HyperLogger
 
-This repository contains the custom Hammerspoon configuration for managing hotkeys, window arrangements, and other productivity enhancements.
+The HyperLogger module provides enhanced logging capabilities for Hammerspoon, including:
 
-## Features
+1. **Colored Log Messages** - Different log levels are displayed with distinct colors in the Hammerspoon console:
+   - Info (blue): Regular informational messages
+   - Debug (gray): Detailed debug information
+   - Warning (orange/yellow): Warning messages that need attention
+   - Error (red): Error messages indicating problems
 
-- **Hotkey Management**: HotkeyManager module provides a consistent interface for managing and displaying hotkeys.
-- **Alert-based Display**: Shows pressed hotkeys in an elegant alert window with configurable appearance.
-- **Category-based Organization**: Hotkeys are organized by categories with custom colors for better visual grouping.
+2. **File and Line Information** - Each log message includes the source file and line number where it was generated.
 
-## Configuration
-
-The HotkeyManager can be configured through the `HotkeyManager.config` table in `HotkeyManager.lua`. Key settings include:
-
-### Display Settings
-- `width`: Width of the hotkey display (default: 800)
-- `height`: Height of the hotkey display (default: 600)
-- `cornerRadius`: Corner radius for the hotkey display (default: 10)
-- `font`: Font for the hotkey display (default: "Menlo")
-- `fontSize`: Font size for the hotkey display (default: 14)
-- `fadeInDuration`: Duration of fade in animation (default: 0.3s)
-- `fadeOutDuration`: Duration of fade out animation (default: 0.3s)
-
-### Alert Settings
-- `alertDuration`: Duration to show the hotkey alert (default: 7s)
-- `alertFontSize`: Font size for the alert text (default: 16)
-- `alertTextColor`: Text color for alerts (default: white)
-- `alertBackgroundColor`: Background color for alerts (default: semi-transparent dark)
-
-### Category Colors
-Custom colors can be defined for different categories of hotkeys to provide visual distinction.
-
-## Usage
-
-Press configured hotkeys to trigger actions and see them displayed in the alert window.
-
-## Window Manager Improvements
-
-The window management system has been enhanced with more robust window positioning capabilities and new multi-window layout management features.
-
-### Robust Window Positioning
-
-The window manager now uses a more reliable approach to moving and resizing windows, with automatic verification and retries to ensure windows are positioned exactly as intended. This fixes issues where windows would occasionally not reach their intended position or size.
-
-Key improvements:
-- Robust frame application with verification
-- Multiple retry attempts with alternative methods
-- Better handling of window transitions between screens
-- Improved logging for debugging window positioning issues
-
-### Multi-Window Layout Management
-
-You can now save and restore entire desktop layouts, including multiple windows across multiple screens. This allows you to quickly switch between different workspace configurations.
-
-#### Saving a Layout
-
-Save your current window arrangement with a custom name:
+### Usage
 
 ```lua
--- In the Hammerspoon console or your configuration
-local WindowManager = require("WindowManager")
-WindowManager.saveCurrentLayout("coding")  -- Save a layout named "coding"
+local HyperLogger = require('HyperLogger')
+local log = HyperLogger.new('MyModule', 'debug')
+
+-- Log messages with different levels
+log:i("Information message")  -- Blue
+log:d("Debug message")        -- Gray
+log:w("Warning message")      -- Orange/yellow
+log:e("Error message")        -- Red
 ```
 
-#### Restoring a Layout
-
-Restore a previously saved layout:
-
+To see the colored output in action, run the test script in the Hammerspoon console:
 ```lua
-WindowManager.restoreLayout("coding")  -- Restore the "coding" layout
-```
-
-#### Managing Layouts
-
-Additional layout management functions:
-
-```lua
--- List all saved layouts
-local layouts = WindowManager.listSavedLayouts()
-for _, layout in ipairs(layouts) do
-  print(layout.name, layout.windowCount, layout.description)
-end
-
--- Delete a layout
-WindowManager.deleteLayout("coding")
-```
-
-#### Example Keybindings
-
-Add these keybindings to your `hotkeys.lua` file to quickly access layout features:
-
-```lua
--- Save current layout
-hs.hotkey.bind({"ctrl", "alt", "cmd"}, "s", function()
-  local name = hs.dialog.textPrompt("Save Layout", "Enter a name for this layout:", "", "Save", "Cancel")
-  if name and name ~= "" then
-    WindowManager.saveCurrentLayout(name)
-  end
-end)
-
--- Restore a layout
-hs.hotkey.bind({"ctrl", "alt", "cmd"}, "r", function()
-  local layouts = WindowManager.listSavedLayouts()
-  local choices = {}
-  for _, layout in ipairs(layouts) do
-    table.insert(choices, {
-      text = layout.name,
-      subText = layout.description .. " (" .. layout.windowCount .. " windows)"
-    })
-  end
-
-  local chooser = hs.chooser.new(function(choice)
-    if choice then
-      WindowManager.restoreLayout(choice.text)
-    end
-  end)
-
-  chooser:choices(choices)
-  chooser:show()
-end)
+dofile("test_hyperlogger_colors.lua")
 ```

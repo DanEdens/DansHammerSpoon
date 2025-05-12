@@ -56,6 +56,11 @@ HotkeyManager.config = {
 
 -- Helper function to check if a table contains a value
 local function tableContains(tbl, element)
+    -- Safety check to ensure we're working with a table
+    if type(tbl) ~= "table" then
+        log:e("tableContains called with non-table: " .. type(tbl))
+        return false
+    end
     for _, value in pairs(tbl) do
         if value == element then
             return true
@@ -63,25 +68,32 @@ local function tableContains(tbl, element)
     end
     return false
 end
+
 -- Register a hotkey binding
 function HotkeyManager.registerBinding(modifiers, key, callback, description)
     local modType = nil
 
-    -- Determine if this is a hammer or hyper binding by checking for presence of modifiers
-    -- regardless of their order
-    if #modifiers == 3 and
-        tableContains(modifiers, "cmd") and
-        tableContains(modifiers, "ctrl") and
-        tableContains(modifiers, "alt") then
-        modType = HotkeyManager.MODIFIERS.HAMMER
-    elseif #modifiers == 4 and
-        tableContains(modifiers, "cmd") and
-        tableContains(modifiers, "shift") and
-        tableContains(modifiers, "ctrl") and
-        tableContains(modifiers, "alt") then
-        modType = HotkeyManager.MODIFIERS.HYPER
+    -- Ensure modifiers is a table
+    if type(modifiers) ~= "table" then
+        log:w("Non-table modifiers passed to registerBinding: " .. tostring(modifiers))
+        modType = "other"
     else
-        modType = "other" -- Store all other combos in 'other'
+        -- Determine if this is a hammer or hyper binding by checking for presence of modifiers
+        -- regardless of their order
+        if #modifiers == 3 and
+            tableContains(modifiers, "cmd") and
+            tableContains(modifiers, "ctrl") and
+            tableContains(modifiers, "alt") then
+            modType = HotkeyManager.MODIFIERS.HAMMER
+        elseif #modifiers == 4 and
+            tableContains(modifiers, "cmd") and
+            tableContains(modifiers, "shift") and
+            tableContains(modifiers, "ctrl") and
+            tableContains(modifiers, "alt") then
+            modType = HotkeyManager.MODIFIERS.HYPER
+        else
+            modType = "other" -- Store all other combos in 'other'
+        end
     end
 
     -- Extract function name for description if not provided

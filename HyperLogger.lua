@@ -33,19 +33,58 @@ end
 
 -- Create a colored styled text for non-clickable logs
 local function createColoredLog(message, file, line, levelColor)
-    -- Message with color based on log level
-    local messageText = hs.styledtext.new(message, {
-        font = { name = "Menlo", size = 12 },
-        color = levelColor or { white = 0.9 }
-    })
+    -- Safely stringify the message to handle nil values or other data types
+    local safeMessage = ""
+    if message == nil then
+        safeMessage = "[nil]"
+    elseif type(message) == "table" then
+        -- Try to use hs.inspect if available, otherwise fall back to tostring
+        local success, result = pcall(function() return hs.inspect(message) end)
+        safeMessage = success and result or tostring(message)
+    elseif type(message) == "function" or type(message) == "userdata" or type(message) == "thread" then
+        safeMessage = "[" .. type(message) .. "]"
+    else
+        -- For numbers, booleans, or strings
+        safeMessage = tostring(message)
+    end
 
-    -- File and line info with a distinct color
-    local fileInfoText = hs.styledtext.new(" [" .. file .. ":" .. line .. "]", {
-        font = { name = "Menlo", size = 12 },
-        color = { red = 0.4, green = 0.7, blue = 1.0 }
-    })
+    -- Ensure file and line are strings
+    local safeFile = tostring(file or "unknown")
+    local safeLine = tostring(line or 0)
 
-    -- Combine them
+    -- Message with color based on log level - wrapped in pcall for safety
+    local messageText
+    local success, result = pcall(function()
+        return hs.styledtext.new(safeMessage, {
+            font = { name = "Menlo", size = 12 },
+            color = levelColor or { white = 0.9 }
+        })
+    end)
+    
+    if success then
+        messageText = result
+    else
+        -- Fallback if styling fails
+        messageText = hs.styledtext.new(safeMessage)
+    end
+
+    -- File and line info with a distinct color - also wrapped in pcall
+    local fileInfoText
+    success, result = pcall(function()
+        return hs.styledtext.new(" [" .. safeFile .. ":" .. safeLine .. "]", {
+            font = { name = "Menlo", size = 12 },
+            color = { red = 0.4, green = 0.7, blue = 1.0 }
+        })
+    end)
+    
+    if success then
+        fileInfoText = result
+    else
+        -- Fallback if styling fails
+        fileInfoText = hs.styledtext.new(" [" .. safeFile .. ":" .. safeLine .. "]")
+    end
+
+    -- Combine them safely
     return fileInfoText .. ": " .. messageText
 end
 
@@ -86,53 +125,148 @@ function HyperLogger.new(namespace, loglevel)
         _baseLogger = baseLogger
     }
 
-    -- Helper function to get caller info
-    local function getCallerInfo()
-        local info = debug.getinfo(3, "Sl") -- 3 levels up: getCallerInfo > log function > caller
-        if not info then
-            return "unknown", 0
-        end
-        return info.short_src or "unknown", info.currentline or 0
-    end
-
     -- Define log levels with file/line tracking and colors
     logger.i = function(self, message, file, line)
+        -- Safely get caller info with pcall
         if not file or not line then
-            file, line = getCallerInfo()
+            local success, f, l = pcall(function()
+                local info = debug.getinfo(3, "Sl") -- 3 levels up: getCallerInfo > log function > caller
+                if not info then
+                    return "unknown", 0
+                end
+                return info.short_src or "unknown", info.currentline or 0
+            end)
+
+            if success then
+                file, line = f, l
+            else
+                file, line = "unknown", 0
+            end
         end
-        -- Only create a styled text log message - don't use the baseLogger which causes duplication
-        local coloredText = createColoredLog(message, file, line, LOG_COLORS.info)
-        hs.console.printStyledtext(coloredText)
+
+        -- Safely create and print the styled text
+        local success, coloredText = pcall(function()
+            return createColoredLog(message, file, line, LOG_COLORS.info)
+        end)
+
+        if success then
+            pcall(function() hs.console.printStyledtext(coloredText) end)
+        else
+            -- Fallback if styling fails completely - print a plain message
+            pcall(function()
+                print(string.format("[INFO] %s [%s:%s]",
+                    tostring(message), tostring(file), tostring(line)))
+            end)
+        end
+        
         return self
     end
 
     logger.d = function(self, message, file, line)
+        -- Safely get caller info with pcall
         if not file or not line then
-            file, line = getCallerInfo()
+            local success, f, l = pcall(function()
+                local info = debug.getinfo(3, "Sl") -- 3 levels up: getCallerInfo > log function > caller
+                if not info then
+                    return "unknown", 0
+                end
+                return info.short_src or "unknown", info.currentline or 0
+            end)
+
+            if success then
+                file, line = f, l
+            else
+                file, line = "unknown", 0
+            end
         end
-        -- Only create a styled text log message - don't use the baseLogger which causes duplication
-        local coloredText = createColoredLog(message, file, line, LOG_COLORS.debug)
-        hs.console.printStyledtext(coloredText)
+
+        -- Safely create and print the styled text
+        local success, coloredText = pcall(function()
+            return createColoredLog(message, file, line, LOG_COLORS.debug)
+        end)
+
+        if success then
+            pcall(function() hs.console.printStyledtext(coloredText) end)
+        else
+            -- Fallback if styling fails completely - print a plain message
+            pcall(function()
+                print(string.format("[DEBUG] %s [%s:%s]",
+                    tostring(message), tostring(file), tostring(line)))
+            end)
+        end
+        
         return self
     end
 
     logger.w = function(self, message, file, line)
+        -- Safely get caller info with pcall
         if not file or not line then
-            file, line = getCallerInfo()
+            local success, f, l = pcall(function()
+                local info = debug.getinfo(3, "Sl") -- 3 levels up: getCallerInfo > log function > caller
+                if not info then
+                    return "unknown", 0
+                end
+                return info.short_src or "unknown", info.currentline or 0
+            end)
+
+            if success then
+                file, line = f, l
+            else
+                file, line = "unknown", 0
+            end
         end
-        -- Only create a styled text log message - don't use the baseLogger which causes duplication
-        local coloredText = createColoredLog(message, file, line, LOG_COLORS.warning)
-        hs.console.printStyledtext(coloredText)
+
+        -- Safely create and print the styled text
+        local success, coloredText = pcall(function()
+            return createColoredLog(message, file, line, LOG_COLORS.warning)
+        end)
+
+        if success then
+            pcall(function() hs.console.printStyledtext(coloredText) end)
+        else
+            -- Fallback if styling fails completely - print a plain message
+            pcall(function()
+                print(string.format("[WARNING] %s [%s:%s]",
+                    tostring(message), tostring(file), tostring(line)))
+            end)
+        end
+        
         return self
     end
 
     logger.e = function(self, message, file, line)
+        -- Safely get caller info with pcall
         if not file or not line then
-            file, line = getCallerInfo()
+            local success, f, l = pcall(function()
+                local info = debug.getinfo(3, "Sl") -- 3 levels up: getCallerInfo > log function > caller
+                if not info then
+                    return "unknown", 0
+                end
+                return info.short_src or "unknown", info.currentline or 0
+            end)
+
+            if success then
+                file, line = f, l
+            else
+                file, line = "unknown", 0
+            end
         end
-        -- Only create a styled text log message - don't use the baseLogger which causes duplication
-        local coloredText = createColoredLog(message, file, line, LOG_COLORS.error)
-        hs.console.printStyledtext(coloredText)
+
+        -- Safely create and print the styled text
+        local success, coloredText = pcall(function()
+            return createColoredLog(message, file, line, LOG_COLORS.error)
+        end)
+
+        if success then
+            pcall(function() hs.console.printStyledtext(coloredText) end)
+        else
+            -- Fallback if styling fails completely - print a plain message
+            pcall(function()
+                print(string.format("[ERROR] %s [%s:%s]",
+                    tostring(message), tostring(file), tostring(line)))
+            end)
+        end
+        
         return self
     end
 

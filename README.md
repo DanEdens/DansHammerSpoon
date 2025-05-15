@@ -182,7 +182,15 @@ The configuration can be customized by editing the following files:
 
 Several improvements have been made to the codebase:
 
-1. **Enhanced HyperLogger with $EDITOR Integration** - Improved clickable log links to work with any editor
+1. **Logger Initialization and Singleton Pattern Fixes** - Resolved issues with multiple logger instances
+   - Centralized logger initialization in init.lua with global AppLogger
+   - Updated modules to use the shared global logger
+   - Improved HyperLogger module with better namespace defaults
+   - Created diagnostic tools to identify and resolve logger issues
+   - Fixed potential memory leaks from excessive logger creation
+   - See [logger_fixes.md](logger_fixes.md) for complete details
+
+2. **Enhanced HyperLogger with $EDITOR Integration** - Improved clickable log links to work with any editor
    - Now uses the $EDITOR environment variable to determine which editor to use
    - Supports common editors including Vim, Emacs, VS Code, Cursor, Nano, and Sublime Text
    - Automatically resolves editor paths using `which` command
@@ -191,20 +199,20 @@ Several improvements have been made to the codebase:
    - Makes debugging significantly easier with direct navigation to log source locations
    - **Fixed duplicate logging issue that caused every message to appear twice in the console**
 
-2. **Automatic Spoon Initialization** - Enhanced the Spoon loading system to automatically start Spoons
+3. **Automatic Spoon Initialization** - Enhanced the Spoon loading system to automatically start Spoons
    - Automatically detects and calls the `start()` method for each loaded Spoon
    - Eliminates the need for manually starting individual Spoons in configuration
    - Provides visual feedback with alerts when Spoons are successfully started
    - Makes adding new Spoons to the configuration simpler and more consistent
 
-3. **Window Position Toggling by Title** - Added WindowToggler module for toggling window positions by title
+4. **Window Position Toggling by Title** - Added WindowToggler module for toggling window positions by title
    - Remembers window positions by window title rather than just window ID
    - Allows toggling between custom positions and the nearlyFull layout
    - Works across application restarts as long as window titles remain the same
    - Provides hotkeys for toggling (hammer+w), listing saved positions (hyper+w), and clearing positions (hammer+q)
    - See [WindowToggler_README.md](docs/WindowToggler_README.md) for details
 
-4. **Dynamic Hotkey Management** - Added smart dynamic hotkey display system
+5. **Dynamic Hotkey Management** - Added smart dynamic hotkey display system
    - Automatically tracks and categorizes all hotkey bindings
    - Excludes temporary/placeholder functions from the hotkey list
    - Groups hotkeys into logical categories for easier reference
@@ -214,33 +222,33 @@ Several improvements have been made to the codebase:
    - **Implemented multi-layered protection against resource leaks**
    - See [HotkeyManager_README.md](docs/HotkeyManager_README.md) for details
 
-5. **HammerGhost URL Event Handling Fix** - Fixed WebKit-based communication in HammerGhost.spoon
+6. **HammerGhost URL Event Handling Fix** - Fixed WebKit-based communication in HammerGhost.spoon
    - Initialized the URL event watcher server that was missing
    - Added detailed URL parameter parsing and logging
    - Implemented testing utilities for URL event handling
    - See [Spoons/HammerGhost.spoon/FIX_URL_HANDLING.md](Spoons/HammerGhost.spoon/FIX_URL_HANDLING.md) for details
 
-6. **DragonGrid Multi-Screen Support** - Fixed UI issues with the precision grid system when operating across multiple monitors
+7. **DragonGrid Multi-Screen Support** - Fixed UI issues with the precision grid system when operating across multiple monitors
    - See [DragonGrid-MultiScreen-Fix.md](docs/DragonGrid-MultiScreen-Fix.md) for details
    - Enables seamless grid-based mouse positioning across all connected displays
    - Maintains consistent UI behavior between grid levels
 
-7. **HyperLogger for Debugging** - Enhanced logging system with clickable log messages
+8. **HyperLogger for Debugging** - Enhanced logging system with clickable log messages
    - Automatically captures file and line information
    - Displays clickable hyperlinks in the console
    - Makes debugging much easier by linking logs to source code
 
-8. **GitHub Desktop Enhancements** - Specialized project selection when opening GitHub Desktop
+9. **GitHub Desktop Enhancements** - Specialized project selection when opening GitHub Desktop
    - Choose between existing GitHub Desktop windows
    - Open different projects even when GitHub Desktop is already running
    - Enter custom paths directly in the selection UI
 
-9. **Hammerspoon OS Version Compatibility Fix** - Fixed error with operating system version reporting
-   - Updated to handle the table return format of `hs.host.operatingSystemVersion()`
-   - Properly formats version as string using major.minor.patch format
-   - Prevents "attempt to concatenate a table value" errors during initialization
+10. **Hammerspoon OS Version Compatibility Fix** - Fixed error with operating system version reporting
+    - Updated to handle the table return format of `hs.host.operatingSystemVersion()`
+    - Properly formats version as string using major.minor.patch format
+    - Prevents "attempt to concatenate a table value" errors during initialization
 
-10. **Hotkey Binding Fix** - Fixed error with missing Finder function
+11. **Hotkey Binding Fix** - Fixed error with missing Finder function
     - Added missing `open_finder` function to AppManager module
     - Resolves "At least one of pressedfn, releasedfn or repeatfn must be a function" error
     - Ensures hyper+F hotkey correctly opens or focuses Finder

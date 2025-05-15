@@ -2,10 +2,8 @@
 -- A custom logger for Hammerspoon that creates clickable log messages with file and line information
 
 local HyperLogger = {}
-
+local __FILE__ = 'HyperLogger.lua'
 -- Create a self-logger for the HyperLogger module itself
-local selfLogger = hs.logger.new('HyperLogger', 'info')
-selfLogger.d('Initializing HyperLogger module')
 -- Table to store all logger instances
 local loggers = {}
 
@@ -56,11 +54,11 @@ local function createColoredLog(message, file, line, levelColor)
     local messageText
     local success, result = pcall(function()
         return hs.styledtext.new(safeMessage, {
-            font = { name = "Menlo", size = 12 },
+            font = { name = "Menlo", size = 18 },
             color = levelColor or { white = 0.9 }
         })
     end)
-    
+
     if success then
         messageText = result
     else
@@ -76,7 +74,7 @@ local function createColoredLog(message, file, line, levelColor)
             color = { red = 0.4, green = 0.7, blue = 1.0 }
         })
     end)
-    
+
     if success then
         fileInfoText = result
     else
@@ -90,16 +88,17 @@ end
 
 -- Create a new logger instance or return an existing one with the given namespace
 function HyperLogger.new(namespace, loglevel)
-    -- Safety: ensure namespace is a string
-    namespace = tostring(namespace or "Logger")
-    loglevel = tostring(loglevel or "info")
+    -- Safety: ensure namespace is a string and provide a more specific default
+    namespace = namespace or "HammerspoonLogger"
+    namespace = tostring(namespace)
+    loglevel = tostring(loglevel or "debug")
     -- Check if the logger already exists and return it
     if loggers[namespace] then
         local existingLogger = loggers[namespace]
         -- Verify the logger is valid, recreate if _baseLogger is nil
         if not existingLogger._baseLogger then
             -- Create a new base logger
-            local newBaseLogger = hs.logger.new(namespace, loglevel or "info")
+            local newBaseLogger = hs.logger.new(namespace, loglevel or "debug")
             existingLogger._baseLogger = newBaseLogger
             print("Repaired broken logger: " .. namespace)
         end
@@ -117,7 +116,7 @@ function HyperLogger.new(namespace, loglevel)
     print('Creating new HyperLogger instance: ' .. namespace)
 
     -- Create a standard logger as the base
-    local baseLogger = hs.logger.new(namespace, loglevel or "info")
+    local baseLogger = hs.logger.new(namespace, loglevel or "debug")
 
     -- Create our custom logger object
     local logger = {
@@ -158,7 +157,7 @@ function HyperLogger.new(namespace, loglevel)
                     tostring(message), tostring(file), tostring(line)))
             end)
         end
-        
+
         return self
     end
 
@@ -194,7 +193,7 @@ function HyperLogger.new(namespace, loglevel)
                     tostring(message), tostring(file), tostring(line)))
             end)
         end
-        
+
         return self
     end
 
@@ -230,7 +229,7 @@ function HyperLogger.new(namespace, loglevel)
                     tostring(message), tostring(file), tostring(line)))
             end)
         end
-        
+
         return self
     end
 
@@ -266,7 +265,7 @@ function HyperLogger.new(namespace, loglevel)
                     tostring(message), tostring(file), tostring(line)))
             end)
         end
-        
+
         return self
     end
 
@@ -299,6 +298,8 @@ function HyperLogger.new(namespace, loglevel)
     return logger
 end
 
+-- Create self-logger with a specific namespace instead of default
+local selfLogger = HyperLogger.new('HyperLoggerInternal', 'debug')
 -- Function to get all registered loggers
 function HyperLogger.getLoggers()
     local result = {}
@@ -312,12 +313,11 @@ end
 function HyperLogger.getCreationStack(namespace)
     return creationStacks[namespace]
 end
-
 -- Function to reset all loggers (useful for testing)
 function HyperLogger.resetLoggers()
     loggers = {}
     creationStacks = {}
-    selfLogger.i('All loggers have been reset')
+    selfLogger.i('All loggers have been reset', __FILE__, 318)
 end
 
 -- Function to get editor command based on $EDITOR environment variable
@@ -325,7 +325,7 @@ local function getEditorCommand(file, line)
     -- Get the editor from environment variable or use a default
     local editorEnv = hs.execute("echo $EDITOR"):gsub("%s+$", "")
     local editor = editorEnv ~= "" and editorEnv or "cursor"
-    selfLogger.d('Using editor: ' .. editor)
+    selfLogger.d('Using editor: ' .. editor, __FILE__, 326)
 
     -- Get the full path to the editor if it's not an absolute path already
     local editorPath = editor
@@ -334,7 +334,7 @@ local function getEditorCommand(file, line)
         local fullPath = hs.execute("which " .. editor):gsub("%s+$", "")
         if fullPath ~= "" then
             editorPath = fullPath
-            selfLogger.d('Resolved editor path: ' .. editorPath)
+            selfLogger.d('Resolved editor path: ' .. editorPath, __FILE__, 335)
         end
     end
 
@@ -360,33 +360,33 @@ end
 
 -- Register a URL handler to open files
 hs.urlevent.bind("openFile", function(eventName, params)
-    selfLogger.d('URL handler called with params: ' .. hs.inspect(params))
+    selfLogger.d('URL handler called with params: ' .. hs.inspect(params), __FILE__, 361)
     if params.file and params.line then
         local file = params.file
         local line = params.line
 
         -- Check if the file exists
         if hs.fs.attributes(file) then
-            selfLogger.i('Opening file in editor: ' .. file .. ':' .. line)
+            selfLogger.i('Opening file in editor: ' .. file .. ':' .. line, __FILE__, 368)
             -- Show a toast to indicate the link was clicked
             hs.alert.show("Opening " .. file .. ":" .. line, 1)
             -- Get the appropriate editor command
             local cmd = getEditorCommand(file, line)
-            selfLogger.d('Executing command: ' .. cmd)
+            selfLogger.d('Executing command: ' .. cmd, __FILE__, 373)
 
             local success, output, descriptor = hs.execute(cmd)
             if not success then
-                selfLogger.e('Failed to open editor: ' .. (output or "Unknown error"))
+                selfLogger.e('Failed to open editor: ' .. (output or "Unknown error"), __FILE__, 375)
                 hs.alert.show("Failed to open file in editor")
             end
         else
-            selfLogger.w('File not found: ' .. file)
+            selfLogger.w('File not found: ' .. file, __FILE__, 381)
             hs.alert.show("Could not find file: " .. file)
         end
     else
-        selfLogger.e('Invalid URL parameters received')
+        selfLogger.e('Invalid URL parameters received', __FILE__, 384)
     end
 end)
 
-selfLogger.d('HyperLogger module loaded successfully')
+selfLogger.d('HyperLogger module loaded successfully', __FILE__, 393)
 return HyperLogger

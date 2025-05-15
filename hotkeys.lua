@@ -1,17 +1,19 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 -- Use our custom HyperLogger instead of the standard logger
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new()
-log:d('Initializing hotkey system')
+-- Always use the global application logger from init.lua
+local log = _G.AppLogger
+local __FILE__ = 'hotkeys.lua'
+log:d('Initializing hotkey system', __FILE__, 6)
 
 -- Access modules from the global environment if they've been loaded already
 -- This prevents redundant module initialization
 local function getModule(name)
     if _G[name] then
-        log:d('Using existing module: ' .. name)
+        log:d('Using existing module: ' .. name, __FILE__, 12)
         return _G[name]
     else
-        log:d('Loading module: ' .. name)
+        log:d('Loading module: ' .. name, __FILE__, 15)
         local module = require(name)
         _G[name] = module
         return module
@@ -44,20 +46,20 @@ function toggleRightLayout()
     rightLayoutState.isSmall = not rightLayoutState.isSmall
     if rightLayoutState.isSmall then
         WindowManager.applyLayout('rightSmall')
-        log.d("Right Small Layout")
+        log:d("Right Small Layout", __FILE__, 48)
     else
         WindowManager.applyLayout('rightHalf')
-        log.d("Right Half Layout")
+        log:d("Right Half Layout", __FILE__, 51)
     end
 end
 function toggleLeftLayout()
     leftLayoutState.isSmall = not leftLayoutState.isSmall
     if leftLayoutState.isSmall then
         WindowManager.applyLayout('leftSmall')
-        log.d("Left Small Layout")
+        log:d("Left Small Layout", __FILE__, 58)
     else
         WindowManager.applyLayout('leftHalf')
-        log.d("Left Half Layout")
+        log:d("Left Half Layout", __FILE__, 61)
     end
 end
 -- Keybindings

@@ -262,7 +262,7 @@ hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "s", function()
     end
 end)
 
-hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "o", function()
+hs.hotkey.bind(hammer, "o", function()
     local layouts = WindowManager.listSavedLayouts()
     if #layouts == 0 then
         hs.alert.show("No saved layouts available")
@@ -289,7 +289,7 @@ hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "o", function()
 end)
 
 -- Delete layout keybinding
-hs.hotkey.bind({ "ctrl", "alt", "cmd", "shift" }, "o", function()
+hs.hotkey.bind(_hyper, "o", function()
     local layouts = WindowManager.listSavedLayouts()
     if #layouts == 0 then
         hs.alert.show("No saved layouts available")

@@ -24,7 +24,8 @@ HotkeyManager.MODIFIERS = {
 -- Store display window state
 HotkeyManager.displayWindows = {
     hammer = nil,
-    hyper = nil
+    hyper = nil,
+    other = nil
 }
 
 -- Default configuration
@@ -170,13 +171,13 @@ end
 -- Show hotkey list for a specific modifier type in a persistent window
 function HotkeyManager.showHotkeyList(modType)
     if not HotkeyManager.bindings[modType] then
-        log:e("Unknown modifier type:", modType)
+        log:e("Unknown modifier type:" .. modType, __FILE__, 173)
         return
     end
 
     local bindings = HotkeyManager.bindings[modType]
     if #bindings == 0 then
-        log:w("No bindings registered for:", modType)
+        log:w("No bindings registered for:" .. modType, __FILE__, 179)
         hs.alert.show("No hotkeys registered")
         return
     end
@@ -366,7 +367,7 @@ end
 -- Initialize hotkey manager by overriding the global functions
 -- This will be called when the module is required
 function HotkeyManager.init()
-    log:i("Initializing HotkeyManager")
+    log:i("Initializing HotkeyManager", __FILE__, 369)
 
     -- Replace the global functions
     _G.showHammerList = HotkeyManager.showHammerList
@@ -378,7 +379,7 @@ end
 -- Configure the display window appearance
 function HotkeyManager.configureDisplay(options)
     if type(options) ~= "table" then
-        log:e("configureDisplay requires a table of options")
+        log:e("configureDisplay requires a table of options", __FILE__, 381)
         return HotkeyManager
     end
 
@@ -414,12 +415,12 @@ function HotkeyManager.configureDisplay(options)
                     end
                 end
             else
-                log:w("Unknown configuration option: " .. key)
+                log:w("Unknown configuration option: " .. key, __FILE__, 417)
             end
         end
     end)
 
-    log:i("Display configuration updated")
+    log:i("Display configuration updated", __FILE__, 421)
     return HotkeyManager
 end
 return HotkeyManager.init()

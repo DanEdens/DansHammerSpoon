@@ -310,6 +310,23 @@ function HyperLogger.new(namespace, loglevel)
         end
     end
 
+    -- Add compatibility with standard hs.logger API for Spoons
+    -- Many Spoons expect these methods to be directly callable
+    logger.v = logger.d -- Map verbose to debug
+    logger.f = logger.e -- Map fatal to error
+
+    -- Add static versions of log methods that work without "self" for compatibility
+    logger.setLogLevel = setmetatable({}, {
+        __call = function(_, loglevel)
+            return logger:setLogLevel(loglevel)
+        end
+    })
+
+    logger.getLogLevel = setmetatable({}, {
+        __call = function(_)
+            return logger:getLogLevel()
+        end
+    })
     -- Store the logger
     loggers[namespace] = logger
     return logger

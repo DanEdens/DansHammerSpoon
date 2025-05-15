@@ -1,29 +1,13 @@
 -- WindowManager.lua - Window management utilities
 -- Using singleton pattern to avoid multiple initializations
-
+local __FILE__ = 'WindowManager.lua'
 local HyperLogger = require('HyperLogger')
-
+local log = HyperLogger.new()
 -- Check if the module is already initialized
 if _G.WindowManager then
     return _G.WindowManager
 end
-
--- Initialize logger first, before any other code
-local log
-if not _G.WindowManagerLogger then
-    log = HyperLogger.new()
-    _G.WindowManagerLogger = log -- Cache the logger globally
-else
-    log = _G.WindowManagerLogger -- Reuse existing logger
-end
-
--- Verify logger is working
-if log then
-    log:d('Initializing window management system')
-else
-    print("WARNING: Failed to initialize WindowManager logger")
-end
-
+log:d('Initializing window management system', __FILE__, 22)
 
 hs.window.animationDuration = 0.0
 local WindowManager = {

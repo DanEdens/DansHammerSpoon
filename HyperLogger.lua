@@ -31,6 +31,9 @@ end
 
 -- Create a colored styled text for non-clickable logs
 local function createColoredLog(message, file, line, levelColor)
+    -- Define standard font styles to match console settings in init.lua
+    local MESSAGE_FONT = { name = "Menlo", size = 18 }
+    local FILE_INFO_FONT = { name = "Menlo", size = 14 }
     -- Safely stringify the message to handle nil values or other data types
     local safeMessage = ""
     if message == nil then
@@ -54,7 +57,7 @@ local function createColoredLog(message, file, line, levelColor)
     local messageText
     local success, result = pcall(function()
         return hs.styledtext.new(safeMessage, {
-            font = { name = "Menlo", size = 18 },
+            font = MESSAGE_FONT,
             color = levelColor or { white = 0.9 }
         })
     end)
@@ -70,7 +73,7 @@ local function createColoredLog(message, file, line, levelColor)
     local fileInfoText
     success, result = pcall(function()
         return hs.styledtext.new(" [" .. safeFile .. ":" .. safeLine .. "]", {
-            font = { name = "Menlo", size = 12 },
+            font = FILE_INFO_FONT,
             color = { red = 0.4, green = 0.7, blue = 1.0 }
         })
     end)
@@ -86,6 +89,15 @@ local function createColoredLog(message, file, line, levelColor)
     return fileInfoText .. ": " .. messageText
 end
 
+-- Create a styled log for internal initialization messages (without using a logger)
+local function printStyledInit(message, isError)
+    local color = isError and { red = 1.0, green = 0.3, blue = 0.3 } or { white = 0.8 }
+    local styledText = hs.styledtext.new("[HyperLogger] " .. message, {
+        font = { name = "Menlo", size = 18 },
+        color = color
+    })
+    pcall(function() hs.console.printStyledtext(styledText) end)
+end
 -- Create a new logger instance or return an existing one with the given namespace
 function HyperLogger.new(namespace, loglevel)
     -- Safety: ensure namespace is a string and provide a more specific default
@@ -99,8 +111,10 @@ function HyperLogger.new(namespace, loglevel)
         if not existingLogger._baseLogger then
             -- Create a new base logger
             local newBaseLogger = hs.logger.new(namespace, loglevel or "debug")
+            -- Disable standard console output from the base logger
+            newBaseLogger.setLogLevel('nothing')
             existingLogger._baseLogger = newBaseLogger
-            print("Repaired broken logger: " .. namespace)
+            printStyledInit("Repaired broken logger: " .. namespace)
         end
 
         -- Update log level if a different one was requested
@@ -113,10 +127,13 @@ function HyperLogger.new(namespace, loglevel)
     end
 
     -- No existing logger found, create a new one
-    print('Creating new HyperLogger instance: ' .. namespace)
+    printStyledInit("Creating new HyperLogger instance: " .. namespace)
 
     -- Create a standard logger as the base
     local baseLogger = hs.logger.new(namespace, loglevel or "debug")
+    -- Disable standard console output from the base logger
+    -- This prevents duplicate logs with timestamps
+    baseLogger.setLogLevel('nothing')
 
     -- Create our custom logger object
     local logger = {
@@ -317,7 +334,7 @@ end
 function HyperLogger.resetLoggers()
     loggers = {}
     creationStacks = {}
-    selfLogger.i('All loggers have been reset', __FILE__, 318)
+    printStyledInit('All loggers have been reset')
 end
 
 -- Function to get editor command based on $EDITOR environment variable
@@ -389,4 +406,5 @@ hs.urlevent.bind("openFile", function(eventName, params)
 end)
 
 selfLogger.d('HyperLogger module loaded successfully', __FILE__, 393)
+printStyledInit('HyperLogger module loaded successfully')
 return HyperLogger

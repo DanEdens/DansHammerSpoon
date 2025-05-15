@@ -44,20 +44,20 @@ function toggleRightLayout()
     rightLayoutState.isSmall = not rightLayoutState.isSmall
     if rightLayoutState.isSmall then
         WindowManager.applyLayout('rightSmall')
-        hs.alert.show("Right Small Layout")
+        log.d("Right Small Layout")
     else
         WindowManager.applyLayout('rightHalf')
-        hs.alert.show("Right Half Layout")
+        log.d("Right Half Layout")
     end
 end
 function toggleLeftLayout()
     leftLayoutState.isSmall = not leftLayoutState.isSmall
     if leftLayoutState.isSmall then
         WindowManager.applyLayout('leftSmall')
-        hs.alert.show("Left Small Layout")
+        log.d("Left Small Layout")
     else
         WindowManager.applyLayout('leftHalf')
-        hs.alert.show("Left Half Layout")
+        log.d("Left Half Layout")
     end
 end
 -- Keybindings

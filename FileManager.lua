@@ -57,6 +57,7 @@ local projects_list = {
     { name = "hammerspoon-vs-extension",   path = "/Users/d.edens/.cursor/extensions/virgilsisoe.hammerspoon-0.5.2" },
     { name = "rust_ingest",         path = "~/lab/regressiontestkit/rust_ingest" },
     { name = "rtk-docs-host",       path = "~/lab/regressiontestkit/rtk-docs-host" },
+    { name = "zsh-autocompletions",        path = "/opt/homebrew/share/zsh/site-functions" },
     { name = "gateway_metrics",     path = "~/lab/regressiontestkit/gateway_metrics" },
     { name = "http-dump-server",    path = "~/lab/regressiontestkit/http-dump-server" },
     { name = "teltonika_wrapper",   path = "~/lab/regressiontestkit/teltonika_wrapper" },

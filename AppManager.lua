@@ -657,7 +657,8 @@ function AppManager.launchCursorWithGitHubDesktop()
 end
 -- Application Launch Functions
 function AppManager.open_github()
-    AppManager.launchGitHubWithProjectSelection()
+    local githubAppName = "GitHub Desktop"
+    hs.execute("open -a '" .. githubAppName .. "'")
 end
 
 function AppManager.open_slack()

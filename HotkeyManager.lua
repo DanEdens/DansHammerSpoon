@@ -17,7 +17,8 @@ HotkeyManager.bindings = {
 -- Constants for modifiers
 HotkeyManager.MODIFIERS = {
     HAMMER = "hammer",
-    HYPER = "hyper"
+    HYPER = "hyper",
+    OTHER = "other"
 }
 
 -- Store display window state
@@ -334,6 +335,10 @@ function HotkeyManager.showHyperList()
     HotkeyManager.showHotkeyList(HotkeyManager.MODIFIERS.HYPER)
 end
 
+-- Show other hotkey list or toggle it off if already showing
+function HotkeyManager.showOtherList()
+    HotkeyManager.showHotkeyList(HotkeyManager.MODIFIERS.OTHER)
+end
 -- Wrap the original hotkey.bind to automatically register the binding
 local originalBind = hs.hotkey.bind
 hs.hotkey.bind = function(mods, key, message, pressedfn, releasedfn, repeatfn)

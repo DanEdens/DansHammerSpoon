@@ -2,7 +2,7 @@
 -- Use our custom HyperLogger instead of the standard logger
 local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new()
-log:i('Initializing hotkey system')
+log:d('Initializing hotkey system')
 
 -- Access modules from the global environment if they've been loaded already
 -- This prevents redundant module initialization
@@ -135,8 +135,8 @@ hs.hotkey.bind(_hyper, "d", "Open MongoDB Compass", function() AppManager.open_m
 hs.hotkey.bind(hammer, "l", "Open Logi Options+", function() AppManager.open_logi() end)
 hs.hotkey.bind(_hyper, "l", "Open System Settings", function() AppManager.open_system() end)
 hs.hotkey.bind(hammer, "s", "Open Slack", function() AppManager.open_slack() end)
-hs.hotkey.bind(hammer, "g", "Open GitHub Desktop", function() AppManager.open_github() end)
-hs.hotkey.bind(_hyper, "g", "Open Cursor with GitHub", function() AppManager.open_cursor_with_github() end)
+hs.hotkey.bind(hammer, "g", "Open GitHub Desktop", function() AppManager.launchGitHubWithProjectSelection() end)
+hs.hotkey.bind(_hyper, "g", "Open just GitHub Destop", function() AppManager.open_github() end)
 hs.hotkey.bind(hammer, "`", "Open Cursor", function() AppManager.open_cursor_with_github() end)
 hs.hotkey.bind(_hyper, "`", "Open Cursor", function() AppManager.open_cursor() end)
 hs.hotkey.bind(hammer, "Tab", "Open Mission Control", function() AppManager.open_mission_control() end)

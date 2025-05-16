@@ -119,8 +119,9 @@ function loadModuleGlobally(name)
     return _G[name]
 end
 -- Load core modules in dependency order
-dofile(hs.configdir .. "/loadConfig.lua") -- Load Spoons first
-log:d('Spoons loaded', __FILE__, 119)
+spoon_data = loadModuleGlobally('loadConfig') -- Load Spoons first
+log:i('Spoons loaded: ' .. table.concat(spoon_data.loaded, ", "), __FILE__, 123)
+log:d('Spoons started: ' .. table.concat(spoon_data.started, ", "), __FILE__, 124)
 
 -- Load core system modules in proper order and expose them globally
 loadModuleGlobally('WindowManager')
@@ -142,8 +143,8 @@ local HotkeyManager = loadModuleGlobally('HotkeyManager')
 HotkeyManager.configureDisplay({
     width = 1000, -- Wider window
     height = 700, -- Taller window
-    fadeInDuration = 0.3,
-    fadeOutDuration = 0.2,
+    fadeInDuration = 0.0,
+    fadeOutDuration = 0.0,
     cornerRadius = 12
 })
 

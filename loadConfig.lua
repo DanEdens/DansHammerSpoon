@@ -1,5 +1,6 @@
 -- hs.loadSpoon("ModalMgr")
 local __FILE__ = 'loadConfig.lua'
+local loadConfig = {} -- Create module table
 
 -- Define default Spoons which will be loaded
 local hspoon_list = {
@@ -67,9 +68,10 @@ end
 
 log:i('Started ' .. #started_spoons .. ' Spoons', __FILE__, 66)
 
--- Return loaded spoons for reference in other modules
-return {
-    loaded = loaded_spoons,
-    failed = failed_spoons,
-    started = started_spoons
-}
+-- Add results to the module table
+loadConfig.loaded = loaded_spoons
+loadConfig.failed = failed_spoons
+loadConfig.started = started_spoons
+
+-- Return module for require()
+return loadConfig

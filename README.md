@@ -259,6 +259,13 @@ Several improvements have been made to the codebase:
 - **Added Cursor with GitHub Desktop Integration**: Open projects in both Cursor IDE and GitHub Desktop simultaneously with hyper+g, ensuring final focus on Cursor while also updating GitHub Desktop with the selected project path.
 - **Fixed HyperLogger Duplicate Messages**: Eliminated duplicate log entries in the console by preventing the custom logger from sending messages to both the standard logger and the styled console output.
 
+## Recent Changes
+
+### Module Loading Improvements
+- Fixed loadConfig.lua to properly work with require() by converting it to a proper module pattern
+- Updated init.lua to use loadModuleGlobally for loading the loadConfig module
+- Fixed string concatenation with tables by using table.concat for log messages
+
 ## Contributing
 
 When contributing to this project:

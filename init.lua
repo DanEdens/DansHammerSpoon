@@ -26,7 +26,7 @@ log:d('Environment variables configured', __FILE__, 20)
 log:d('Configuring console appearance', __FILE__, 23)
 local darkMode = {
     backgroundColor = { white = 0.1 },    -- Dark gray, almost black
-    textColor = { white = 0.8 },          -- Light gray
+    textColor = { red = 0.3, green = 0.7, blue = 1.0 },       -- Light gray
     cursorColor = { white = 0.8 },        -- Light gray cursor
     selectionColor = { red = 0.3, blue = 0.4, green = 0.35 }, -- Subtle blue-green selection
     fontName = "Menlo",                   -- Use Menlo font
@@ -45,7 +45,7 @@ hs.console.outputBackgroundColor(darkMode.backgroundColor)
 hs.console.consoleCommandColor(darkMode.textColor)
 hs.console.consolePrintColor(darkMode.textColor)
 hs.console.consoleFont({ name = darkMode.fontName, size = darkMode.fontSize })
-hs.console.consoleResultColor({ white = 0.9 }) -- Slightly dimmer than regular text
+hs.console.consoleResultColor(darkMode.textColor) -- Slightly dimmer than regular text
 hs.console.alpha(0.95)                    -- Slightly transparent
 hs.console.titleVisibility("hidden")      -- Hide the title bar for a cleaner look
 log:d('Console appearance configured', __FILE__, 47)
@@ -90,16 +90,16 @@ hs.console.toolbar(consoleTB)
 log:d('Console toolbar created', __FILE__, 85)
 
 -- Apply window appearance after a short delay to ensure console is ready
--- hs.timer.doAfter(0.1, function()
---     log:d('Setting console window appearance')
---     local consoleWindow = hs.console.hswindow()
---     if consoleWindow and consoleWindow.setAppearance then
---         consoleWindow:setAppearance(hs.drawing.windowAppearance.darkAqua)
---         log:d('Console appearance set to darkAqua')
---     else
---         log:d('Failed to set console appearance - window or method not available')
---     end
--- end)
+hs.timer.doAfter(0.2, function()
+    log:d('Setting console window appearance')
+    local consoleWindow = hs.console.hswindow()
+    if consoleWindow and consoleWindow.setAppearance then
+        consoleWindow:setAppearance(hs.drawing.windowAppearance.darkAqua)
+        log:i('Console appearance set to darkAqua')
+    else
+        log:d('Failed to set console appearance - window or method not available')
+    end
+end)
 
 -- Helper function to load modules and expose them globally
 function loadModuleGlobally(name)

@@ -5,8 +5,9 @@ local HyperLogger = {}
 local __FILE__ = 'HyperLogger.lua'
 -- Create a self-logger for the HyperLogger module itself
 -- Table to store all logger instances
-local loggers = {}
 
+local loggers = {}
+local DEFAULT_LOG_LEVEL = "debug"
 -- Registry of creation stacks to help track where loggers are created
 local creationStacks = {}
 
@@ -103,14 +104,14 @@ function HyperLogger.new(namespace, loglevel)
     -- Safety: ensure namespace is a string and provide a more specific default
     namespace = namespace or "HammerspoonLogger"
     namespace = tostring(namespace)
-    loglevel = tostring(loglevel or "debug")
+    loglevel = tostring(loglevel or DEFAULT_LOG_LEVEL)
     -- Check if the logger already exists and return it
     if loggers[namespace] then
         local existingLogger = loggers[namespace]
         -- Verify the logger is valid, recreate if _baseLogger is nil
         if not existingLogger._baseLogger then
             -- Create a new base logger
-            local newBaseLogger = hs.logger.new(namespace, loglevel or "debug")
+            local newBaseLogger = hs.logger.new(namespace, loglevel or DEFAULT_LOG_LEVEL)
             -- Disable standard console output from the base logger
             newBaseLogger.setLogLevel('nothing')
             existingLogger._baseLogger = newBaseLogger
@@ -130,7 +131,7 @@ function HyperLogger.new(namespace, loglevel)
     printStyledInit("Creating new HyperLogger instance: " .. namespace)
 
     -- Create a standard logger as the base
-    local baseLogger = hs.logger.new(namespace, loglevel or "debug")
+    local baseLogger = hs.logger.new(namespace, loglevel or DEFAULT_LOG_LEVEL)
     -- Disable standard console output from the base logger
     -- This prevents duplicate logs with timestamps
     baseLogger.setLogLevel('nothing')

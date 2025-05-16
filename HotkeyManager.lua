@@ -311,7 +311,7 @@ function HotkeyManager.showHotkeyList(modType)
             textFont = HotkeyManager.config.font,
             textSize = HotkeyManager.config.fontSize,
             radius = HotkeyManager.config.cornerRadius,
-            atScreenEdge = 0,
+            atScreenEdge = 2,
             fadeInDuration = HotkeyManager.config.fadeInDuration,
             fadeOutDuration = HotkeyManager.config.fadeOutDuration,
             padding = 20
@@ -372,6 +372,7 @@ function HotkeyManager.init()
     -- Replace the global functions
     _G.showHammerList = HotkeyManager.showHammerList
     _G.showHyperList = HotkeyManager.showHyperList
+    _G.showOtherList = HotkeyManager.showOtherList
 
     return HotkeyManager
 end

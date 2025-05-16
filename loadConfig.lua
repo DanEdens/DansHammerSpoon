@@ -1,4 +1,4 @@
-hs.loadSpoon("ModalMgr")
+-- hs.loadSpoon("ModalMgr")
 local __FILE__ = 'loadConfig.lua'
 
 -- Define default Spoons which will be loaded

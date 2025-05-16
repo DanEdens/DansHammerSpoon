@@ -76,7 +76,8 @@ local consoleTB = toolbar.new("myConsole", {
         image = hs.image.imageFromName("NSRefreshTemplate"),
         fn = function()
                 log:i('Reloading Hammerspoon configuration', __FILE__, 74)
-            hs.reload()
+                hs.console.clearConsole()
+                hs.reload()
             hs.alert.show("Config reloaded")
         end
     }

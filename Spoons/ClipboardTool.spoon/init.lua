@@ -33,7 +33,7 @@ obj.hist_size = 100
 --- ClipboardTool.max_entry_size
 --- Variable
 --- maximum size of a text entry
-obj.max_entry_size = 4990
+obj.max_entry_size           = 9999999
 
 --- ClipboardTool.max_size
 --- Variable
@@ -162,7 +162,7 @@ function obj:_processSelectedItem(value)
       elseif value.text then
          if value.type == "text" then
             pasteboard.setContents(value.data)
-         elseif value.type == "image" then 
+         elseif value.type == "image" then
             pasteboard.writeObjects(hs.image.imageFromURL(value.data))
          end
 --         self:pasteboardToClipboard(value.text)
@@ -399,18 +399,18 @@ function obj:checkAndStorePasteboard()
             end
             self.logger.df("Adding image (hashed) %s to clipboard history clipboard", hashfn(current_clipboard:encodeAsURLString()))
          elseif current_clipboard ~= nil then
-           local size = #current_clipboard
-           if obj.max_size and size > obj.max_entry_size then
-             local answer = hs.dialog.blockAlert("Clipboard", "The maximum size of " .. obj.max_entry_size .. " was exceeded.", "Copy partially", "Copy all", "NSCriticalAlertStyle")
-              print("answer: " .. answer)
-              if answer == "Copy partially" then
-                current_clipboard = self:reduceSize(current_clipboard)
-                size = #current_clipboard
-                end
-            end
-            if self.show_copied_alert then
-                hs.alert.show("Copied " .. size .. " chars")
-            end
+            local size = #current_clipboard
+            hs.alert.show("Copied " .. size .. " chars")
+            --   if obj.max_size and size > obj.max_entry_size then
+            --       --  local answer = hs.dialog.blockAlert("Clipboard", "The maximum size of " .. obj.max_entry_size .. " was exceeded.", "Copy partially", "Copy all", "NSCriticalAlertStyle")
+            --       --   print("answer: " .. answer)
+            --       --   if answer == "Copy partially" then
+            --       --     current_clipboard = self:reduceSize(current_clipboard)
+            --       --     size = #current_clipboard
+            --       --     end
+            --    end
+            --    -- if self.show_copied_alert then
+            --    end
             self.logger.df("Adding %s to clipboard history", current_clipboard)
             self:pasteboardToClipboard("text", current_clipboard)
          else
@@ -497,4 +497,3 @@ function obj:bindHotkeys(mapping)
 end
 
 return obj
-

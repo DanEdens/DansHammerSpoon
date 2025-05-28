@@ -67,16 +67,22 @@ local miniLayouts = {
 
 local standardLayouts = {
     fullScreen = { -- Full screen
-        x = function(max) return max.x end,
-        y = function(max) return max.y end,
-        w = function(max) return max.w end,
-        h = function(max) return max.h end
+        x = function(max) return max.x + 35 end,
+        y = function(max) return max.y + 35 end,
+        w = function(max) return max.w - 70 end,
+        h = function(max) return max.h - 70 end
     },
-    nearlyFull = { -- 80% centered
-        x = function(max) return max.x + (max.w * 0.1) end,
-        y = function(max) return max.y + (max.h * 0.1) end,
-        w = function(max) return max.w * 0.8 end,
-        h = function(max) return max.h * 0.8 end
+    nearlyFull = { -- 90% centered
+        x = function(max) return max.x + (max.w * 0.05) end,
+        y = function(max) return max.y + (max.h * 0.05) end,
+        w = function(max) return max.w - (max.w * 0.1) end,
+        h = function(max) return max.h - (max.h * 0.1) end
+    },
+    sevenByFive = { -- 70% centered
+        x = function(max) return max.x + (max.w * 0.15) end,
+        y = function(max) return max.y + (max.h * 0.15) end,
+        w = function(max) return max.w - (max.w * 0.3) end,
+        h = function(max) return max.h - (max.h * 0.3) end
     },
     leftHalf = { -- Left half
         x = function(max) return max.x end,

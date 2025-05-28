@@ -222,3 +222,10 @@ Added a new WindowToggler module that allows toggling windows between their curr
   - Typing in the search box now filters the project and window options
   - If no matches are found, a custom path option is shown
   - Maintains existing behavior for custom path handling starting with / or ~
+
+## Auto-start functionality for all Spoons (2023-12-10)
+
+- Enhanced `loadConfig.lua` to automatically check if each loaded Spoon has a `start()` method
+- If a Spoon has a start method, it is automatically called after loading
+- Removed specific code for ClipboardTool in favor of a more generic approach that works with all Spoons
+- Added alerts that show which Spoons are successfully started

@@ -1,7 +1,13 @@
+-- FileManager.lua - File management utilities
+-- Using singleton pattern to avoid multiple initializations
 -- Use HyperLogger for clickable debugging logs
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('FileManager', 'debug')
-log:i('Initializing file management system')
+local log = HyperLogger.new()
+-- Check if module is already initialized
+if _G.FileManager then
+    return _G.FileManager
+end
+log:d('Initializing file management system')
 
 local FileManager = {}
 
@@ -48,8 +54,10 @@ local projects_list = {
     -- RegressionTestKit ecosystem
     { name = "OculusTestKit",       path = "~/lab/regressiontestkit/OculusTestKit" },
     { name = "phoenix",             path = "~/lab/regressiontestkit/phoenix" },
+    { name = "hammerspoon-vs-extension",   path = "/Users/d.edens/.cursor/extensions/virgilsisoe.hammerspoon-0.5.2" },
     { name = "rust_ingest",         path = "~/lab/regressiontestkit/rust_ingest" },
     { name = "rtk-docs-host",       path = "~/lab/regressiontestkit/rtk-docs-host" },
+    { name = "zsh-autocompletions",        path = "/opt/homebrew/share/zsh/site-functions" },
     { name = "gateway_metrics",     path = "~/lab/regressiontestkit/gateway_metrics" },
     { name = "http-dump-server",    path = "~/lab/regressiontestkit/http-dump-server" },
     { name = "teltonika_wrapper",   path = "~/lab/regressiontestkit/teltonika_wrapper" },
@@ -114,6 +122,9 @@ local projects_list = {
     { name = "EntropyVector",       path = "~/lab/madness_interactive/projects/tasker/EntropyVector" },
     { name = "ContextOfficium",     path = "~/lab/madness_interactive/projects/tasker/ContextOfficium" },
     { name = "AnathemaHexVault",    path = "~/lab/madness_interactive/projects/tasker/AnathemaHexVault" },
+    -- Typescript projects
+    { name = "typescript-projects",        path = "~/lab/madness_interactive/projects/typescript" },
+    { name = "RaidShadowLegendsButItsMCP", path = "~/lab/madness_interactive/projects/typescript/RaidShadowLegendsButItsMCP" },
 }
 
 local editorList = {
@@ -227,4 +238,6 @@ function FileManager.openMostRecentImage()
     end
 end
 
+-- Save in global environment for module reuse
+_G.FileManager = FileManager
 return FileManager

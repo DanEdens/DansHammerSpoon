@@ -3,26 +3,29 @@
 -- Module for managing and displaying hotkeys dynamically
 
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('HotkeyManager', 'debug')
+local log = HyperLogger.new()
 
 local HotkeyManager = {}
 
 -- Store all hotkey bindings
 HotkeyManager.bindings = {
     hammer = {},
-    hyper = {}
+    hyper = {},
+    other = {}
 }
 
 -- Constants for modifiers
 HotkeyManager.MODIFIERS = {
     HAMMER = "hammer",
-    HYPER = "hyper"
+    HYPER = "hyper",
+    OTHER = "other"
 }
 
 -- Store display window state
 HotkeyManager.displayWindows = {
     hammer = nil,
-    hyper = nil
+    hyper = nil,
+    other = nil
 }
 
 -- Default configuration
@@ -53,18 +56,56 @@ HotkeyManager.config = {
     }
 }
 
+-- Helper function to check if a table contains a value
+local function tableContains(tbl, element)
+    -- Safety check to ensure we're working with a table
+    if type(tbl) ~= "table" then
+        log:e("tableContains called with non-table: " .. type(tbl))
+        return false
+    end
+    for _, value in pairs(tbl) do
+        if value == element then
+            return true
+        end
+    end
+    return false
+end
+
 -- Register a hotkey binding
 function HotkeyManager.registerBinding(modifiers, key, callback, description)
     local modType = nil
 
-    -- Determine if this is a hammer or hyper binding
-    if #modifiers == 3 and modifiers[1] == "cmd" and modifiers[2] == "ctrl" and modifiers[3] == "alt" then
-        modType = HotkeyManager.MODIFIERS.HAMMER
-    elseif #modifiers == 4 and modifiers[1] == "cmd" and modifiers[2] == "shift" and modifiers[3] == "ctrl" and modifiers[4] == "alt" then
-        modType = HotkeyManager.MODIFIERS.HYPER
+    -- Ensure modifiers is a table
+    if type(modifiers) ~= "table" then
+        -- Convert single string modifiers to a table
+        log:w("Non-table modifiers passed to registerBinding: " .. tostring(modifiers))
+        if type(modifiers) == "string" then
+            modifiers = { modifiers }
+        else
+            modType = "other"
+        end
+    end
+
+    -- Now we ensure modifiers is a table, determine the type
+    if type(modifiers) == "table" then
+        -- Determine if this is a hammer or hyper binding by checking for presence of modifiers
+        -- regardless of their order
+        if #modifiers == 3 and
+            tableContains(modifiers, "cmd") and
+            tableContains(modifiers, "ctrl") and
+            tableContains(modifiers, "alt") then
+            modType = HotkeyManager.MODIFIERS.HAMMER
+        elseif #modifiers == 4 and
+            tableContains(modifiers, "cmd") and
+            tableContains(modifiers, "shift") and
+            tableContains(modifiers, "ctrl") and
+            tableContains(modifiers, "alt") then
+            modType = HotkeyManager.MODIFIERS.HYPER
+        else
+            modType = "other" -- Store all other combos in 'other'
+        end
     else
-        log:w("Unknown modifier combination, not registering in HotkeyManager:", hs.inspect(modifiers))
-        return nil
+        modType = "other"
     end
 
     -- Extract function name for description if not provided
@@ -130,13 +171,13 @@ end
 -- Show hotkey list for a specific modifier type in a persistent window
 function HotkeyManager.showHotkeyList(modType)
     if not HotkeyManager.bindings[modType] then
-        log:e("Unknown modifier type:", modType)
+        log:e("Unknown modifier type:" .. modType, __FILE__, 173)
         return
     end
 
     local bindings = HotkeyManager.bindings[modType]
     if #bindings == 0 then
-        log:w("No bindings registered for:", modType)
+        log:w("No bindings registered for:" .. modType, __FILE__, 179)
         hs.alert.show("No hotkeys registered")
         return
     end
@@ -187,12 +228,13 @@ function HotkeyManager.showHotkeyList(modType)
     local displayText = ""
 
     -- Add a title
-    local titleText = modType == HotkeyManager.MODIFIERS.HAMMER and "Hammer Mode Hotkeys" or "Hyper Mode Hotkeys"
+    local titleText = modType == HotkeyManager.MODIFIERS.HAMMER and "Hammer Mode Hotkeys" or
+        modType == HotkeyManager.MODIFIERS.HYPER and "Hyper Mode Hotkeys" or "Other Hotkeys"
     displayText = displayText .. titleText .. "\n\n"
 
     -- Order of categories
     local categoryOrder = { "Window Management", "Applications", "Files", "UI & Display", "System" }
-    
+
     -- Add categories in preferred order
     for _, catName in ipairs(categoryOrder) do
         if categories[catName] and #categories[catName] > 0 then
@@ -212,7 +254,7 @@ function HotkeyManager.showHotkeyList(modType)
                 else
                     row = row .. hotkeyText
                 end
-                
+
                 col = col + 1
 
                 if col >= 2 or i == #categories[catName] then
@@ -221,7 +263,7 @@ function HotkeyManager.showHotkeyList(modType)
                     col = 0
                 end
             end
-            
+
             displayText = displayText .. "\n"
         end
     end
@@ -253,7 +295,7 @@ function HotkeyManager.showHotkeyList(modType)
             end
         end
     end
-    
+
     -- Show alert with a large size and longer duration
     local screenRect = hs.screen.mainScreen():frame()
     local alertSize = { w = HotkeyManager.config.width, h = HotkeyManager.config.height }
@@ -269,7 +311,7 @@ function HotkeyManager.showHotkeyList(modType)
             textFont = HotkeyManager.config.font,
             textSize = HotkeyManager.config.fontSize,
             radius = HotkeyManager.config.cornerRadius,
-            atScreenEdge = 0,
+            atScreenEdge = 2,
             fadeInDuration = HotkeyManager.config.fadeInDuration,
             fadeOutDuration = HotkeyManager.config.fadeOutDuration,
             padding = 20
@@ -294,6 +336,10 @@ function HotkeyManager.showHyperList()
     HotkeyManager.showHotkeyList(HotkeyManager.MODIFIERS.HYPER)
 end
 
+-- Show other hotkey list or toggle it off if already showing
+function HotkeyManager.showOtherList()
+    HotkeyManager.showHotkeyList(HotkeyManager.MODIFIERS.OTHER)
+end
 -- Wrap the original hotkey.bind to automatically register the binding
 local originalBind = hs.hotkey.bind
 hs.hotkey.bind = function(mods, key, message, pressedfn, releasedfn, repeatfn)
@@ -321,11 +367,12 @@ end
 -- Initialize hotkey manager by overriding the global functions
 -- This will be called when the module is required
 function HotkeyManager.init()
-    log:i("Initializing HotkeyManager")
+    log:i("Initializing HotkeyManager", __FILE__, 369)
 
     -- Replace the global functions
     _G.showHammerList = HotkeyManager.showHammerList
     _G.showHyperList = HotkeyManager.showHyperList
+    _G.showOtherList = HotkeyManager.showOtherList
 
     return HotkeyManager
 end
@@ -333,7 +380,7 @@ end
 -- Configure the display window appearance
 function HotkeyManager.configureDisplay(options)
     if type(options) ~= "table" then
-        log:e("configureDisplay requires a table of options")
+        log:e("configureDisplay requires a table of options", __FILE__, 381)
         return HotkeyManager
     end
 
@@ -369,12 +416,12 @@ function HotkeyManager.configureDisplay(options)
                     end
                 end
             else
-                log:w("Unknown configuration option: " .. key)
+                log:w("Unknown configuration option: " .. key, __FILE__, 417)
             end
         end
     end)
 
-    log:i("Display configuration updated")
+    log:i("Display configuration updated", __FILE__, 421)
     return HotkeyManager
 end
 return HotkeyManager.init()

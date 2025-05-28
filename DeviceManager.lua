@@ -1,5 +1,16 @@
-local log = hs.logger.new('DeviceManager', 'debug')
-log.i('Initializing device management system')
+-- DeviceManager.lua - Device management utilities
+-- Using singleton pattern to avoid multiple initializations
+
+local HyperLogger = require('HyperLogger')
+local log = HyperLogger.new()
+
+-- Check if module is already initialized
+if _G.DeviceManager then
+    log:d('Returning existing DeviceManager module')
+    return _G.DeviceManager
+end
+
+log:i('Initializing device management system')
 
 local DeviceManager = {}
 
@@ -12,21 +23,21 @@ local usbisEnabled = false
 
 -- USB Device Management
 local function usbDeviceCallback(data)
-    log.i('USB event detected:', hs.inspect(data))
+    log:i('USB event detected:', hs.inspect(data))
 
     -- Guard against nil data
     if not data then
-        log.e('Received nil data in USB callback')
+        log:e('Received nil data in USB callback')
         return
     end
 
     for key, value in pairs(data) do
-        log.d(key .. ": " .. tostring(value))
+        log:d(key .. ": " .. tostring(value))
     end
 
     if data["eventType"] == "added" then
         if data["vendorName"] == "SAMSUNG" and data["productName"] == "SAMSUNG_Android" then
-            log.i('Samsung device connected:', data["productID"])
+            log:i('Samsung device connected:', data["productID"])
             local device_id = nil
 
             if data["productID"] == 26720 then
@@ -39,29 +50,29 @@ local function usbDeviceCallback(data)
 
             if device_id then
                 local cmd = string.format("%s/launch_scrcpy.sh samsung &> /dev/null &", scripts_dir)
-                log.d('Executing command:', cmd)
+                log:d('Executing command:', cmd)
                 local success, output, error = os.execute(cmd)
                 if success then
-                    log.i('Successfully launched scrcpy script')
+                    log:i('Successfully launched scrcpy script')
                 else
-                    log.e('Error launching scrcpy script:', error)
+                    log:e('Error launching scrcpy script:', error)
                 end
             else
-                log.w('Unknown Samsung device ID:', data["productID"])
+                log:w('Unknown Samsung device ID:', data["productID"])
             end
         elseif data["vendorName"] == "Google" then
-            log.i('Google device connected:', data["productName"])
+            log:i('Google device connected:', data["productName"])
             local cmd = string.format("nohup %s/launch_scrcpy.sh google &> /dev/null &", scripts_dir)
-            log.d('Executing command:', cmd)
+            log:d('Executing command:', cmd)
             local success, output, error = os.execute(cmd)
             if success then
-                log.i('Successfully launched scrcpy script')
+                log:i('Successfully launched scrcpy script')
             else
-                log.e('Error launching scrcpy script:', error)
+                log:e('Error launching scrcpy script:', error)
             end
             hs.alert.show("Google " .. data["productName"] .. " plugged in")
         else
-            log.i('Other device connected:', data["vendorName"])
+            log:i('Other device connected:', data["vendorName"])
             hs.alert.show(data["vendorName"] .. " device plugged in")
         end
     end
@@ -84,4 +95,6 @@ end
 -- Initialize USB watcher
 DeviceManager.toggleUSBLogging()
 
+-- Save in global environment for module reuse
+_G.DeviceManager = DeviceManager
 return DeviceManager

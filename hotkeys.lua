@@ -1,17 +1,33 @@
 ---@diagnostic disable: lowercase-global, undefined-global
 -- Use our custom HyperLogger instead of the standard logger
 local HyperLogger = require('HyperLogger')
-local log = HyperLogger.new('Hotkeys', 'debug')
-log:i('Initializing hotkey system')
+-- Always use the global application logger from init.lua
+local log = _G.AppLogger
+local __FILE__ = 'hotkeys.lua'
+log:d('Initializing hotkey system', __FILE__, 6)
 
--- Import modules
-local WindowManager = require('WindowManager')
-local FileManager = require('FileManager')
-local AppManager = require('AppManager')
-local DeviceManager = require('DeviceManager')
-local HotkeyManager = require('HotkeyManager')
-local WindowToggler = require('WindowToggler')
-local ProjectManager = require('ProjectManager')
+-- Access modules from the global environment if they've been loaded already
+-- This prevents redundant module initialization
+local function getModule(name)
+    if _G[name] then
+        log:d('Using existing module: ' .. name, __FILE__, 12)
+        return _G[name]
+    else
+        log:d('Loading module: ' .. name, __FILE__, 15)
+        local module = require(name)
+        _G[name] = module
+        return module
+    end
+end
+
+-- Import modules using the getModule helper
+local WindowManager = getModule('WindowManager')
+local FileManager = getModule('FileManager')
+local AppManager = getModule('AppManager')
+local DeviceManager = getModule('DeviceManager')
+local HotkeyManager = getModule('HotkeyManager')
+local WindowToggler = getModule('WindowToggler')
+local ProjectManager = getModule('ProjectManager')
 
 -- Define modifier key combinations
 hammer = { "cmd", "ctrl", "alt" }
@@ -22,22 +38,28 @@ _meta = { "cmd", "shift", "alt" }
 local rightLayoutState = {
     isSmall = true
 }
+local leftLayoutState = {
+    isSmall = true
+}
 
 function toggleRightLayout()
     rightLayoutState.isSmall = not rightLayoutState.isSmall
     if rightLayoutState.isSmall then
         WindowManager.applyLayout('rightSmall')
-        hs.alert.show("Right Small Layout")
+        log:d("Right Small Layout", __FILE__, 48)
     else
         WindowManager.applyLayout('rightHalf')
-        hs.alert.show("Right Half Layout")
+        log:d("Right Half Layout", __FILE__, 51)
     end
 end
 function toggleLeftLayout()
     leftLayoutState.isSmall = not leftLayoutState.isSmall
     if leftLayoutState.isSmall then
         WindowManager.applyLayout('leftSmall')
-        hs.alert.show("Left Small Layout")
+        log:d("Left Small Layout", __FILE__, 58)
+    else
+        WindowManager.applyLayout('leftHalf')
+        log:d("Left Half Layout", __FILE__, 61)
     end
 end
 -- Keybindings
@@ -115,8 +137,8 @@ hs.hotkey.bind(_hyper, "d", "Open MongoDB Compass", function() AppManager.open_m
 hs.hotkey.bind(hammer, "l", "Open Logi Options+", function() AppManager.open_logi() end)
 hs.hotkey.bind(_hyper, "l", "Open System Settings", function() AppManager.open_system() end)
 hs.hotkey.bind(hammer, "s", "Open Slack", function() AppManager.open_slack() end)
-hs.hotkey.bind(hammer, "g", "Open GitHub Desktop", function() AppManager.open_github() end)
-hs.hotkey.bind(_hyper, "g", "Open Cursor with GitHub", function() AppManager.open_cursor_with_github() end)
+hs.hotkey.bind(hammer, "g", "Open GitHub Desktop", function() AppManager.launchGitHubWithProjectSelection() end)
+hs.hotkey.bind(_hyper, "g", "Open just GitHub Destop", function() AppManager.open_github() end)
 hs.hotkey.bind(hammer, "`", "Open Cursor", function() AppManager.open_cursor_with_github() end)
 hs.hotkey.bind(_hyper, "`", "Open Cursor", function() AppManager.open_cursor() end)
 hs.hotkey.bind(hammer, "Tab", "Open Mission Control", function() AppManager.open_mission_control() end)
@@ -226,3 +248,69 @@ end
 hs.hotkey.bind(hammer, "w", "Toggle Window Position", function() WindowToggler.toggleWindowPosition() end)
 hs.hotkey.bind(_hyper, "w", "List Saved Windows", function() WindowToggler.listSavedWindows() end)
 hs.hotkey.bind(hammer, "q", "Clear Saved Window Positions", function() WindowToggler.clearSavedPositions() end)
+
+-- Window layout management hotkeys
+hs.hotkey.bind({ "ctrl", "alt", "cmd" }, "s", function()
+    if not hs.dialog then
+        hs.alert.show("hs.dialog module not available. Update Hammerspoon.")
+        return
+    end
+
+    local name = hs.dialog.textPrompt("Save Layout", "Enter a name for this layout:", "", "Save", "Cancel")
+    if name and name ~= "" then
+        WindowManager.saveCurrentLayout(name)
+    end
+end)
+
+hs.hotkey.bind(hammer, "o", function()
+    local layouts = WindowManager.listSavedLayouts()
+    if #layouts == 0 then
+        hs.alert.show("No saved layouts available")
+        return
+    end
+
+    local choices = {}
+    for _, layout in ipairs(layouts) do
+        table.insert(choices, {
+            text = layout.name,
+            subText = layout.description .. " (" .. layout.windowCount .. " windows)"
+        })
+    end
+
+    local chooser = hs.chooser.new(function(choice)
+        if choice then
+            WindowManager.restoreLayout(choice.text)
+        end
+    end)
+
+    chooser:placeholderText("Select a layout to restore")
+    chooser:choices(choices)
+    chooser:show()
+end)
+
+-- Delete layout keybinding
+hs.hotkey.bind(_hyper, "o", function()
+    local layouts = WindowManager.listSavedLayouts()
+    if #layouts == 0 then
+        hs.alert.show("No saved layouts available")
+        return
+    end
+
+    local choices = {}
+    for _, layout in ipairs(layouts) do
+        table.insert(choices, {
+            text = layout.name,
+            subText = "Delete: " .. layout.description .. " (" .. layout.windowCount .. " windows)"
+        })
+    end
+
+    local chooser = hs.chooser.new(function(choice)
+        if choice then
+            WindowManager.deleteLayout(choice.text)
+        end
+    end)
+
+    chooser:placeholderText("Select a layout to DELETE")
+    chooser:choices(choices)
+    chooser:show()
+end)

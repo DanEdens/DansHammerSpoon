@@ -2,7 +2,7 @@
 
 ![Hammerspoon Logo](https://www.hammerspoon.org/images/hammerspoon.png)
 
-A powerful, customized Hammerspoon configuration for advanced macOS automation and window management.
+A powerful, customized Hammerspoon configuration for macOS automation and window management.
 
 ## Overview
 
@@ -13,7 +13,8 @@ This Hammerspoon configuration provides a comprehensive set of tools for macOS a
 - Smart application launching with window selection
 - File and project management
 - Device connection handling
-- Enhanced debugging with clickable logs
+- Enhanced debugging with clickable-ish logs
+- Automatic Spoon loading and initialization
 
 The configuration is modular, customizable, and designed for power users seeking to streamline their workflow.
 
@@ -68,7 +69,7 @@ Job/project management system to track and manage development projects.
 - Persistent storage of project data between sessions
 - Quick access via keyboard shortcuts
 
-See [ProjectManager_README.md](ProjectManager_README.md) for complete details.
+See [ProjectManager_README.md](docs/ProjectManager_README.md) for complete details.
 
 ### HyperLogger
 
@@ -166,7 +167,7 @@ For development, testing, and deployment support, a Docker setup is available:
 - **Development Environment**: A Docker container for validating and testing Hammerspoon configuration
 - **Deployment Script**: For installing the configuration on actual macOS systems
 
-See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed instructions.
+See [DOCKER_SETUP.md](docs/DOCKER_SETUP.md) for detailed instructions.
 
 ## Customization
 
@@ -181,14 +182,37 @@ The configuration can be customized by editing the following files:
 
 Several improvements have been made to the codebase:
 
-1. **Window Position Toggling by Title** - Added WindowToggler module for toggling window positions by title
+1. **Logger Initialization and Singleton Pattern Fixes** - Resolved issues with multiple logger instances
+   - Centralized logger initialization in init.lua with global AppLogger
+   - Updated modules to use the shared global logger
+   - Improved HyperLogger module with better namespace defaults
+   - Created diagnostic tools to identify and resolve logger issues
+   - Fixed potential memory leaks from excessive logger creation
+   - See [logger_fixes.md](logger_fixes.md) for complete details
+
+2. **Enhanced HyperLogger with $EDITOR Integration** - Improved clickable log links to work with any editor
+   - Now uses the $EDITOR environment variable to determine which editor to use
+   - Supports common editors including Vim, Emacs, VS Code, Cursor, Nano, and Sublime Text
+   - Automatically resolves editor paths using `which` command
+   - Different syntax for different editors (line number formatting)
+   - Provides robust error handling for file not found or editor launch failures
+   - Makes debugging significantly easier with direct navigation to log source locations
+   - **Fixed duplicate logging issue that caused every message to appear twice in the console**
+
+3. **Automatic Spoon Initialization** - Enhanced the Spoon loading system to automatically start Spoons
+   - Automatically detects and calls the `start()` method for each loaded Spoon
+   - Eliminates the need for manually starting individual Spoons in configuration
+   - Provides visual feedback with alerts when Spoons are successfully started
+   - Makes adding new Spoons to the configuration simpler and more consistent
+
+4. **Window Position Toggling by Title** - Added WindowToggler module for toggling window positions by title
    - Remembers window positions by window title rather than just window ID
    - Allows toggling between custom positions and the nearlyFull layout
    - Works across application restarts as long as window titles remain the same
    - Provides hotkeys for toggling (hammer+w), listing saved positions (hyper+w), and clearing positions (hammer+q)
-   - See [WindowToggler_README.md](WindowToggler_README.md) for details
+   - See [WindowToggler_README.md](docs/WindowToggler_README.md) for details
 
-2. **Dynamic Hotkey Management** - Added smart dynamic hotkey display system
+5. **Dynamic Hotkey Management** - Added smart dynamic hotkey display system
    - Automatically tracks and categorizes all hotkey bindings
    - Excludes temporary/placeholder functions from the hotkey list
    - Groups hotkeys into logical categories for easier reference
@@ -196,43 +220,51 @@ Several improvements have been made to the codebase:
    - **Wider, more readable layout with styled HTML and color coding**
    - **Fixed webview indexing errors with comprehensive error handling**
    - **Implemented multi-layered protection against resource leaks**
-   - See [HotkeyManager_README.md](HotkeyManager_README.md) for details
+   - See [HotkeyManager_README.md](docs/HotkeyManager_README.md) for details
 
-3. **HammerGhost URL Event Handling Fix** - Fixed WebKit-based communication in HammerGhost.spoon
+6. **HammerGhost URL Event Handling Fix** - Fixed WebKit-based communication in HammerGhost.spoon
    - Initialized the URL event watcher server that was missing
    - Added detailed URL parameter parsing and logging
    - Implemented testing utilities for URL event handling
    - See [Spoons/HammerGhost.spoon/FIX_URL_HANDLING.md](Spoons/HammerGhost.spoon/FIX_URL_HANDLING.md) for details
 
-4. **DragonGrid Multi-Screen Support** - Fixed UI issues with the precision grid system when operating across multiple monitors
+7. **DragonGrid Multi-Screen Support** - Fixed UI issues with the precision grid system when operating across multiple monitors
    - See [DragonGrid-MultiScreen-Fix.md](docs/DragonGrid-MultiScreen-Fix.md) for details
    - Enables seamless grid-based mouse positioning across all connected displays
    - Maintains consistent UI behavior between grid levels
 
-5. **HyperLogger for Debugging** - Enhanced logging system with clickable log messages
+8. **HyperLogger for Debugging** - Enhanced logging system with clickable log messages
    - Automatically captures file and line information
    - Displays clickable hyperlinks in the console
    - Makes debugging much easier by linking logs to source code
 
-6. **GitHub Desktop Enhancements** - Specialized project selection when opening GitHub Desktop
+9. **GitHub Desktop Enhancements** - Specialized project selection when opening GitHub Desktop
    - Choose between existing GitHub Desktop windows
    - Open different projects even when GitHub Desktop is already running
    - Enter custom paths directly in the selection UI
 
-7. **Hammerspoon OS Version Compatibility Fix** - Fixed error with operating system version reporting
-   - Updated to handle the table return format of `hs.host.operatingSystemVersion()`
-   - Properly formats version as string using major.minor.patch format
-   - Prevents "attempt to concatenate a table value" errors during initialization
+10. **Hammerspoon OS Version Compatibility Fix** - Fixed error with operating system version reporting
+    - Updated to handle the table return format of `hs.host.operatingSystemVersion()`
+    - Properly formats version as string using major.minor.patch format
+    - Prevents "attempt to concatenate a table value" errors during initialization
 
-8. **Hotkey Binding Fix** - Fixed error with missing Finder function
-   - Added missing `open_finder` function to AppManager module
-   - Resolves "At least one of pressedfn, releasedfn or repeatfn must be a function" error
-   - Ensures hyper+F hotkey correctly opens or focuses Finder
-   - See [Hotkey-Fix.md](docs/Hotkey-Fix.md) for details
+11. **Hotkey Binding Fix** - Fixed error with missing Finder function
+    - Added missing `open_finder` function to AppManager module
+    - Resolves "At least one of pressedfn, releasedfn or repeatfn must be a function" error
+    - Ensures hyper+F hotkey correctly opens or focuses Finder
+    - See [Hotkey-Fix.md](docs/Hotkey-Fix.md) for details
 
 ## Recent Updates
 
 - **Added Cursor with GitHub Desktop Integration**: Open projects in both Cursor IDE and GitHub Desktop simultaneously with hyper+g, ensuring final focus on Cursor while also updating GitHub Desktop with the selected project path.
+- **Fixed HyperLogger Duplicate Messages**: Eliminated duplicate log entries in the console by preventing the custom logger from sending messages to both the standard logger and the styled console output.
+
+## Recent Changes
+
+### Module Loading Improvements
+- Fixed loadConfig.lua to properly work with require() by converting it to a proper module pattern
+- Updated init.lua to use loadModuleGlobally for loading the loadConfig module
+- Fixed string concatenation with tables by using table.concat for log messages
 
 ## Contributing
 
@@ -316,7 +348,7 @@ The help text in the grid interface has been updated to show these new keyboard 
 - Window mode or screen mode
 - Drag and drop support
 - Keyboard and mouse control
-- Configurable grid size and layers 
+- Configurable grid size and layers
 
 ## GitHub Desktop Enhancements
 
@@ -374,38 +406,62 @@ log:i('Custom location message', 'path/to/file.lua', 42)
 - Edit the `createClickableLog` function to change the styling of log messages
 - Modify the URL handler to use a different editor
 
-# Hammerspoon Configuration
+## HyperLogger
 
-This repository contains the custom Hammerspoon configuration for managing hotkeys, window arrangements, and other productivity enhancements.
+The HyperLogger module provides enhanced logging capabilities for Hammerspoon, including:
 
-## Features
+1. **Colored Log Messages** - Different log levels are displayed with distinct colors in the Hammerspoon console:
+   - Info (blue): Regular informational messages
+   - Debug (gray): Detailed debug information
+   - Warning (orange/yellow): Warning messages that need attention
+   - Error (red): Error messages indicating problems
 
-- **Hotkey Management**: HotkeyManager module provides a consistent interface for managing and displaying hotkeys.
-- **Alert-based Display**: Shows pressed hotkeys in an elegant alert window with configurable appearance.
-- **Category-based Organization**: Hotkeys are organized by categories with custom colors for better visual grouping.
+2. **File and Line Information** - Each log message includes the source file and line number where it was generated.
 
-## Configuration
+### Usage
 
-The HotkeyManager can be configured through the `HotkeyManager.config` table in `HotkeyManager.lua`. Key settings include:
+```lua
+local HyperLogger = require('HyperLogger')
+local log = HyperLogger.new('MyModule', 'debug')
 
-### Display Settings
-- `width`: Width of the hotkey display (default: 800)
-- `height`: Height of the hotkey display (default: 600)
-- `cornerRadius`: Corner radius for the hotkey display (default: 10)
-- `font`: Font for the hotkey display (default: "Menlo")
-- `fontSize`: Font size for the hotkey display (default: 14)
-- `fadeInDuration`: Duration of fade in animation (default: 0.3s)
-- `fadeOutDuration`: Duration of fade out animation (default: 0.3s)
+-- Log messages with different levels
+log:i("Information message")  -- Blue
+log:d("Debug message")        -- Gray
+log:w("Warning message")      -- Orange/yellow
+log:e("Error message")        -- Red
+```
 
-### Alert Settings
-- `alertDuration`: Duration to show the hotkey alert (default: 7s)
-- `alertFontSize`: Font size for the alert text (default: 16)
-- `alertTextColor`: Text color for alerts (default: white)
-- `alertBackgroundColor`: Background color for alerts (default: semi-transparent dark)
+To see the colored output in action, run the test script in the Hammerspoon console:
+```lua
+dofile("test_hyperlogger_colors.lua")
+```
 
-### Category Colors
-Custom colors can be defined for different categories of hotkeys to provide visual distinction.
+## Recent Changes
 
-## Usage
+### Initialization Process Cleanup
 
-Press configured hotkeys to trigger actions and see them displayed in the alert window.
+The Hammerspoon initialization process has been refactored to improve:
+
+1. **Loading Order** - Core components now load in a logical dependency order
+2. **Error Handling** - Better error handling for Spoon loading
+3. **Redundancy Removal** - Eliminated duplicate module initialization
+4. **Performance** - Console setup operations now happen in parallel
+
+Key improvements:
+
+- Spoons now load with proper error handling and dependency management
+- Fixed non-table modifiers warning in HotkeyManager
+- Added test_init_flow.lua to monitor loading process and detect redundancies
+
+## Debugging Tools
+
+### Testing the Initialization Process
+
+To test the initialization flow and identify potential issues, run:
+
+```lua
+dofile(hs.configdir .. "/test_init_flow.lua")
+hs.reload()
+```
+
+This will track module loading order, timing, and detect any redundancies in the initialization process.

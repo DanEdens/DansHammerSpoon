@@ -2,223 +2,331 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HammerGhost</title>
-    <link rel="stylesheet" href="./styles.css">
-    <link rel="stylesheet" href="./tree_styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #d4d4d4;
+            --border-color: #404040;
+            --hover-color: #2d2d2d;
+            --active-color: #3d3d3d;
+            --selected-color: #094771;
+            --error-color: #f44336;
+            --success-color: #4caf50;
+            --drag-indicator-color: #0078d4;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        #tree-panel {
+            width: 70%;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #properties-panel {
+            width: 30%;
+            padding: 10px;
+            overflow-y: auto;
+            background-color: var(--bg-color);
+        }
+
+        .tree-item {
+            padding: 6px 8px;
+            margin: 2px 0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tree-item:hover {
+            background-color: var(--hover-color);
+        }
+
+        .tree-item.selected {
+            background-color: var(--selected-color);
+        }
+
+        .tree-item.dragging {
+            opacity: 0.5;
+        }
+
+        .tree-item.drag-over {
+            border: 2px solid var(--drag-indicator-color);
+        }
+
+        .tree-item .icon {
+            margin-right: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .tree-item .name {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tree-item .actions {
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            gap: 4px;
+        }
+
+        .tree-item:hover .actions {
+            opacity: 1;
+        }
+
+        .tree-item button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 4px;
+            margin-left: 4px;
+            border-radius: 3px;
+        }
+
+        .tree-item button:hover {
+            background-color: var(--active-color);
+        }
+
+        .children {
+            margin-left: 20px;
+        }
+
+        .properties-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--selected-color);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .sequence-step {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .sequence-step input {
+            flex-grow: 1;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .form-buttons button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: var(--hover-color);
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .form-buttons button:hover {
+            background: var(--active-color);
+        }
+
+        .form-buttons button.primary {
+            background: var(--selected-color);
+            border-color: var(--selected-color);
+        }
+
+        .form-buttons button.primary:hover {
+            background: #0d5a8c;
+        }
+
+        .error-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--error-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .drop-indicator {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--drag-indicator-color);
+            display: none;
+        }
+
+        .drop-indicator.before { top: -1px; }
+        .drop-indicator.after { bottom: -1px; }
+        .drop-indicator.inside {
+            height: 100%;
+            border: 2px dashed var(--drag-indicator-color);
+            background: none;
+        }
+    </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="app-header">
-            <div class="app-title">
-                <i class="fas fa-ghost"></i>
-                <h1>HammerGhost</h1>
-            </div>
-            <div class="app-controls">
-                <button id="newFolderBtn" class="icon-button" title="New Folder">
-                    <i class="fas fa-folder-plus"></i>
-                </button>
-                <button id="newActionBtn" class="icon-button" title="New Action">
-                    <i class="fas fa-plus-circle"></i>
-                </button>
-                <button id="saveBtn" class="icon-button" title="Save Changes">
-                    <i class="fas fa-save"></i>
-                </button>
-                <button id="settingsBtn" class="icon-button" title="Settings">
-                    <i class="fas fa-cog"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <main class="app-content">
-            <div class="sidebar">
-                <div class="sidebar-header">
-                    <h2>Actions</h2>
-                </div>
-                <div id="treeView" class="tree-container">
-                    <!-- Tree view will be populated here -->
-                </div>
-            </div>
-            <div class="content-area">
-                <div class="content-header">
-                    <h2 id="contentTitle">Welcome to HammerGhost</h2>
-                </div>
-                <div id="contentArea" class="content-main">
-                    <div class="welcome-screen">
-                        <div class="welcome-icon">
-                            <i class="fas fa-ghost"></i>
-                        </div>
-                        <h2>Welcome to HammerGhost</h2>
-                        <p>An EventGhost-like macro editor for Hammerspoon</p>
-                        <div class="welcome-actions">
-                            <button id="welcomeNewFolder" class="btn primary">
-                                <i class="fas fa-folder-plus"></i> Create Folder
-                            </button>
-                            <button id="welcomeNewAction" class="btn secondary">
-                                <i class="fas fa-plus-circle"></i> Create Action
-                            </button>
-                        </div>
-                        <div class="welcome-tips">
-                            <h3>Getting Started</h3>
-                            <ul>
-                                <li>Create folders to organize your actions</li>
-                                <li>Add actions and configure their triggers</li>
-                                <li>Right-click items for more options</li>
-                                <li>Drag and drop to reorder items</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="app-footer">
-            <div class="status-bar">
-                <span id="statusMessage">Ready</span>
-            </div>
-            <div class="version-info">
-                <span>HammerGhost v1.0.0</span>
-            </div>
-        </footer>
+    <div id="tree-panel">
+        <!-- Tree view content will be dynamically inserted here -->
+    </div>
+    <div id="properties-panel">
+        <!-- Properties form will be dynamically inserted here -->
     </div>
 
-    <!-- Modal Templates -->
-    <div id="modalContainer" class="modal-container hidden">
-        <!-- New Folder Modal -->
-        <div id="newFolderModal" class="modal hidden">
-            <div class="modal-header">
-                <h3>New Folder</h3>
-                <button class="close-button" data-close-modal>&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="folderName">Folder Name</label>
-                    <input type="text" id="folderName" placeholder="Enter folder name">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn secondary" data-close-modal>Cancel</button>
-                <button id="createFolderBtn" class="btn primary">Create</button>
-            </div>
-        </div>
-
-        <!-- Delete Confirmation Modal -->
-        <div id="deleteConfirmModal" class="modal hidden">
-            <div class="modal-header">
-                <h3>Confirm Delete</h3>
-                <button class="close-button" data-close-modal>&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete <span id="deleteItemName"></span>?</p>
-                <p class="warning-text" id="deleteWarningText"></p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn secondary" data-close-modal>Cancel</button>
-                <button id="confirmDeleteBtn" class="btn danger">Delete</button>
-            </div>
-        </div>
-
-        <!-- Settings Modal -->
-        <div id="settingsModal" class="modal hidden">
-            <div class="modal-header">
-                <h3>Settings</h3>
-                <button class="close-button" data-close-modal>&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="settingTheme">Theme</label>
-                    <select id="settingTheme">
-                        <option value="dark">Dark</option>
-                        <option value="light">Light</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="settingAutoSave">Auto Save</label>
-                    <select id="settingAutoSave">
-                        <option value="true">Enabled</option>
-                        <option value="false">Disabled</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn secondary" data-close-modal>Cancel</button>
-                <button id="saveSettingsBtn" class="btn primary">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Context Menu -->
-    <div id="contextMenu" class="context-menu"></div>
-
-    <!-- Scripts -->
-    <script src="./tree_view.js"></script>
-    <script src="./app.js"></script>
     <script>
-        // Additional initialization - our custom URL bridge
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("Setting up URL bridge");
+        // Handle tree item selection
+        function selectItem(id) {
+            window.location.href = 'hammerspoon://selectItem?' + encodeURIComponent(id);
+        }
 
-            // Define the Hammerspoon bridge if it doesn't exist
-            if (!window.hammerspoon) {
-                window.hammerspoon = {};
-            }
+        // Handle item expansion/collapse
+        function toggleItem(id, event) {
+            event.stopPropagation();
+            window.location.href = 'hammerspoon://toggleItem?' + encodeURIComponent(id);
+        }
 
-            // Create bridge methods
-            window.hammerspoon.sendCommand = function(action, params) {
-                sendCommand(action, params);
-            };
-        });
+        // Handle item editing
+        function editItem(id, event) {
+            event.stopPropagation();
+            window.location.href = 'hammerspoon://editItem?' + encodeURIComponent(id);
+        }
 
-        // Helper function to send commands to Hammerspoon
-        function sendCommand(action, data) {
-            try {
-                // Create a custom URL scheme that Hammerspoon will understand
-                let url = `hammerspoon://${action}`;
-                
-                // Convert data object to URL query string
-                if (data && Object.keys(data).length > 0) {
-                    const queryParams = [];
-                    
-                    for (const key in data) {
-                        if (data.hasOwnProperty(key)) {
-                            let value = data[key];
-                            if (typeof value === 'object') {
-                                value = JSON.stringify(value);
-                            }
-                            queryParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
-                        }
-                    }
-                    
-                    if (queryParams.length > 0) {
-                        url += `?${queryParams.join('&')}`;
-                    }
-                }
-                
-                console.log("DEBUG: Sending command via URL:", url);
-                
-                // Option 1: Use window.location with a timeout to prevent navigation
-                // This is more reliable than iframe for OS-level URL scheme handling
-                const currentLocation = window.location.href;
-                setTimeout(function() {
-                    window.location.href = url;
-                    // Prevent actual navigation by quickly changing back
-                    setTimeout(function() {
-                        if (window.location.href !== currentLocation) {
-                            window.history.back();
-                        }
-                    }, 5);
-                }, 0);
-            } catch (error) {
-                console.error("Error sending command:", error);
+        // Handle item deletion
+        function deleteItem(id, event) {
+            event.stopPropagation();
+            if (confirm('Are you sure you want to delete this item?')) {
+                window.location.href = 'hammerspoon://deleteItem?' + encodeURIComponent(id);
             }
         }
 
-        // Expose the sendCommand function globally
-        window.sendCommand = sendCommand;
+        // Handle form submission
+        function saveProperties(id) {
+            const form = document.querySelector('.properties-form');
+            const formData = new FormData(form);
+            const data = {
+                id: id,
+                name: formData.get('name'),
+                type: formData.get('type'),
+                attributes: {}
+            };
+
+            // Add type-specific properties
+            if (data.type === 'action') {
+                data.attributes.shortcut = formData.get('shortcut');
+                data.attributes.script = formData.get('script');
+            } else if (data.type === 'sequence') {
+                data.attributes.delay = formData.get('delay');
+                data.attributes.steps = Array.from(
+                    form.querySelectorAll('.sequence-step input')
+                ).map(input => input.value);
+            }
+
+            window.location.href = 'hammerspoon://saveProperties?' +
+                                 encodeURIComponent(JSON.stringify(data));
+        }
+
+        // Handle sequence step management
+        function addSequenceStep() {
+            const stepsContainer = document.getElementById('sequence-steps');
+            const stepCount = stepsContainer.children.length;
+            const newStep = document.createElement('div');
+            newStep.className = 'sequence-step';
+            newStep.innerHTML = `
+                <input type="text" name="step_${stepCount + 1}" placeholder="Enter step command">
+                <button type="button" onclick="removeStep(${stepCount + 1})">Remove</button>
+            `;
+            stepsContainer.appendChild(newStep);
+        }
+
+        function removeStep(index) {
+            const step = document.querySelector(`[name="step_${index}"]`).parentNode;
+            step.remove();
+            // Renumber remaining steps
+            const steps = document.querySelectorAll('.sequence-step');
+            steps.forEach((step, i) => {
+                step.querySelector('input').name = `step_${i + 1}`;
+                step.querySelector('button').setAttribute('onclick', `removeStep(${i + 1})`);
+            });
+        }
+
+        // Cancel editing
+        function cancelEdit() {
+            window.location.href = 'hammerspoon://cancelEdit';
+        }
+
+        // Initialize drag and drop handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            const treePanel = document.getElementById('tree-panel');
+
+            treePanel.addEventListener('dragstart', handleDragStart);
+            treePanel.addEventListener('dragover', handleDragOver);
+            treePanel.addEventListener('dragleave', handleDragLeave);
+            treePanel.addEventListener('drop', handleDrop);
+        });
     </script>
 </body>
 </html>

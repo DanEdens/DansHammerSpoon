@@ -1,100 +1,61 @@
 --- XML Parser for HammerGhost
 --- Simple XML parser for handling macro configurations
 
-local parser = {}
+local xmlparser = {}
 
 -- Helper function to trim whitespace
 local function trim(s)
     return s:match("^%s*(.-)%s*$")
 end
 
--- Helper function to escape XML special characters
+-- Helper function to escape special XML characters
 local function escapeXML(s)
-    if not s then return "" end
-    local escaped = s:gsub("&", "&amp;")
-                    :gsub("<", "&lt;")
-                    :gsub(">", "&gt;")
-                    :gsub("\"", "&quot;")
-                    :gsub("'", "&apos;")
+    local escaped = s:gsub("[<>&'\"]", {
+        ['<'] = '&lt;',
+        ['>'] = '&gt;',
+        ['&'] = '&amp;',
+        ["'"] = '&apos;',
+        ['"'] = '&quot;'
+    })
     return escaped
 end
 
--- Helper function to unescape XML special characters
+-- Helper function to unescape XML entities
 local function unescapeXML(s)
-    if not s then return "" end
-    local unescaped = s:gsub("&amp;", "&")
-                       :gsub("&lt;", "<")
-                       :gsub("&gt;", ">")
-                       :gsub("&quot;", "\"")
-                       :gsub("&apos;", "'")
+    local unescaped = s:gsub('&(%w+);', {
+        lt = '<',
+        gt = '>',
+        amp = '&',
+        apos = "'",
+        quot = '"'
+    })
     return unescaped
 end
 
--- Convert macro tree to XML
-function parser.toXML(macroTree)
-    if not macroTree then return '<?xml version="1.0" encoding="UTF-8"?>\n<macros>\n</macros>' end
-    local function itemToXML(item, indent)
-        indent = indent or ""
-        local attrs = string.format('id="%s" type="%s" name="%s"',
-            escapeXML(item.id),
-            escapeXML(item.type),
-            escapeXML(item.name))
-
-        if item.expanded ~= nil then
-            attrs = attrs .. string.format(' expanded="%s"', tostring(item.expanded))
-        end
-
-        if item.children and #item.children > 0 then
-            local xml = indent .. "<item " .. attrs .. ">\n"
-            for _, child in ipairs(item.children) do
-                xml = xml .. itemToXML(child, indent .. "  ")
-            end
-            return xml .. indent .. "</item>\n"
-        else
-            return indent .. "<item " .. attrs .. "/>\n"
-        end
-    end
-
-    local xml = '<?xml version="1.0" encoding="UTF-8"?>\n<macros>\n'
-    for _, item in ipairs(macroTree) do
-        xml = xml .. itemToXML(item, "  ")
-    end
-    xml = xml .. "</macros>"
-
-    return xml
-end
-
--- Parse XML into macro tree
-function parser.fromXML(xmlString)
-    local function createItem(element)
-        local item = {
-            id = unescapeXML(element.attributes.id),
-            type = unescapeXML(element.attributes.type),
-            name = unescapeXML(element.attributes.name),
-            expanded = element.attributes.expanded == "true"
-        }
-
-        if element.children then
-            item.children = {}
-            for _, child in ipairs(element.children) do
-                if child.tag == "item" then
-                    table.insert(item.children, createItem(child))
-                end
-            end
-        end
-
-        return item
-    end
-
+-- Parse XML string into a Lua table
+function xmlparser.parse(xmlString)
     local stack = {}
-    local top = { tag = "root", children = {} }
+    local top = {}
     table.insert(stack, top)
 
     local index = 1
+    local text = ""
+
     while index <= #xmlString do
         -- Find next tag
         local startTag = xmlString:find("<", index)
         if not startTag then break end
+
+        -- Add text before tag
+        text = text .. trim(xmlString:sub(index, startTag - 1))
+        if #text > 0 then
+            if top.value then
+                top.value = top.value .. text
+            else
+                top.value = text
+            end
+            text = ""
+        end
 
         -- Find end of tag
         local endTag = xmlString:find(">", startTag)
@@ -106,27 +67,25 @@ function parser.fromXML(xmlString)
             -- Closing tag
             table.remove(stack)
             top = stack[#stack]
-        elseif tag:sub(1, 1) == "?" then
-            -- XML declaration, skip it
         else
             -- Opening tag
-            local element = { attributes = {} }
+            local element = {}
             element.tag = tag:match("^(%S+)")
 
             -- Parse attributes
-            for name, value in tag:gmatch('%s+([%w_]+)="([^"]*)"') do
+            for name, value in tag:gmatch("%s+(%w+)=\"([^\"]*)\"") do
+                if not element.attributes then
+                    element.attributes = {}
+                end
                 element.attributes[name] = value
             end
 
             if not top.children then
                 top.children = {}
             end
+            table.insert(top.children, element)
 
-            if tag:match("/$") then
-                -- Self-closing tag
-                table.insert(top.children, element)
-            else
-                table.insert(top.children, element)
+            if not tag:match("/$") then
                 table.insert(stack, element)
                 top = element
             end
@@ -135,21 +94,103 @@ function parser.fromXML(xmlString)
         index = endTag + 1
     end
 
-    local macroTree = {}
-    if top.children then
-        for _, child in ipairs(top.children) do
-            if child.tag == "macros" and child.children then
-                for _, item in ipairs(child.children) do
-                    if item.tag == "item" then
-                        table.insert(macroTree, createItem(item))
-                    end
-                end
-                break
-            end
-        end
-    end
-
-    return macroTree
+    return stack[1].children
 end
 
-return parser
+-- Convert Lua table to XML string
+function xmlparser.toXML(item)
+    if not item then return "" end
+    
+    local function processItem(item, indent)
+        indent = indent or ""
+        local xml = indent .. "<" .. (item.tag or "item")
+        
+        -- Add attributes if they exist
+        if item.attributes then
+            for k, v in pairs(item.attributes) do
+                if v then  -- Only add non-nil attributes
+                    xml = xml .. string.format(' %s="%s"', k, tostring(v))
+                end
+            end
+        end
+        
+        -- If there are children or value, add them
+        if item.children and #item.children > 0 then
+            xml = xml .. ">\n"
+            for _, child in ipairs(item.children) do
+                xml = xml .. processItem(child, indent .. "  ")
+            end
+            xml = xml .. indent .. "</" .. (item.tag or "item") .. ">\n"
+        elseif item.value then
+            xml = xml .. ">" .. tostring(item.value) .. "</" .. (item.tag or "item") .. ">\n"
+        else
+            xml = xml .. "/>\n"
+        end
+        
+        return xml
+    end
+    
+    return processItem(item)
+end
+
+-- Parse XML string to table
+function xmlparser.fromXML(xml)
+    if not xml or xml == "" then return nil end
+    
+    local stack = {}
+    local top = {}
+    table.insert(stack, top)
+    
+    local index = 1
+    local text = ""
+    
+    local function addText()
+        if text ~= "" then
+            if stack[#stack].value then
+                stack[#stack].value = stack[#stack].value .. text
+            else
+                stack[#stack].value = text
+            end
+            text = ""
+        end
+    end
+    
+    while index <= #xml do
+        local start, stop = string.find(xml, "<[^>]+>", index)
+        if not start then break end
+        
+        -- Add any text before the tag
+        if start > index then
+            text = text .. string.sub(xml, index, start - 1)
+        end
+        
+        local tag = string.sub(xml, start + 1, stop - 1)
+        
+        if string.sub(tag, 1, 1) == "/" then
+            -- Closing tag
+            addText()
+            table.remove(stack)
+        elseif string.sub(tag, -1) == "/" then
+            -- Self-closing tag
+            local element = {tag = string.sub(tag, 1, -2)}
+            table.insert(stack[#stack], element)
+        else
+            -- Opening tag
+            local element = {tag = tag, children = {}}
+            table.insert(stack[#stack], element)
+            table.insert(stack, element)
+        end
+        
+        index = stop + 1
+    end
+    
+    -- Add any remaining text
+    if index <= #xml then
+        text = text .. string.sub(xml, index)
+        addText()
+    end
+    
+    return top[1]
+end
+
+return xmlparser

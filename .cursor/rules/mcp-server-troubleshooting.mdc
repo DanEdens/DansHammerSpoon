@@ -1,0 +1,111 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# MCP Server Troubleshooting Guide
+
+## MCP Server Connection Issues
+
+### Symptoms
+- `get_todo` returns connection errors
+- MCP tools fail with timeout errors
+- "Server not available" messages
+
+### Diagnosis Steps
+1. **Check Server Status**: Verify MCP server is running
+2. **Test Connection**: Use simple query first (`list_todos_by_status`)
+3. **Validate Configuration**: Check MCP server config file
+4. **Network Connectivity**: Ensure no firewall blocking
+
+### Resolution
+```bash
+# Restart MCP server
+sudo systemctl restart mcp-todo-server
+
+# Check server logs
+tail -f /var/log/mcp-server.log
+
+# Test connectivity
+curl -X GET http://localhost:3000/health
+```
+
+## Data Consistency Problems
+
+### Todo ID Mismatches
+- **Problem**: get_todo fails with valid-looking IDs
+- **Root Cause**: Database inconsistency or corruption
+- **Fix**: Run data validation and repair scripts
+
+### Status Validation Errors
+- **Problem**: Invalid status values in database
+- **Root Cause**: Data migration or manual editing issues
+- **Fix**: Clean up invalid status values
+
+## Performance Issues
+
+### Slow get_todo Response
+- **Symptoms**: Timeouts on individual todo retrieval
+- **Causes**: Database performance, network latency
+- **Solutions**:
+  - Add database indexing
+  - Implement caching layer
+  - Use connection pooling
+
+### Memory Leaks
+- **Symptoms**: MCP server memory usage grows over time
+- **Monitoring**: Track memory usage in server logs
+- **Resolution**: Restart server, investigate connection handling
+
+## Error Codes and Meanings
+
+### Common Error Responses
+- `404`: Todo not found (invalid ID)
+- `500`: Server internal error
+- `503`: Service unavailable
+- `408`: Request timeout
+
+### Error Handling Pattern
+```javascript
+function handleMCPError(error, operation) {
+    switch(error.code) {
+        case 404:
+            return `Todo not found for ${operation}`;
+        case 500:
+            return `Server error during ${operation} - try again later`;
+        case 503:
+            return `MCP server unavailable - check server status`;
+        default:
+            return `Unknown error in ${operation}: ${error.message}`;
+    }
+}
+```
+
+## Recovery Procedures
+
+### Automatic Recovery
+1. **Retry Logic**: Implement exponential backoff
+2. **Fallback Methods**: Use alternative endpoints
+3. **Circuit Breaker**: Prevent cascade failures
+
+### Manual Recovery
+1. **Server Restart**: `systemctl restart mcp-todo-server`
+2. **Database Repair**: Run integrity checks
+3. **Cache Clear**: Remove stale cached data
+4. **Configuration Reset**: Restore default settings
+
+## Monitoring and Alerting
+
+### Key Metrics to Monitor
+- Response time for get_todo operations
+- Error rate percentage
+- Server memory and CPU usage
+- Database connection pool status
+
+### Alert Conditions
+- Error rate > 5% for 5 minutes
+- Response time > 2 seconds average
+- Server memory usage > 80%
+- Failed database connections
+
+This guide helps diagnose and resolve MCP server issues affecting todo operations.

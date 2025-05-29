@@ -1,0 +1,140 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# MCP Server AI Guidelines for Todo Management
+
+## Overview
+This rule provides guidelines for AI agents working with the MCP (Model Context Protocol) todo server to ensure proper error handling and functionality when working with todo items.
+
+## Common get_todo Errors and Fixes
+
+### 1. Invalid Todo ID Format
+- **Problem**: Passing malformed or non-existent todo IDs
+- **Solution**: Always validate todo ID format (UUID) before calling get_todo
+- **Example**: Use `mcp_todo_server_query_todos_tool` first to verify the todo exists
+
+### 2. Missing Error Handling
+- **Problem**: Not checking for error responses from get_todo calls
+- **Solution**: Always check the `success` field in responses and handle error cases
+```javascript
+if (!response.success) {
+    console.error("Failed to get todo:", response.message);
+    return;
+}
+```
+
+### 3. Null or Undefined Todo Objects
+- **Problem**: Assuming todo data exists without validation
+- **Solution**: Check for null/undefined before accessing todo properties
+```javascript
+if (todo && todo.id) {
+    // Process todo safely
+}
+```
+
+## Best Practices for Todo Operations
+
+### Query Before Get
+Always query todos first to ensure they exist:
+1. Use `query_todos_tool` to search for todos
+2. Validate the todo exists in the results
+3. Then use `get_todo_tool` with the confirmed ID
+
+### Error Response Handling
+Structure error handling consistently:
+```javascript
+try {
+    const result = await get_todo(todoId);
+    if (!result.success) {
+        throw new Error(result.message || 'Unknown error');
+    }
+    return result.data;
+} catch (error) {
+    console.error('Get todo failed:', error.message);
+    return null;
+}
+```
+
+### Data Validation
+Before using todo data, validate required fields:
+- `id` - Unique identifier
+- `description` - Todo content
+- `project` - Project association
+- `status` - Current state
+- `created` - Creation timestamp
+
+### Status Management
+Valid todo statuses are:
+- `initial` - Newly created
+- `pending` - In progress
+- `completed` - Finished
+- `review` - Needs review
+
+## Integration with Cursor Rules
+
+### File References
+When working with todos related to code files, reference them properly:
+- Use `[filename.ext](mdc:filename.ext)` format for file references
+- Ensure paths are relative to workspace root
+- Include relevant file context in todo descriptions
+
+### Project Mapping
+Map todo projects to workspace directories:
+- `hammerspoon` → Root Hammerspoon config
+- `omnispindle` → MCP server functionality
+- `madness_interactive` → Python projects
+- `eventghost-rust` → Rust implementations
+
+## Debugging get_todo Issues
+
+### Common Debug Steps
+1. **Verify Connection**: Ensure MCP server is running and accessible
+2. **Check Todo ID**: Validate UUID format and existence
+3. **Inspect Response**: Log full response object for analysis
+4. **Test with Known Good ID**: Use a todo ID that definitely exists
+
+### Logging for Troubleshooting
+Add comprehensive logging:
+```javascript
+console.log('Attempting get_todo for ID:', todoId);
+console.log('Response received:', JSON.stringify(response, null, 2));
+```
+
+### Fallback Strategies
+When get_todo fails:
+1. Try querying todos by filter instead
+2. Use list_todos_by_status as alternative
+3. Create new todo if original was corrupted
+4. Report issue to user with specific error details
+
+## Error Recovery Patterns
+
+### Graceful Degradation
+- If get_todo fails, provide alternative functionality
+- Show user-friendly error messages
+- Offer retry mechanisms
+- Maintain system stability
+
+### Data Consistency
+- Verify todo state after operations
+- Use transactions where possible
+- Implement rollback for failed operations
+- Keep audit logs of todo changes
+
+## Testing Guidelines
+
+### Unit Tests for get_todo
+- Test valid todo IDs
+- Test invalid/malformed IDs
+- Test network failure scenarios
+- Test timeout conditions
+
+### Integration Tests
+- Test full workflow from query to get
+- Verify error propagation
+- Test concurrent access scenarios
+- Validate data consistency
+
+This rule ensures reliable todo management and proper error handling when working with the MCP server.

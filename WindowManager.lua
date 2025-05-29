@@ -342,8 +342,7 @@ end
 function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
     retryCount = retryCount or 3
 
-    -- Save original animation duration and temporarily disable animations
-    local originalDuration = hs.window.animationDuration
+    -- Ensure animations are always disabled for reliable positioning
     hs.window.animationDuration = 0
 
     -- Try to set the frame
@@ -379,8 +378,8 @@ function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
         return WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount - 1)
     end
 
-    -- Restore original animation duration
-    hs.window.animationDuration = originalDuration
+    -- Keep animations disabled for consistent window management
+    hs.window.animationDuration = 0
 
     return frameCorrect
 end

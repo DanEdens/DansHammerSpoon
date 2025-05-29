@@ -437,9 +437,7 @@ end
 
 -- hs.loadSpoon('ExtendedClipboard')
 
--- hammer_bright = os.getenv("HAMMER_BRIGHT")
--- # set brightness to max
-hs.brightness.set(100)
+-- Disable window animations for instant, reliable window positioning
 hs.window.animationDuration = 0
 
 white = hs.drawing.color.white
@@ -831,3 +829,7 @@ gray = { red = 246 / 255, blue = 246 / 255, green = 246 / 255, alpha = 0.3 }
 -- end):start()
 
 -- End of init.lua configuration
+
+-- hammer_bright = os.getenv("HAMMER_BRIGHT")
+-- # set brightness to max
+hs.brightness.set(100)

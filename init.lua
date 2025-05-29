@@ -832,4 +832,3 @@ gray = { red = 246 / 255, blue = 246 / 255, green = 246 / 255, alpha = 0.3 }
 
 -- hammer_bright = os.getenv("HAMMER_BRIGHT")
 -- # set brightness to max
-hs.brightness.set(100)

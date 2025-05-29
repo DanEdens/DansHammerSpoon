@@ -40,7 +40,6 @@ ui = ui.init({ xmlparser = xmlparser })
 obj.window = nil
 obj.webview = nil
 obj.toolbar = nil
-obj.server = nil
 obj.configPath = hs.configdir .. "/hammerghost_config.xml"
 obj.macroTree = {}
 obj.currentSelection = nil
@@ -60,16 +59,14 @@ function obj:init()
         return self
     end
 
-    -- Initialize URL event watcher for JavaScript-to-Lua communication
-    self.server = hs.urlevent.watcher.new()
-    if self.server then
-        self.server:setCallback(function(action, webview)
-            self.logger:d("URL event received: " .. tostring(action))
-        end)
-        self.server:start()
-    else
-        self.logger:e("Failed to create URL event watcher")
-    end
+    -- Initialize URL event handling for JavaScript-to-Lua communication
+    hs.urlevent.setCallback(function(scheme, host, params, fullURL)
+        self.logger:d("URL event received: " .. tostring(fullURL))
+        -- The navigation callback in the webview will handle the actual processing
+    end)
+
+    -- Register the hammerspoon URL scheme
+    hs.urlevent.setDefaultHandler("hammerspoon")
     -- Load saved macros if they exist
     self.macroTree, self.lastId = config.loadMacros(self.configPath) -- Use config module
 

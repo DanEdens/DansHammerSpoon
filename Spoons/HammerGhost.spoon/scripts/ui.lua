@@ -92,6 +92,26 @@ function ui.createMainWindow(obj)
                 obj:deleteItem(params)
             elseif host == "editItem" then
                 obj:editItem(params)
+            elseif host == "moveItem" then
+                -- Parse query parameters for moveItem
+                local sourceId, targetId, position
+                for param in params:gmatch("[^&]+") do
+                    local key, value = param:match("([^=]+)=([^=]*)")
+                    if key == "sourceId" then
+                        sourceId = value
+                    elseif key == "targetId" then
+                        targetId = value
+                    elseif key == "position" then
+                        position = value
+                    end
+                end
+                if sourceId and targetId and position then
+                    obj:moveItem(sourceId, targetId, position)
+                end
+            elseif host == "showContextMenu" then
+                obj:showContextMenu(params)
+            elseif host == "cancelEdit" then
+                obj:cancelEdit()
             elseif host == "saveProperties" then
                 local data = hs.json.decode(params)
                 if data then

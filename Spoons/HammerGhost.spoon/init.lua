@@ -40,6 +40,7 @@ ui = ui.init({ xmlparser = xmlparser })
 obj.window = nil
 obj.webview = nil
 obj.toolbar = nil
+obj.server = nil
 obj.configPath = hs.configdir .. "/hammerghost_config.xml"
 obj.macroTree = {}
 obj.currentSelection = nil
@@ -59,6 +60,16 @@ function obj:init()
         return self
     end
 
+    -- Initialize URL event watcher for JavaScript-to-Lua communication
+    self.server = hs.urlevent.watcher.new()
+    if self.server then
+        self.server:setCallback(function(action, webview)
+            self.logger:d("URL event received: " .. tostring(action))
+        end)
+        self.server:start()
+    else
+        self.logger:e("Failed to create URL event watcher")
+    end
     -- Load saved macros if they exist
     self.macroTree, self.lastId = config.loadMacros(self.configPath) -- Use config module
 
@@ -151,6 +162,143 @@ function obj:selectItem(id)
     self:refreshWindow()
 end
 
+-- Function to configure an item (alias for editItem for consistency)
+function obj:configureItem(id)
+    return self:editItem(id)
+end
+
+-- Function to move an item to a new position
+function obj:moveItem(sourceId, targetId, position)
+    local sourceItem = treeHelpers.findItem(self.macroTree, sourceId)
+    local targetItem = treeHelpers.findItem(self.macroTree, targetId)
+
+    if not sourceItem or not targetItem or sourceId == targetId then
+        return false
+    end
+
+    -- Remove source item from its current location
+    local function removeFromParent(items, itemId)
+        for i, item in ipairs(items) do
+            if item.id == itemId then
+                table.remove(items, i)
+                return true
+            end
+            if item.children and removeFromParent(item.children, itemId) then
+                return true
+            end
+        end
+        return false
+    end
+
+    -- Find target parent and position
+    local function findParentAndPosition(items, targetId)
+        for i, item in ipairs(items) do
+            if item.id == targetId then
+                return items, i
+            end
+            if item.children then
+                local parent, pos = findParentAndPosition(item.children, targetId)
+                if parent then return parent, pos end
+            end
+        end
+        return nil, nil
+    end
+
+    -- Remove source from current location
+    removeFromParent(self.macroTree, sourceId)
+
+    -- Insert in new location
+    if position == "before" then
+        local parent, pos = findParentAndPosition(self.macroTree, targetId)
+        if parent then
+            table.insert(parent, pos, sourceItem)
+        end
+    elseif position == "after" then
+        local parent, pos = findParentAndPosition(self.macroTree, targetId)
+        if parent then
+            table.insert(parent, pos + 1, sourceItem)
+        end
+    elseif position == "inside" then
+        if not targetItem.children then
+            targetItem.children = {}
+        end
+        table.insert(targetItem.children, sourceItem)
+    end
+
+    self:saveConfig()
+    self:refreshWindow()
+    return true
+end
+
+-- Function to show context menu for an item
+function obj:showContextMenu(id)
+    local item = treeHelpers.findItem(self.macroTree, id)
+    if not item then return end
+
+    local menu = hs.menubar.new()
+    menu:setMenu({
+        { title = "Edit",   fn = function() self:editItem(id) end },
+        { title = "Delete", fn = function() self:deleteItem(id) end },
+        { title = "-" },
+        {
+            title = "Add Folder",
+            fn = function()
+                self.currentSelection = item
+                self:addFolder()
+            end
+        },
+        {
+            title = "Add Action",
+            fn = function()
+                self.currentSelection = item
+                self:addAction()
+            end
+        },
+        {
+            title = "Add Sequence",
+            fn = function()
+                self.currentSelection = item
+                self:addSequence()
+            end
+        }
+    })
+    menu:popupMenu(hs.mouse.absolutePosition())
+
+    -- Auto-hide menu after a delay
+    hs.timer.doAfter(0.1, function()
+        menu:delete()
+    end)
+end
+
+-- Function to cancel editing
+function obj:cancelEdit()
+    if self.window then
+        -- Clear properties panel
+        self.window:evaluateJavaScript([[
+            document.getElementById('properties-panel').innerHTML = '';
+        ]])
+    end
+end
+
+-- Function to test URL handling
+function obj:testURLHandling()
+    -- Create a test item if none exists
+    if #self.macroTree == 0 then
+        self:createMacroItem("Test Item", "action", nil)
+    end
+
+    -- Get the first item ID
+    local testId = self.macroTree[1].id
+
+    -- Generate test URL
+    local testURL = "hammerspoon://selectItem?" .. testId
+    self.logger:i("Testing URL handling with: " .. testURL)
+
+    -- Execute the URL to test handling
+    hs.execute("open '" .. testURL .. "'")
+
+    return testURL
+end
 -- Function to refresh the window content
 function obj:refreshWindow()
     if not self.window then return end

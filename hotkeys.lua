@@ -41,6 +41,9 @@ local rightLayoutState = {
 local leftLayoutState = {
     isSmall = true
 }
+local FullLayoutState = {
+    isFull = true
+}
 
 function toggleRightLayout()
     rightLayoutState.isSmall = not rightLayoutState.isSmall
@@ -62,6 +65,16 @@ function toggleLeftLayout()
         log:d("Left Half Layout", __FILE__, 61)
     end
 end
+function toggleFullLayout()
+    FullLayoutState.isFull = not FullLayoutState.isFull
+    if FullLayoutState.isFull then
+        WindowManager.applyLayout('fullScreen')
+        log:d("Full Screen Layout", __FILE__, 64)
+    else
+        WindowManager.applyLayout('nearlyFull')
+        log:d("Seven By Five Layout", __FILE__, 67)
+    end
+end
 -- Keybindings
 -- Window Management
 
@@ -70,8 +83,8 @@ hs.hotkey.bind(_hyper, "1", "Move Bottom-Left Corner", function() WindowManager.
 hs.hotkey.bind(hammer, "2", "Move Top-Right Corner", function() WindowManager.applyLayout("topRight") end)
 hs.hotkey.bind(_hyper, "2", "Move Bottom-Right Corner", function() WindowManager.applyLayout("bottomRight") end)
 hs.hotkey.bind(_hyper, "r", "Reset Shuffle Counters", function() WindowManager.resetShuffleCounters() end)
-hs.hotkey.bind(hammer, "3", "Full Screen", function() WindowManager.applyLayout('fullScreen') end)
-hs.hotkey.bind(_hyper, "3", "Nearly Full Screen", function() WindowManager.applyLayout('nearlyFull') end)
+hs.hotkey.bind(hammer, "3", "Full Screen", function() toggleFullLayout() end)
+hs.hotkey.bind(_hyper, "3", "Nearly Full Screen", function() WindowManager.applyLayout('sevenByFive') end)
 hs.hotkey.bind(hammer, "4", "Left Wide Layout", function() WindowManager.applyLayout('leftWide') end)
 hs.hotkey.bind(_hyper, "4", "Mini Shuffle", function() WindowManager.miniShuffle() end)
 

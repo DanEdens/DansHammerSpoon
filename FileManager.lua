@@ -227,14 +227,31 @@ function FileManager.openMostRecentImage()
     local desktopPath = hs.fs.pathToAbsolute(os.getenv("HOME") .. "/Desktop")
     log:d('Desktop path: ' .. desktopPath)
 
-    local filePath = hs.execute("ls -t " .. desktopPath .. "/*.png | head -n 1")
-    if filePath ~= "" then
-        log:i('Opening image: ' .. filePath)
-        lastSelected.file = { name = "recent_image", path = filePath }
-        hs.execute("open " .. filePath)
+    -- Look for multiple image formats, not just PNG
+    local cmd = string.format(
+    "find '%s' -maxdepth 1 -type f \\( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.gif' -o -iname '*.bmp' -o -iname '*.tiff' \\) -exec ls -t {} + | head -n 1",
+        desktopPath)
+    log:d('Executing command: ' .. cmd)
+
+    local output, status, type, rc = hs.execute(cmd)
+
+    if status and output and output ~= "" then
+        -- Trim whitespace and newlines from the output
+        local filePath = output:match("^%s*(.-)%s*$")
+        if filePath and filePath ~= "" then
+            log:i('Opening image: ' .. filePath)
+            lastSelected.file = { name = "recent_image", path = filePath }
+            -- Properly quote the file path to handle spaces
+            local openCmd = string.format("open '%s'", filePath)
+            log:d('Executing open command: ' .. openCmd)
+            hs.execute(openCmd)
+        else
+            log:w('No valid file path found in command output')
+            hs.alert.show("No recent images found on Desktop")
+        end
     else
-        log:w('No PNG images found on Desktop')
-        hs.alert.show("No PNG images found on Desktop")
+        log:w('Command failed or no images found. Status: ' .. tostring(status) .. ', RC: ' .. tostring(rc))
+        hs.alert.show("No recent images found on Desktop")
     end
 end
 

@@ -41,6 +41,7 @@ local fileList = {
 
 local projects_list = {
     -- Core projects
+    { name = "madness_interactive",        path = "~/lab/madness_interactive" },
     { name = ".hammerspoon",        path = "~/.hammerspoon" },
     { name = "Chat History",        path = "/Users/d.edens/lab/madness_interactive/docs/cursor_chathistory" },
     { name = "Todomill_projectorium", path = "~/lab/madness_interactive/projects/python/Omnispindle/Todomill_projectorium" },
@@ -49,8 +50,7 @@ local projects_list = {
     { name = "Swarmonomicon",       path = "~/lab/madness_interactive/projects/common/Swarmonomicon" },
     { name = "lab",                 path = "~/lab" },
     { name = "regressiontestkit",   path = "~/lab/regressiontestkit" },
-    { name = "gateway_metrics",       path = "~/lab/regressiontestkit/gateway_metrics" },
-    { name = "madness_interactive", path = "~/lab/madness_interactive" },
+    { name = "gateway_metrics",            path = "~/lab/regressiontestkit/gateway_metrics" },
     -- RegressionTestKit ecosystem
     { name = "OculusTestKit",       path = "~/lab/regressiontestkit/OculusTestKit" },
     { name = "phoenix",             path = "~/lab/regressiontestkit/phoenix" },

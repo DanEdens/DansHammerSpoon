@@ -70,7 +70,7 @@ hs.console.consoleCommandColor(darkMode.textColor)
 hs.console.consolePrintColor(darkMode.textColor)
 hs.console.consoleResultColor({ white = 0.7 })
 hs.console.alpha(0.95)
-hs.console.titleVisibility("hidden")
+-- hs.console.titleVisibility("hidden")
 
 -- Apply appearance after a short delay
 hs.timer.doAfter(0.1, function()

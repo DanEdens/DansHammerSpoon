@@ -18,17 +18,15 @@ dofile(hs.configdir .. "/hotkeys.lua")
 -- Load the HammerGhost spoon
 hs.loadSpoon("HammerGhost")
 
--- Initialize the HammerGhost spoon and assign it to a local variable
-local hammerghost = spoon.HammerGhost:init()
-if hammerghost then
-    -- Bind hotkeys for HammerGhost
-    hammerghost:bindHotkeys({
-        toggle = { { "cmd", "alt", "ctrl" }, "H" }
-    })
-    hs.logger.new("init.lua"):i("HammerGhost spoon loaded successfully.")
-else
-    hs.logger.new("init.lua"):e("Failed to load HammerGhost spoon.")
-end
+-- Bind hotkey for HammerGhost (only initialize when hotkey is pressed)
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "H", function()
+    local hammerghost = spoon.HammerGhost:init()
+    if hammerghost then
+        hs.logger.new("init.lua"):i("HammerGhost spoon opened successfully via hotkey.")
+    else
+        hs.logger.new("init.lua"):e("Failed to open HammerGhost spoon via hotkey.")
+    end
+end)
 
 local secrets = require("load_secrets")
 log:d('Secrets module loaded', __FILE__, 14)

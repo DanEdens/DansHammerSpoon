@@ -280,6 +280,13 @@ Several improvements have been made to the codebase:
     - Ensures hyper+F hotkey correctly opens or focuses Finder
     - See [Hotkey-Fix.md](docs/Hotkey-Fix.md) for details
 
+15. **HammerGhost Multiple Windows Fix** - Fixed duplicate HammerGhost windows opening on configuration reload
+    - Removed automatic initialization of HammerGhost during configuration loading
+    - Changed to hotkey-only initialization (Cmd+Alt+Ctrl+H) for better user control
+    - Prevents multiple HammerGhost instances when using `hs.reload()`
+    - Improved logging to distinguish hotkey-triggered initialization
+    - See [hammerghost_multiple_windows_fix.md](hammerghost_multiple_windows_fix.md) for complete details
+
 ## Recent Updates
 
 - **Added Cursor with GitHub Desktop Integration**: Open projects in both Cursor IDE and GitHub Desktop simultaneously with hyper+g, ensuring final focus on Cursor while also updating GitHub Desktop with the selected project path.

@@ -66,18 +66,20 @@ function toggleLeftLayout()
     end
 end
 function toggleFullLayout()
-    FullLayoutState.isFull = not FullLayoutState.isFull
-    if FullLayoutState.isFull then
+    FullLayoutState.isFull = (FullLayoutState.isFull + 1) % 3  
+    if FullLayoutState.isFull == 0 then
         WindowManager.applyLayout('fullScreen')
         log:d("Full Screen Layout", __FILE__, 64)
-    else
+    elseif FullLayoutState.isFull == 1 then
         WindowManager.applyLayout('nearlyFull')
         log:d("Seven By Five Layout", __FILE__, 67)
+    else
+        WindowManager.applyLayout('trueFull')  
+        log:d("True Full Layout", __FILE__, 70)  
     end
 end
 -- Keybindings
 -- Window Management
-
 hs.hotkey.bind(hammer, "1", "Move Top-Left Corner", function() WindowManager.applyLayout("topLeft") end)
 hs.hotkey.bind(_hyper, "1", "Move Bottom-Left Corner", function() WindowManager.applyLayout("bottomLeft") end)
 hs.hotkey.bind(hammer, "2", "Move Top-Right Corner", function() WindowManager.applyLayout("topRight") end)
@@ -87,7 +89,6 @@ hs.hotkey.bind(hammer, "3", "Full Screen", function() toggleFullLayout() end)
 hs.hotkey.bind(_hyper, "3", "Nearly Full Screen", function() WindowManager.applyLayout('sevenByFive') end)
 hs.hotkey.bind(hammer, "4", "Left Wide Layout", function() WindowManager.applyLayout('leftWide') end)
 hs.hotkey.bind(_hyper, "4", "Mini Shuffle", function() WindowManager.miniShuffle() end)
-
 -- Screen and display management
 hs.hotkey.bind(hammer, "5", "Split Vertical", function() WindowManager.applyLayout('splitVertical') end)
 hs.hotkey.bind(_hyper, "5", "Split Horizontal", function() WindowManager.applyLayout('splitHorizontal') end)
@@ -101,7 +102,6 @@ hs.hotkey.bind(hammer, "9", "Move Window to Mouse", function() WindowManager.mov
 hs.hotkey.bind(_hyper, "9", "Open Selected File", function() FileManager.openSelectedFile() end)
 hs.hotkey.bind(hammer, "0", "Horizontal Shuffle", function() WindowManager.halfShuffle(4, 3) end)
 hs.hotkey.bind(_hyper, "0", "Vertical Shuffle", function() WindowManager.halfShuffle(12, 3) end)
-
 -- Window Movement
 hs.hotkey.bind(hammer, "left", "Move Window Left", function() WindowManager.moveWindow("left") end)
 hs.hotkey.bind(_hyper, "left", "Move to Previous Screen", function() WindowManager.moveToScreen("previous", "right") end)
@@ -111,8 +111,6 @@ hs.hotkey.bind(hammer, "up", "Move Window Up", function() WindowManager.moveWind
 hs.hotkey.bind(_hyper, "up", "Center Screen Layout", function() WindowManager.applyLayout('centerScreen') end)
 hs.hotkey.bind(hammer, "down", "Move Window Down", function() WindowManager.moveWindow("down") end)
 hs.hotkey.bind(_hyper, "down", "Bottom Half Layout", function() WindowManager.applyLayout('bottomHalf') end)
-
-
 -- Window Position Save/Restore
 hs.hotkey.bind(hammer, "F1", "Toggle Console", function() hs.toggleConsole() end)
 hs.hotkey.bind(_hyper, "F1", "Temporary Function", function() tempFunction() end)
@@ -133,13 +131,12 @@ hs.hotkey.bind(hammer, "F8", "Temporary Function", function() tempFunction() end
 hs.hotkey.bind(_hyper, "F8", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F9", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "F9", "Temporary Function", function() tempFunction() end)
--- hs.hotkey.bind(hammer, "F10", function() tempFunction() end)
--- hs.hotkey.bind(_hyper, "F10", function() tempFunction() end)
--- hs.hotkey.bind(hammer, "F11", function() tempFunction() end)
--- hs.hotkey.bind(_hyper, "F11", function() tempFunction() end)
--- hs.hotkey.bind(hammer, "F12", function() tempFunction() end)
+-- hs.hotkey.bind(hammer, "F10", "Temporary Function", function() tempFunction() end)
+-- hs.hotkey.bind(_hyper, "F10", "Temporary Function", function() tempFunction() end)
+-- hs.hotkey.bind(hammer, "F11", "Temporary Function", function() tempFunction() end)
+-- hs.hotkey.bind(_hyper, "F11", "Temporary Function", function() tempFunction() end)
+-- hs.hotkey.bind(hammer, "F12", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "F12", "Temporary Function", function() tempFunction() end)
-
 -- Application Launching
 hs.hotkey.bind(hammer, "p", "Open PyCharm", function() AppManager.open_pycharm() end)
 hs.hotkey.bind(_hyper, "p", "Open Cursor", function() AppManager.open_cursor() end)
@@ -157,18 +154,14 @@ hs.hotkey.bind(_hyper, "`", "Open Cursor", function() AppManager.open_cursor() e
 hs.hotkey.bind(hammer, "Tab", "Open Mission Control", function() AppManager.open_mission_control() end)
 hs.hotkey.bind(_hyper, "Tab", "Open Launchpad", function() AppManager.open_launchpad() end)
 hs.hotkey.bind(hammer, "t", "Open Barrier", function() AppManager.open_barrier() end)
-
 -- File Management
 hs.hotkey.bind(hammer, "i", "Open Most Recent Image", function() FileManager.openMostRecentImage() end)
 hs.hotkey.bind(hammer, "e", "Show File Menu", function() FileManager.showFileMenu() end)
 hs.hotkey.bind(_hyper, "e", "Show Editor Menu", function() FileManager.showEditorMenu() end)
-
 -- Device Management
-
 -- Dragon Grid (now using the Spoon)
 hs.hotkey.bind(hammer, "x", "Toggle Dragon Grid", function() spoon.DragonGrid:toggleGridDisplay() end)
 hs.hotkey.bind(_hyper, "x", "Dragon Grid Settings", function() spoon.DragonGrid:showSettingsMenu() end)
-
 -- Misc
 hs.hotkey.bind(hammer, "f", "Open Scrcpy", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy'") end)
 -- hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. FileManager.getEditor() .. "' ~/.zshrc") end)

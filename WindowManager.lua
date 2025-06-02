@@ -72,6 +72,12 @@ local standardLayouts = {
         w = function(max) return max.w - 70 end,
         h = function(max) return max.h - 70 end
     },
+    trueFull = { -- 100% centered
+        x = function(max) return max.x end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w end,
+        h = function(max) return max.h end
+    },
     nearlyFull = { -- 90% centered
         x = function(max) return max.x + (max.w * 0.05) end,
         y = function(max) return max.y + (max.h * 0.05) end,

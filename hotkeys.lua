@@ -42,7 +42,7 @@ local leftLayoutState = {
     isSmall = true
 }
 local FullLayoutState = {
-    isFull = true
+    currentState = 0 -- 0: fullScreen, 1: nearlyFull, 2: trueFull
 }
 
 function toggleRightLayout()
@@ -66,16 +66,16 @@ function toggleLeftLayout()
     end
 end
 function toggleFullLayout()
-    FullLayoutState.isFull = (FullLayoutState.isFull + 1) % 3  
-    if FullLayoutState.isFull == 0 then
+    FullLayoutState.currentState = (FullLayoutState.currentState + 1) % 3
+    if FullLayoutState.currentState == 0 then
         WindowManager.applyLayout('fullScreen')
-        log:d("Full Screen Layout", __FILE__, 64)
-    elseif FullLayoutState.isFull == 1 then
+        log:d("Full Screen Layout", __FILE__, 67)
+    elseif FullLayoutState.currentState == 1 then
         WindowManager.applyLayout('nearlyFull')
-        log:d("Seven By Five Layout", __FILE__, 67)
+        log:d("Nearly Full Layout", __FILE__, 69)
     else
-        WindowManager.applyLayout('trueFull')  
-        log:d("True Full Layout", __FILE__, 70)  
+        WindowManager.applyLayout('trueFull')
+        log:d("True Full Layout", __FILE__, 71)
     end
 end
 -- Keybindings

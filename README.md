@@ -15,6 +15,7 @@ This Hammerspoon configuration provides a comprehensive set of tools for macOS a
 - Device connection handling
 - Enhanced debugging with clickable-ish logs
 - Automatic Spoon loading and initialization
+- **Dual TouchBar solutions for all Mac hardware types**
 
 The configuration is modular, customizable, and designed for power users seeking to streamline their workflow.
 
@@ -80,6 +81,68 @@ Enhanced logging system with clickable log messages for easier debugging.
 - Compatible with Hammerspoon's standard logging system
 - Automatic caller information tracking
 
+## TouchBar Solutions
+
+We've developed **two comprehensive TouchBar solutions** to address all Mac hardware configurations:
+
+### TouchBar.spoon - Real TouchBar Control
+For MacBooks with physical TouchBar hardware (2016-2021 models):
+- **Native TouchBar Integration**: Uses actual TouchBar hardware via `hs._asm.undocumented.touchbar`
+- **Hardware Performance**: Leverages native TouchBar rendering
+- **System Integration**: Proper integration with macOS TouchBar system
+- **Context-Aware Switching**: Different TouchBar layouts based on active applications
+
+```lua
+hs.loadSpoon("TouchBar")
+spoon.TouchBar:addAppProfile("com.apple.Safari", {
+    items = {
+        {id = "back", title = "←", callback = function() hs.eventtap.keyStroke({"cmd"}, "[") end},
+        {id = "forward", title = "→", callback = function() hs.eventtap.keyStroke({"cmd"}, "]") end}
+    }
+})
+spoon.TouchBar:start()
+```
+
+### CustomControlBar.spoon - Virtual TouchBar Alternative  
+For all other Macs (Mac Pro, Mac Studio, Mac mini, MacBook Air, etc.):
+- **Universal Compatibility**: Works on any Mac without additional dependencies
+- **Flexible Positioning**: Top, bottom, left, right, or custom coordinates
+- **Rich Customization**: Full color/transparency themes and styling
+- **Canvas-Based Rendering**: Smooth graphics and interactions
+
+```lua
+hs.loadSpoon("CustomControlBar")
+spoon.CustomControlBar.position = "bottom"
+spoon.CustomControlBar:addAppProfile("com.apple.Safari", {
+    buttons = {
+        {icon = "⬅", action = "cmd+[", tooltip = "Back"},
+        {icon = "➡", action = "cmd+]", tooltip = "Forward"}
+    }
+})
+spoon.CustomControlBar:start()
+```
+
+### Intelligent Hardware Detection
+Automatically choose the right solution:
+```lua
+-- Check for TouchBar hardware
+local hasTouchBar = false
+pcall(function()
+    local touchbar = require("hs._asm.undocumented.touchbar")
+    hasTouchBar = touchbar.physical()
+end)
+
+if hasTouchBar then
+    hs.loadSpoon("TouchBar")
+    spoon.TouchBar:start()
+else
+    hs.loadSpoon("CustomControlBar") 
+    spoon.CustomControlBar:start()
+end
+```
+
+See [TouchBar_Solutions_Comparison.md](TouchBar_Solutions_Comparison.md) for detailed comparison and usage guide.
+
 ## Key Keyboard Shortcuts
 
 Shortcuts use these modifier combinations:
@@ -124,6 +187,13 @@ Shortcuts use these modifier combinations:
 | hammer+x | Toggle DragonGrid |
 | hyper+x | Show DragonGrid settings |
 
+### TouchBar Controls
+
+| Shortcut | Action |
+|----------|--------|
+| hammer+Ctrl+T | Toggle CustomControlBar visibility |
+| *TouchBar* | Context-aware buttons (real TouchBar) |
+
 ### Project Management
 
 | Shortcut | Action |
@@ -160,6 +230,13 @@ Shortcuts use these modifier combinations:
 
 3. Launch Hammerspoon or reload your configuration if already running
 
+### TouchBar Extension (Optional)
+For real TouchBar support on compatible MacBooks:
+```bash
+cd ~/.hammerspoon
+curl -L https://github.com/asmagill/hs._asm.undocumented.touchbar/raw/master/touchbar-v0.8.3.2alpha-universal.tar.gz | tar -xz
+```
+
 ### Docker Setup for Development and Deployment
 
 For development, testing, and deployment support, a Docker setup is available:
@@ -182,7 +259,14 @@ The configuration can be customized by editing the following files:
 
 Several improvements have been made to the codebase:
 
-1. **Logger Initialization and Singleton Pattern Fixes** - Resolved issues with multiple logger instances
+1. **Dual TouchBar Solutions** - Comprehensive TouchBar support for all Mac hardware
+   - TouchBar.spoon for real TouchBar hardware (MacBook Pro 2016-2021)
+   - CustomControlBar.spoon for virtual TouchBar on all other Macs
+   - Intelligent hardware detection and automatic solution selection
+   - Context-aware application profiles for both solutions
+   - Professional documentation and testing suites
+
+2. **Logger Initialization and Singleton Pattern Fixes** - Resolved issues with multiple logger instances
    - Centralized logger initialization in init.lua with global AppLogger
    - Updated modules to use the shared global logger
    - Improved HyperLogger module with better namespace defaults
@@ -190,7 +274,7 @@ Several improvements have been made to the codebase:
    - Fixed potential memory leaks from excessive logger creation
    - See [logger_fixes.md](logger_fixes.md) for complete details
 
-2. **Enhanced HyperLogger with $EDITOR Integration** - Improved clickable log links to work with any editor
+3. **Enhanced HyperLogger with $EDITOR Integration** - Improved clickable log links to work with any editor
    - Now uses the $EDITOR environment variable to determine which editor to use
    - Supports common editors including Vim, Emacs, VS Code, Cursor, Nano, and Sublime Text
    - Automatically resolves editor paths using `which` command
@@ -199,7 +283,7 @@ Several improvements have been made to the codebase:
    - Makes debugging significantly easier with direct navigation to log source locations
    - **Fixed duplicate logging issue that caused every message to appear twice in the console**
 
-3. **FileManager Most Recent Image Fix** - Fixed broken path handling in openMostRecentImage function
+4. **FileManager Most Recent Image Fix** - Fixed broken path handling in openMostRecentImage function
    - Fixed string trimming issue where `hs.execute` output contained trailing newlines
    - Added proper path escaping to handle filenames with spaces
    - Expanded image format support beyond PNG to include JPG, JPEG, GIF, BMP, and TIFF
@@ -207,7 +291,7 @@ Several improvements have been made to the codebase:
    - Used `find` command instead of `ls` for more robust file discovery
    - Added proper command execution status validation
 
-4. **HammerGhost.spoon Critical Interaction Functions Fix** - Resolved missing core UI interaction functions
+5. **HammerGhost.spoon Critical Interaction Functions Fix** - Resolved missing core UI interaction functions
    - Implemented missing `configureItem`, `moveItem`, `showContextMenu`, and `cancelEdit` functions
    - Added proper URL event watcher initialization for JavaScript-to-Lua communication
    - Enhanced navigation callback to handle all expected URL schemes including drag-and-drop operations
@@ -217,7 +301,7 @@ Several improvements have been made to the codebase:
    - Added `testURLHandling()` function for debugging URL scheme communication
    - See [FIX_URL_HANDLING.md](Spoons/HammerGhost.spoon/FIX_URL_HANDLING.md) for technical details
 
-5. **Merge Error Resolution** - Fixed critical initialization failure from merge conflict
+6. **Merge Error Resolution** - Fixed critical initialization failure from merge conflict
    - Resolved runtime error: "attempt to index a nil value (global 'config')"
    - Removed 67 lines of incorrectly merged HammerGhost spoon code from main init.lua
    - Restored proper code organization: spoon code confined to Spoons/ directory
@@ -225,20 +309,20 @@ Several improvements have been made to the codebase:
    - Maintained all existing functionality while ensuring clean initialization
    - See [fix_merge_error_summary.md](fix_merge_error_summary.md) for complete analysis
 
-6. **Automatic Spoon Initialization** - Enhanced the Spoon loading system to automatically start Spoons
+7. **Automatic Spoon Initialization** - Enhanced the Spoon loading system to automatically start Spoons
    - Automatically detects and calls the `start()` method for each loaded Spoon
    - Eliminates the need for manually starting individual Spoons in configuration
    - Provides visual feedback with alerts when Spoons are successfully started
    - Makes adding new Spoons to the configuration simpler and more consistent
 
-7. **Window Position Toggling by Title** - Added WindowToggler module for toggling window positions by title
+8. **Window Position Toggling by Title** - Added WindowToggler module for toggling window positions by title
    - Remembers window positions by window title rather than just window ID
    - Allows toggling between custom positions and the nearlyFull layout
    - Works across application restarts as long as window titles remain the same
    - Provides hotkeys for toggling (hammer+w), listing saved positions (hyper+w), and clearing positions (hammer+q)
    - See [WindowToggler_README.md](docs/WindowToggler_README.md) for details
 
-8. **Dynamic Hotkey Management** - Added smart dynamic hotkey display system
+9. **Dynamic Hotkey Management** - Added smart dynamic hotkey display system
    - Automatically tracks and categorizes all hotkey bindings
    - Excludes temporary/placeholder functions from the hotkey list
    - Groups hotkeys into logical categories for easier reference
@@ -248,39 +332,39 @@ Several improvements have been made to the codebase:
    - **Implemented multi-layered protection against resource leaks**
    - See [HotkeyManager_README.md](docs/HotkeyManager_README.md) for details
 
-9. **HammerGhost URL Event Handling Fix** - Fixed WebKit-based communication in HammerGhost.spoon
-   - Initialized the URL event watcher server that was missing
-   - Added detailed URL parameter parsing and logging
-   - Implemented testing utilities for URL event handling
-   - See [Spoons/HammerGhost.spoon/FIX_URL_HANDLING.md](Spoons/HammerGhost.spoon/FIX_URL_HANDLING.md) for details
+10. **HammerGhost URL Event Handling Fix** - Fixed WebKit-based communication in HammerGhost.spoon
+    - Initialized the URL event watcher server that was missing
+    - Added detailed URL parameter parsing and logging
+    - Implemented testing utilities for URL event handling
+    - See [Spoons/HammerGhost.spoon/FIX_URL_HANDLING.md](Spoons/HammerGhost.spoon/FIX_URL_HANDLING.md) for details
 
-10. **DragonGrid Multi-Screen Support** - Fixed UI issues with the precision grid system when operating across multiple monitors
+11. **DragonGrid Multi-Screen Support** - Fixed UI issues with the precision grid system when operating across multiple monitors
     - See [DragonGrid-MultiScreen-Fix.md](docs/DragonGrid-MultiScreen-Fix.md) for details
     - Enables seamless grid-based mouse positioning across all connected displays
     - Maintains consistent UI behavior between grid levels
 
-11. **HyperLogger for Debugging** - Enhanced logging system with clickable log messages
+12. **HyperLogger for Debugging** - Enhanced logging system with clickable log messages
     - Automatically captures file and line information
     - Displays clickable hyperlinks in the console
     - Makes debugging much easier by linking logs to source code
 
-12. **GitHub Desktop Enhancements** - Specialized project selection when opening GitHub Desktop
+13. **GitHub Desktop Enhancements** - Specialized project selection when opening GitHub Desktop
     - Choose between existing GitHub Desktop windows
     - Open different projects even when GitHub Desktop is already running
     - Enter custom paths directly in the selection UI
 
-13. **Hammerspoon OS Version Compatibility Fix** - Fixed error with operating system version reporting
+14. **Hammerspoon OS Version Compatibility Fix** - Fixed error with operating system version reporting
     - Updated to handle the table return format of `hs.host.operatingSystemVersion()`
     - Properly formats version as string using major.minor.patch format
     - Prevents "attempt to concatenate a table value" errors during initialization
 
-14. **Hotkey Binding Fix** - Fixed error with missing Finder function
+15. **Hotkey Binding Fix** - Fixed error with missing Finder function
     - Added missing `open_finder` function to AppManager module
     - Resolves "At least one of pressedfn, releasedfn or repeatfn must be a function" error
     - Ensures hyper+F hotkey correctly opens or focuses Finder
     - See [Hotkey-Fix.md](docs/Hotkey-Fix.md) for details
 
-15. **HammerGhost Multiple Windows Fix** - Fixed duplicate HammerGhost windows opening on configuration reload
+16. **HammerGhost Multiple Windows Fix** - Fixed duplicate HammerGhost windows opening on configuration reload
     - Removed automatic initialization of HammerGhost during configuration loading
     - Changed to hotkey-only initialization (Cmd+Alt+Ctrl+H) for better user control
     - Prevents multiple HammerGhost instances when using `hs.reload()`

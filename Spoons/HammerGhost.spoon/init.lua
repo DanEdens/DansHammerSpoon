@@ -93,8 +93,8 @@ function obj:init()
         config.saveMacros(self.configPath, self.macroTree) -- Save the default configuration
     end
 
-    -- Initialize UI
-    self:createMainWindow()
+    -- Don't create window automatically - let toggle() handle window creation when needed
+    -- This prevents unwanted windows on initialization/reload
 
     return self
 end

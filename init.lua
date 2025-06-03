@@ -1,8 +1,6 @@
 -- Hammerspoon init.lua
--- Primary configuration file for Hammerspoon
-local __FILE__ = 'init.lua'
--- Enable AppleScript support
-hs.allowAppleScript(true)
+local __FILE__ = 'init.lua' -- Primary configuration file for Hammerspoon
+hs.allowAppleScript(true) -- Enable AppleScript support
 require("hs.ipc")
 -- Load HyperLogger for better debugging with clickable log messages
 local HyperLogger = require('HyperLogger')
@@ -16,7 +14,7 @@ log:d('Logger initialized', __FILE__, 10)
 dofile(hs.configdir .. "/hotkeys.lua")
 
 -- Load the HammerGhost spoon
-hs.loadSpoon("HammerGhost")
+-- hs.loadSpoon("HammerGhost")
 
 -- Bind hotkey for HammerGhost (only initialize when hotkey is pressed)
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, "H", function()

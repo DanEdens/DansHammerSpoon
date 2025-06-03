@@ -148,8 +148,8 @@ hs.hotkey.bind(hammer, "l", "Open Logi Options+", function() AppManager.open_log
 hs.hotkey.bind(_hyper, "l", "Open System Settings", function() AppManager.open_system() end)
 hs.hotkey.bind(hammer, "s", "Open Slack", function() AppManager.open_slack() end)
 hs.hotkey.bind(hammer, "g", "Open GitHub Desktop", function() AppManager.launchGitHubWithProjectSelection() end)
-hs.hotkey.bind(hammer, "g", "Open just GitHub Destop", function() AppManager.open_github() end)
-hs.hotkey.bind(_hyper, "`", "Open Cursor", function() AppManager.open_cursor_with_github() end)
+hs.hotkey.bind(_hyper, "g", "Open just GitHub Destop", function() AppManager.open_github() end)
+hs.hotkey.bind(hammer, "`", "Open Cursor", function() AppManager.open_cursor_with_github() end)
 hs.hotkey.bind(_hyper, "`", "Open Cursor", function() AppManager.open_cursor() end)
 hs.hotkey.bind(hammer, "Tab", "Open Mission Control", function() AppManager.open_mission_control() end)
 hs.hotkey.bind(_hyper, "Tab", "Open Launchpad", function() AppManager.open_launchpad() end)
@@ -256,12 +256,12 @@ hs.hotkey.bind(_hyper, "w", "List Saved Windows", function() WindowToggler.listS
 hs.hotkey.bind(hammer, "q", "Clear Saved Window Positions", function() WindowToggler.clearSavedPositions() end)
 
 -- Window layout management hotkeys
-hs.hotkey.bind(hammer, "s", "Save Current Layout", function() saveLayoutWithDialog() end)
+-- hs.hotkey.bind(hammer, "s", "Save Current Layout", function() saveLayoutWithDialog() end)
 
-hs.hotkey.bind(hammer, "o", "Restore Layout", function() restoreLayoutChooser() end)
+-- hs.hotkey.bind(hammer, "o", "Restore Layout", function() restoreLayoutChooser() end)
 
 -- Delete layout keybinding
-hs.hotkey.bind(_hyper, "o", "Delete Layout", function() deleteLayoutChooser() end)
+-- hs.hotkey.bind(_hyper, "o", "Delete Layout", function() deleteLayoutChooser() end)
 
 -- Function to save current window layout with user input
 function saveLayoutWithDialog()

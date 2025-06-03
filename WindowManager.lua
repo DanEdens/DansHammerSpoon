@@ -348,6 +348,7 @@ end
 function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
     retryCount = retryCount or 3
 
+
     -- Ensure animations are always disabled for reliable positioning
     hs.window.animationDuration = 0
 
@@ -373,19 +374,9 @@ function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
         -- Add a small delay
         hs.timer.usleep(50000)
 
-        -- Try direct coordinate setting as a last resort
-        if retryCount == 1 then
-            win:setTopLeft(newFrame.topleft)
-            hs.timer.usleep(10000)
-            win:setSize(newFrame.size)
-        end
-
         -- Recursive call with one fewer retry
         return WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount - 1)
     end
-
-    -- Keep animations disabled for consistent window management
-    hs.window.animationDuration = 0
 
     return frameCorrect
 end

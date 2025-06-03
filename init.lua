@@ -411,22 +411,11 @@ end
 -- end):start()
 
 
--- everyday at 10:45 am
--- hs.timer.doAt("10:45", "1d", function()
---     hs.alert.show("Time to stand up!")
---     -- open chrome to a specific page
---     hs.execute("open -a 'Google Chrome' https://meet.google.com/xjk-uzpk-oit?authuser=1")
--- end)
-
-
-
 
 --everyday at 9:45 am
--- hs.timer.doAt("9:44", "1d", function()
---     hs.alert.show("Time to stand up!")
---     -- open slack to a specific channel
---     hs.execute("open -a 'Slack' https://app.slack.com/client/T036VBQJD/C042B3Q7DQQ")
--- end)
+hs.timer.doAt("4:30", "1d", function()
+    hs.alert.show("Time to update Holly!")
+end)
 
 
 
@@ -508,59 +497,6 @@ gray = { red = 246 / 255, blue = 246 / 255, green = 246 / 255, alpha = 0.3 }
 -- showhotkey_keys = showhotkey_keys or {{"cmd", "shift", "ctrl"}, "space"}
 -- if string.len(showhotkey_keys[2]) > 0 then
 --     hs.hotkey.bind(showhotkey_keys[1], showhotkey_keys[2], "Toggle Hotkeys Cheatsheet", function() showavailableHotkey() end)
--- end
-
--- function showavailableHotkey()
---     if not hotkeytext then
---         local hotkey_list=hs.hotkey.getHotkeys()
---         local mainScreen = hs.screen.mainScreen()
---         local mainRes = mainScreen:fullFrame()
---         local localMainRes = mainScreen:absoluteToLocal(mainRes)
---         local hkbgrect = hs.geometry.rect(mainScreen:localToAbsolute(localMainRes.w/5,localMainRes.h/5,localMainRes.w/5*3,localMainRes.h/5*3))
---         hotkeybg = hs.drawing.rectangle(hkbgrect)
---         -- hotkeybg:setStroke(false)
---         if not hotkey_tips_bg then hotkey_tips_bg = "light" end
---         if hotkey_tips_bg == "light" then
---             hotkeybg:setFillColor({red=238/255,blue=238/255,green=238/255,alpha=0.95})
---         elseif hotkey_tips_bg == "dark" then
---             hotkeybg:setFillColor({red=0,blue=0,green=0,alpha=0.95})
---         end
---         hotkeybg:setRoundedRectRadii(10,10)
---         hotkeybg:setLevel(hs.drawing.windowLevels.modalPanel)
---         hotkeybg:behavior(hs.drawing.windowBehaviors.stationary)
---         local hktextrect = hs.geometry.rect(hkbgrect.x+40,hkbgrect.y+30,hkbgrect.w-80,hkbgrect.h-60)
---         hotkeytext = hs.drawing.text(hktextrect,"")
---         hotkeytext:setLevel(hs.drawing.windowLevels.modalPanel)
---         hotkeytext:behavior(hs.drawing.windowBehaviors.stationary)
---         hotkeytext:setClickCallback(nil,function() hotkeytext:delete() hotkeytext=nil hotkeybg:delete() hotkeybg=nil end)
---         hotkey_filtered = {}
---         for i=1,#hotkey_list do
---             if hotkey_list[i].idx ~= hotkey_list[i].msg then
---                 table.insert(hotkey_filtered,hotkey_list[i])
---             end
---         end
---         local availablelen = 70
---         local hkstr = ''
---         for i=2,#hotkey_filtered,2 do
---             local tmpstr = hotkey_filtered[i-1].msg .. hotkey_filtered[i].msg
---             if string.len(tmpstr)<= availablelen then
---                 local tofilllen = availablelen-string.len(hotkey_filtered[i-1].msg)
---                 hkstr = hkstr .. hotkey_filtered[i-1].msg .. string.format('%'..tofilllen..'s',hotkey_filtered[i].msg) .. '\n'
---             else
---                 hkstr = hkstr .. hotkey_filtered[i-1].msg .. '\n' .. hotkey_filtered[i].msg .. '\n'
---             end
---         end
---         if math.fmod(#hotkey_filtered,2) == 1 then hkstr = hkstr .. hotkey_filtered[#hotkey_filtered].msg end
---         local hkstr_styled = hs.styledtext.new(hkstr, {font={name="Courier-Bold",size=16}, color=dodgerblue, paragraphStyle={lineSpacing=12.0,lineBreak='truncateMiddle'}, shadow={offset={h=0,w=0},blurRadius=0.5,color=darkblue}})
---         hotkeytext:setStyledText(hkstr_styled)
---         hotkeybg:show()
---         hotkeytext:show()
---     else
---         hotkeytext:delete()
---         hotkeytext=nil
---         hotkeybg:delete()
---         hotkeybg=nil
---     end
 -- end
 
 -- modal_list = {}

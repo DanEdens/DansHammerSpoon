@@ -724,6 +724,12 @@ end
 function AppManager.open_finder()
     AppManager.launchOrFocusWithWindowSelection("Finder")
 end
+-- Medis db viewer
+function AppManager.open_medis()
+    AppManager.launchOrFocusWithWindowSelection("Medis")
+end
+
+
 -- Save in global environment for module reuse
 _G.AppManager = AppManager
 return AppManager

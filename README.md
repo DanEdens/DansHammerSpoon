@@ -287,6 +287,16 @@ Several improvements have been made to the codebase:
     - Improved logging to distinguish hotkey-triggered initialization
     - See [hammerghost_multiple_windows_fix.md](hammerghost_multiple_windows_fix.md) for complete details
 
+16. **Hotkey Binding Consistency Refactoring** - Standardized all hotkey bindings to follow consistent pattern
+    - Extracted inline function definitions from hotkey bindings to separate named functions
+    - Changed inconsistent modifier key usage (`{ "ctrl", "alt", "cmd" }`) to standard `hammer` and `_hyper` patterns
+    - Added missing description strings to all hotkey bindings for better documentation
+    - Created three new functions: `saveLayoutWithDialog()`, `restoreLayoutChooser()`, and `deleteLayoutChooser()`
+    - Improved maintainability by separating function logic from hotkey definitions
+    - Enhanced debugging capabilities with meaningful function names in logs
+    - Established consistent pattern: `hs.hotkey.bind(modifier, "key", "Description", function() ModuleName.functionName() end)`
+    - See [hotkey_refactor_summary.md](hotkey_refactor_summary.md) for complete details
+
 ## Recent Updates
 
 - **Added Cursor with GitHub Desktop Integration**: Open projects in both Cursor IDE and GitHub Desktop simultaneously with hyper+g, ensuring final focus on Cursor while also updating GitHub Desktop with the selected project path.

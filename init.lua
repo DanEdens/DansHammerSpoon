@@ -16,13 +16,21 @@ dofile(hs.configdir .. "/hotkeys.lua")
 -- Load the HammerGhost spoon
 -- hs.loadSpoon("HammerGhost")
 
--- Bind hotkey for HammerGhost (only initialize when hotkey is pressed)
+-- Initialize the HammerGhost spoon (no window will be created automatically)
+local hammerghost = spoon.HammerGhost:init()
+if hammerghost then
+    hs.logger.new("init.lua"):i("HammerGhost spoon initialized successfully.")
+else
+    hs.logger.new("init.lua"):e("Failed to initialize HammerGhost spoon.")
+end
+
+-- Bind hotkey for HammerGhost toggle
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, "H", function()
-    local hammerghost = spoon.HammerGhost:init()
     if hammerghost then
-        hs.logger.new("init.lua"):i("HammerGhost spoon opened successfully via hotkey.")
+        hammerghost:toggle()
+        hs.logger.new("init.lua"):i("HammerGhost toggled via hotkey.")
     else
-        hs.logger.new("init.lua"):e("Failed to open HammerGhost spoon via hotkey.")
+        hs.logger.new("init.lua"):e("HammerGhost not available for toggle.")
     end
 end)
 
@@ -60,7 +68,7 @@ hs.console.consoleCommandColor(darkMode.textColor)
 hs.console.consolePrintColor(darkMode.textColor)
 hs.console.consoleResultColor({ white = 0.7 })
 hs.console.alpha(0.95)
-hs.console.titleVisibility("hidden")
+-- hs.console.titleVisibility("hidden")
 
 -- Apply appearance after a short delay
 hs.timer.doAfter(0.1, function()

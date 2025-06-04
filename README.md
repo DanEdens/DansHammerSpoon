@@ -508,3 +508,233 @@ hs.reload()
 ```
 
 This will track module loading order, timing, and detect any redundancies in the initialization process.
+
+## New: CustomControlBar Spoon
+
+**CustomControlBar** provides TouchBar-like functionality for Mac Pros and other Macs without TouchBar hardware. This addresses the common request for TouchBar functionality on desktop machines.
+
+### Key Features
+- **Context-aware controls** that change based on the active application
+- **Customizable positioning** (top, bottom, left, right, or custom coordinates)
+- **Rich control types** including buttons, text displays, and custom actions
+- **Theme support** with customizable colors and styling
+- **Keyboard shortcuts** for quick toggle (Cmd+Ctrl+T by default)
+
+### Quick Start
+```lua
+hs.loadSpoon("CustomControlBar")
+spoon.CustomControlBar:start()
+```
+
+### Example Application Profiles
+```lua
+-- Safari controls
+spoon.CustomControlBar:addAppProfile("com.apple.Safari", {
+    buttons = {
+        {icon = "⬅", action = "cmd+[", tooltip = "Back"},
+        {icon = "➡", action = "cmd+]", tooltip = "Forward"}, 
+        {icon = "🔄", action = "cmd+r", tooltip = "Reload"},
+        {icon = "🔖", action = "cmd+d", tooltip = "Bookmark"}
+    }
+})
+
+-- Finder controls  
+spoon.CustomControlBar:addAppProfile("com.apple.finder", {
+    buttons = {
+        {icon = "⬆", action = "cmd+up", tooltip = "Up Directory"},
+        {icon = "📁", action = "cmd+shift+n", tooltip = "New Folder"},
+        {icon = "🗑", action = "cmd+delete", tooltip = "Move to Trash"}
+    }
+})
+```
+
+See `Spoons/CustomControlBar.spoon/README.md` for complete documentation.
+
+## Installation
+
+1. Clone this repository to `~/.hammerspoon/`
+2. Install Hammerspoon from [hammerspoon.org](https://www.hammerspoon.org/)
+3. Copy `init.lua` to your Hammerspoon configuration
+4. Restart Hammerspoon
+
+## Configuration
+
+The system uses modular configuration with environment-specific settings:
+
+```lua
+-- Example init.lua
+require("loadConfig")
+require("HyperLogger")
+require("hotkeys")
+
+-- Load CustomControlBar
+hs.loadSpoon("CustomControlBar")
+spoon.CustomControlBar:start()
+```
+
+## Project Structure
+
+```
+hammerspoon/
+├── init.lua                 # Main configuration entry point
+├── loadConfig.lua          # Configuration loader
+├── hotkeys.lua             # Global hotkey definitions
+├── HyperLogger.lua         # Advanced logging system
+├── AppManager.lua          # Application management
+├── WindowManager.lua       # Window manipulation
+├── HotkeyManager.lua       # Hotkey coordination
+├── ProjectManager.lua      # Project automation
+├── DeviceManager.lua       # Device management
+├── FileManager.lua         # File operations
+├── Spoons/                 # Spoon plugins
+│   ├── CustomControlBar.spoon/  # NEW: TouchBar alternative
+│   ├── HammerGhost.spoon/       # Automation framework
+│   └── ...                      # Other spoons
+├── docs/                   # Documentation
+├── scripts/                # Utility scripts
+└── data/                   # Configuration data
+```
+
+## Key Components
+
+### HyperLogger
+Advanced logging system with:
+- Color-coded log levels
+- Font consistency across different text sizes
+- Structured logging with metadata
+- Performance monitoring
+
+### AppManager
+- Application lifecycle monitoring
+- Window state management
+- Application-specific automation
+- Resource cleanup
+
+### CustomControlBar (NEW)
+TouchBar alternative providing:
+- Application-specific control panels
+- System-wide shortcuts and controls
+- Customizable themes and positioning
+- Context-sensitive button layouts
+
+### WindowManager
+- Advanced window positioning
+- Multi-monitor support
+- Layout automation
+- Window state persistence
+
+### ProjectManager
+- Project-based workflows
+- Context switching
+- Resource management
+- Integration with external tools
+
+## Testing
+
+Run tests using the provided test scripts:
+
+```bash
+# Test CustomControlBar
+# Open Hammerspoon Console and run:
+require("test_custom_control_bar")
+
+# Test other components
+lua test_hyperlogger.lua
+lua test_init_flow.lua
+lua test_logger_resilience.lua
+```
+
+## TouchBar Alternative Solution
+
+**Important Note**: Mac Pros do not have TouchBars. TouchBars were only available on certain MacBook Pro models from 2016-2021. The **CustomControlBar Spoon** provides a practical alternative that:
+
+1. **Works on all Macs** - No special hardware required
+2. **More customizable** - Not limited by TouchBar constraints  
+3. **Better for desktop workflows** - Mouse and keyboard friendly
+4. **Context-aware** - Changes based on active applications
+5. **Extensible** - Easy to add new controls and applications
+
+## Development
+
+### Adding New Features
+1. Create feature branch
+2. Implement with tests
+3. Update documentation
+4. Submit pull request
+
+### Code Style
+- Follow Lua best practices
+- Use consistent naming conventions
+- Include comprehensive logging
+- Write tests for new functionality
+
+### Architecture
+The system follows a modular architecture with:
+- Clear separation of concerns
+- Event-driven communication
+- Robust error handling
+- Resource cleanup
+
+## Troubleshooting
+
+### Common Issues
+
+**CustomControlBar not appearing:**
+- Verify `spoon.CustomControlBar:start()` was called
+- Check positioning doesn't place it off-screen
+- Try toggling with Cmd+Ctrl+T
+
+**Application profiles not switching:**
+- Verify bundle ID is correct (use `hs.application.frontmostApplication():bundleID()`)
+- Check console for errors
+
+**Hotkeys not working:**
+- Check for conflicts with system shortcuts
+- Verify HotkeyManager configuration
+- Review console logs for errors
+
+### Logging
+Enable debug logging:
+```lua
+hs.logger.defaultLogLevel = "debug"
+```
+
+### Support
+- Check console logs for errors
+- Review documentation in `docs/`
+- Test with minimal configuration
+
+## Environment
+
+- **OS**: macOS with zsh
+- **Languages**: Lua, some Python3.11 where needed
+- **Development**: Trunk-based with feature branches
+- **Tools**: Hammerspoon, Git, VS Code
+
+## Contributing
+
+1. Fork the repository
+2. Create feature branch
+3. Follow code style guidelines  
+4. Add tests and documentation
+5. Submit pull request
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Recent Updates
+
+### v2024.1 - CustomControlBar Release
+- **NEW**: CustomControlBar Spoon for TouchBar-like functionality on Mac Pro
+- Context-aware application controls
+- Customizable themes and positioning
+- Comprehensive documentation and examples
+- Test suite for validation
+
+### Previous Updates
+- Enhanced HyperLogger font consistency
+- Improved WindowManager multi-monitor support
+- ProjectManager workflow automation
+- DeviceManager USB event handling
+- Comprehensive error handling and logging

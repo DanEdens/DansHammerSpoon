@@ -14,6 +14,10 @@ local FileManager = {}
 -- Configuration
 local editor = "cursor"
 log:d('Default editor set to: ' .. editor)
+-- local seatOfMadness = os.getenv("SEAT_OF_MADNESS")
+local seatOfMadness = "/Users/d.edens/lab/madness_interactive"
+-- local seatOfTest = os.getenv("SEAT_OF_TEST")
+local seatOfTest = "/Users/d.edens/lab/regressiontestkit"
 
 -- State
 local selectedFile = nil
@@ -27,43 +31,41 @@ local lastSelected = {
 local fileList = {
     { name = "init.lua",       path = "~/.hammerspoon/init.lua" },
     { name = "global hotkeys", path = "~/.hammerspoon/hotkeys.lua" },
-    { name = "File Manager",      path = "/Users/d.edens/.hammerspoon/FileManager.lua" },
     { name = "zshenv",         path = "~/.zshenv" },
+    { name = "File Manager",   path = "~/.hammerspoon/FileManager.lua" },
     { name = "zshrc",          path = "~/.zshrc" },
     { name = "bash_aliases",   path = "~/.bash_aliases" },
     { name = "goosehints",     path = "~/.config/goose/.goosehints" },
     { name = "tasks",          path = "~/lab/regressiontestkit/tasks.py" },
     { name = "ssh config",     path = "~/.ssh/config" },
-    { name = "RTK_rules",      path = "~/lab/regressiontestkit/regressiontest/.cursorrules" },
-    { name = "mad_rules",      path = "~/lab/madness_interactive/.cursorrules" },
-    { name = "swarmonomicon",  path = "~/lab/madness_interactive/projects/common/swarmonomicon/.cursorrules" },
+    -- { name = "RTK_rules",      path = "~/lab/regressiontestkit/regressiontest/.cursorrules" },
+    { name = "mad_rules",      path = seatOfMadness .. "/.cursor/rules" },
+    { name = "swarmonomicon",  path = seatOfMadness .. "/projects/common/swarmonomicon/.cursorrules" },
 }
 
 local projects_list = {
     -- Core projects
-    { name = "madness_interactive",        path = "~/lab/madness_interactive" },
+    { name = "madness_interactive",        path = seatOfMadness },
     { name = ".hammerspoon",        path = "~/.hammerspoon" },
-    { name = "Chat History",        path = "/Users/d.edens/lab/madness_interactive/docs/cursor_chathistory" },
-    { name = "Todomill_projectorium", path = "~/lab/madness_interactive/projects/python/Omnispindle/Todomill_projectorium" },
-    { name = "Inventorium",           path = "~/lab/madness_interactive/projects/common/Inventorium" },
-    { name = "Omnispindle",         path = "~/lab/madness_interactive/projects/python/Omnispindle" },
-    { name = "Swarmonomicon",       path = "~/lab/madness_interactive/projects/common/Swarmonomicon" },
-    { name = "lab",                 path = "~/lab" },
-    { name = "regressiontestkit",   path = "~/lab/regressiontestkit" },
-    { name = "gateway_metrics",            path = "~/lab/regressiontestkit/gateway_metrics" },
+    { name = "Chat History",               path = seatOfMadness .. "/docs/cursor_chathistory" },
+    { name = "Todomill_projectorium",      path = seatOfMadness .. "/projects/python/Omnispindle/Todomill_projectorium" },
+    { name = "Inventorium",                path = seatOfMadness .. "/projects/common/Inventorium" },
+    { name = "Omnispindle",                path = seatOfMadness .. "/projects/python/Omnispindle" },
+    { name = "Swarmonomicon",              path = seatOfMadness .. "/projects/common/Swarmonomicon" },
+    { name = "lab",                        path = seatOfTest },
+    { name = "regressiontestkit",          path = seatOfTest },
     -- RegressionTestKit ecosystem
-    { name = "OculusTestKit",       path = "~/lab/regressiontestkit/OculusTestKit" },
-    { name = "phoenix",             path = "~/lab/regressiontestkit/phoenix" },
-    { name = "hammerspoon-vs-extension",   path = "/Users/d.edens/.cursor/extensions/virgilsisoe.hammerspoon-0.5.2" },
-    { name = "rust_ingest",         path = "~/lab/regressiontestkit/rust_ingest" },
-    { name = "rtk-docs-host",       path = "~/lab/regressiontestkit/rtk-docs-host" },
+    { name = "OculusTestKit",              path = seatOfTest .. "/OculusTestKit" },
+    { name = "phoenix",                    path = seatOfTest .. "/phoenix" },
+    { name = "rust_ingest",                path = seatOfTest .. "/rust_ingest" },
+    { name = "rtk-docs-host",              path = seatOfTest .. "/rtk-docs-host" },
     { name = "zsh-autocompletions",        path = "/opt/homebrew/share/zsh/site-functions" },
-    { name = "gateway_metrics",     path = "~/lab/regressiontestkit/gateway_metrics" },
-    { name = "http-dump-server",    path = "~/lab/regressiontestkit/http-dump-server" },
-    { name = "teltonika_wrapper",   path = "~/lab/regressiontestkit/teltonika_wrapper" },
-    { name = "ohmura-firmware",     path = "~/lab/regressiontestkit/ohmura-firmware" },
-    { name = "saws",                path = "~/lab/regressiontestkit/saws" },
-    { name = "prod-ed-configs",     path = "~/lab/regressiontestkit/prod-ed-configs" },
+    { name = "gateway_metrics",            path = seatOfTest .. "/gateway_metrics" },
+    { name = "http-dump-server",           path = seatOfTest .. "/http-dump-server" },
+    { name = "teltonika_wrapper",          path = seatOfTest .. "/teltonika_wrapper" },
+    { name = "ohmura-firmware",            path = seatOfTest .. "/ohmura-firmware" },
+    { name = "saws",                       path = seatOfTest .. "/saws" },
+    { name = "prod-ed-configs",            path = seatOfTest .. "/prod-ed-configs" },
 
     -- Swarmonomicon ecosystem
     -- { name = "swarm-browser-agent", path = "~/lab/madness_interactive/projects/common/Swarmonomicon/browser-agent" },
@@ -72,59 +74,59 @@ local projects_list = {
     -- { name = "lego-vision",         path = "~/lab/madness_interactive/projects/common/Swarmonomicon/projects/python/lego-vision" },
 
     -- Other major projects
-    { name = "Cogwyrm",             path = "~/lab/madness_interactive/projects/mobile/Cogwyrm" },
+    { name = "Cogwyrm",                    path = seatOfMadness .. "/projects/mobile/Cogwyrm" },
     -- Rust projects
-    { name = "Tinker",              path = "~/lab/madness_interactive/projects/rust/Tinker" },
-    { name = "EventGhost-Rust",     path = "~/lab/madness_interactive/projects/rust/EventGhost-Rust" },
+    { name = "Tinker",                     path = seatOfMadness .. "/projects/rust/Tinker" },
+    { name = "EventGhost-Rust",            path = seatOfMadness .. "/projects/rust/EventGhost-Rust" },
 
     -- Python projects
-    -- { name = "fastmcp-balena-cli",  path = "~/lab/madness_interactive/projects/python/fastmcp-balena-cli" },
-    { name = "mcp-personal-jira",   path = "~/lab/madness_interactive/projects/python/mcp-personal-jira" },
-    -- { name = "LegoScry",            path = "~/lab/madness_interactive/projects/python/LegoScry" },
-    -- { name = "local-ai",            path = "~/lab/madness_interactive/projects/python/local-ai" },
-    -- { name = "simple-mqtt-server",  path = "~/lab/madness_interactive/projects/python/simple-mqtt-server-agent" },
-    { name = "mqtt-get-var",        path = "~/lab/madness_interactive/projects/python/mqtt-get-var" },
-    { name = "dvtTestKit",          path = "~/lab/madness_interactive/projects/python/dvtTestKit" },
-    -- { name = "SeleniumPageUtils",   path = "~/lab/madness_interactive/projects/python/SeleniumPageUtilities" },
-    -- { name = "MqttLogger",          path = "~/lab/madness_interactive/projects/python/MqttLogger" },
-    { name = "EventGhost-py",       path = "~/lab/madness_interactive/projects/python/EventGhost" },
-    -- { name = "py-games",            path = "~/lab/madness_interactive/projects/python/games" },
-    -- { name = "snowball-snowman",    path = "~/lab/madness_interactive/projects/python/games/snowball_snowman" },
+    -- { name = "fastmcp-balena-cli",  path = seatOfMadness .. "/projects/python/fastmcp-balena-cli" },
+    { name = "mcp-personal-jira",          path = seatOfMadness .. "/projects/python/mcp-personal-jira" },
+    -- { name = "LegoScry",            path = seatOfMadness .. "/projects/python/LegoScry" },
+    -- { name = "local-ai",            path = seatOfMadness .. "/projects/python/local-ai" },
+    -- { name = "simple-mqtt-server",  path = seatOfMadness .. "/projects/python/simple-mqtt-server-agent" },
+    { name = "mqtt-get-var",               path = seatOfMadness .. "/projects/python/mqtt-get-var" },
+    { name = "dvtTestKit",                 path = seatOfMadness .. "/projects/python/dvtTestKit" },
+    -- { name = "SeleniumPageUtils",   path = seatOfMadness .. "/projects/python/SeleniumPageUtilities" },
+    -- { name = "MqttLogger",          path = seatOfMadness .. "/projects/python/MqttLogger" },
+    { name = "EventGhost-py",              path = seatOfMadness .. "/projects/python/EventGhost" },
+    -- { name = "py-games",            path = seatOfMadness .. "/projects/python/games" },
+    -- { name = "snowball-snowman",    path = seatOfMadness .. "/projects/python/games/snowball_snowman" },
 
     -- Project root directories
-    { name = "projects-root",       path = "~/lab/madness_interactive/projects" },
-    { name = "common-projects",     path = "~/lab/madness_interactive/projects/common" },
-    { name = "mobile-projects",     path = "~/lab/madness_interactive/projects/mobile" },
-    { name = "python-projects",     path = "~/lab/madness_interactive/projects/python" },
+    { name = "projects-root",              path = seatOfMadness .. "/projects" },
+    { name = "common-projects",            path = seatOfMadness .. "/projects/common" },
+    { name = "mobile-projects",            path = seatOfMadness .. "/projects/mobile" },
+    { name = "python-projects",            path = seatOfMadness .. "/projects/python" },
     -- { name = "nodeJS-projects",     path = "~/lab/madness_interactive/projects/nodeJS" },
-    { name = "lua-projects",        path = "~/lab/madness_interactive/projects/lua" },
-    { name = "powershell-projects", path = "~/lab/madness_interactive/projects/powershell" },
-    -- { name = "OS-projects",         path = "~/lab/madness_interactive/projects/OS" },
-    { name = "rust-projects",       path = "~/lab/madness_interactive/projects/rust" },
-    { name = "tasker-projects",     path = "~/lab/madness_interactive/projects/tasker" },
+    { name = "lua-projects",               path = seatOfMadness .. "/projects/lua" },
+    { name = "powershell-projects",        path = seatOfMadness .. "/projects/powershell" },
+    -- { name = "OS-projects",         path = seatOfMadness .. "/projects/OS" },
+    { name = "rust-projects",              path = seatOfMadness .. "/projects/rust" },
+    { name = "tasker-projects",            path = seatOfMadness .. "/projects/tasker" },
 
     -- Lua projects
     -- { name = "LGS_script_template", path = "~/lab/madness_interactive/projects/lua/LGS_script_template" },
-    { name = "hammerspoon-proj",    path = "~/lab/madness_interactive/projects/lua/hammerspoon" },
+    { name = "hammerspoon-proj",           path = seatOfMadness .. "/projects/lua/hammerspoon" },
 
     -- PowerShell projects
-    { name = "WinSystemSnapshot",   path = "~/lab/madness_interactive/projects/powershell/WinSystemSnapshot" },
+    { name = "WinSystemSnapshot",          path = seatOfMadness .. "/projects/powershell/WinSystemSnapshot" },
 
     -- OS projects
-    { name = "DisplayPhotoTime",    path = "~/lab/madness_interactive/projects/OS/windows/DisplayPhotoTime" },
+    { name = "DisplayPhotoTime",           path = seatOfMadness .. "/projects/OS/windows/DisplayPhotoTime" },
 
     -- Tasker projects
-    { name = "Verbatex",            path = "~/lab/madness_interactive/projects/tasker/Verbatex" },
-    { name = "RunedManifold",       path = "~/lab/madness_interactive/projects/tasker/RunedManifold" },
-    { name = "PhilosophersAmpoule", path = "~/lab/madness_interactive/projects/tasker/PhilosophersAmpoule" },
-    { name = "Ludomancery",         path = "~/lab/madness_interactive/projects/tasker/Ludomancery" },
-    { name = "Fragmentarium",       path = "~/lab/madness_interactive/projects/tasker/Fragmentarium" },
-    { name = "EntropyVector",       path = "~/lab/madness_interactive/projects/tasker/EntropyVector" },
-    { name = "ContextOfficium",     path = "~/lab/madness_interactive/projects/tasker/ContextOfficium" },
-    { name = "AnathemaHexVault",    path = "~/lab/madness_interactive/projects/tasker/AnathemaHexVault" },
+    { name = "Verbatex",                   path = seatOfMadness .. "/projects/tasker/Verbatex" },
+    { name = "RunedManifold",              path = seatOfMadness .. "/projects/tasker/RunedManifold" },
+    { name = "PhilosophersAmpoule",        path = seatOfMadness .. "/projects/tasker/PhilosophersAmpoule" },
+    { name = "Ludomancery",                path = seatOfMadness .. "/projects/tasker/Ludomancery" },
+    { name = "Fragmentarium",              path = seatOfMadness .. "/projects/tasker/Fragmentarium" },
+    { name = "EntropyVector",              path = seatOfMadness .. "/projects/tasker/EntropyVector" },
+    { name = "ContextOfficium",            path = seatOfMadness .. "/projects/tasker/ContextOfficium" },
+    { name = "AnathemaHexVault",           path = seatOfMadness .. "/projects/tasker/AnathemaHexVault" },
     -- Typescript projects
-    { name = "typescript-projects",        path = "~/lab/madness_interactive/projects/typescript" },
-    { name = "RaidShadowLegendsButItsMCP", path = "~/lab/madness_interactive/projects/typescript/RaidShadowLegendsButItsMCP" },
+    -- { name = "typescript-projects",        path = "~/lab/madness_interactive/projects/typescript" },
+    { name = "RaidShadowLegendsButItsMCP", path = seatOfMadness .. "/projects/typescript/RaidShadowLegendsButItsMCP" },
 }
 
 local editorList = {

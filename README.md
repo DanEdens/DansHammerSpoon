@@ -306,6 +306,14 @@ Several improvements have been made to the codebase:
     - Enhanced maintainability through proper separation of concerns and state encapsulation
     - See [window_toggle_refactor_summary.md](window_toggle_refactor_summary.md) for complete details
 
+18. 3. **Scrcpy Special Handling** - Added specialized support for command-line tools like scrcpy
+   - Created dedicated `open_scrcpy()` function that handles scrcpy as a command-line tool rather than traditional app
+   - Smart window detection by title patterns (scrcpy, device models, resolutions)
+   - Intelligent behavior: launch new instance if none exist, focus single window, or show chooser for multiple instances
+   - Supports multiple scrcpy instances with user-friendly selection interface
+   - Updated hotkey binding (hammer+f) to use the specialized function
+   - See [scrcpy_special_handling_fix.md](scrcpy_special_handling_fix.md) for complete details
+
 ## Recent Updates
 
 - **Added Cursor with GitHub Desktop Integration**: Open projects in both Cursor IDE and GitHub Desktop simultaneously with hyper+g, ensuring final focus on Cursor while also updating GitHub Desktop with the selected project path.

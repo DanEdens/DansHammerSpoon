@@ -14,10 +14,12 @@ log:i('Initializing application management system')
 
 local FileManager = require('FileManager')
 
+local scripts_dir = os.getenv("HOME") .. "/.hammerspoon/scripts"
 local AppManager = {}
 
 -- Configuration
 local enableMultiWindowSelector = true
+local enableMenuSeparators = false
 
 -- Application Management Functions
 function AppManager.launchOrFocusWithWindowSelection(appName)
@@ -60,12 +62,13 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
         openWindowTitles[title] = true
     end
 
-    -- Add a separator
-    table.insert(choices, {
-        text = "──────────────────────────────────",
-        subText = "Projects",
-        disabled = true
-    })
+    if enableMenuSeparators then
+        table.insert(choices, {
+            text = "──────────────────────────────────",
+            subText = "Projects",
+            disabled = true
+        })
+    end
 
     -- Add projects list as choices
     local projects_list = FileManager.getProjectsList()
@@ -145,8 +148,8 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
                 end
             end
 
-            -- Add separator if we have any matches
-            if hasMatches and separatorChoice then
+            -- Add separator if we have any matches and menu separators are enabled
+            if hasMatches and separatorChoice and enableMenuSeparators then
                 table.insert(filteredChoices, separatorChoice)
             end
 
@@ -184,12 +187,13 @@ function AppManager.launchGitHubWithProjectSelection()
         -- If GitHub Desktop isn't running, launch it with the selection menu
         local choices = {}
 
-        -- Add a separator
-        table.insert(choices, {
-            text = "──────────────────────────────────",
-            subText = "Projects",
-            disabled = true
-        })
+        if enableMenuSeparators then
+            table.insert(choices, {
+                text = "──────────────────────────────────",
+                subText = "Projects",
+                disabled = true
+            })
+        end
 
         -- Add projects list as choices
         local projects_list = FileManager.getProjectsList()
@@ -254,8 +258,8 @@ function AppManager.launchGitHubWithProjectSelection()
                     end
                 end
 
-                -- Add separator if we have any matches
-                if hasMatches and separatorChoice then
+                -- Add separator if we have any matches and menu separators are enabled
+                if hasMatches and separatorChoice and enableMenuSeparators then
                     table.insert(filteredChoices, separatorChoice)
                 end
 
@@ -300,12 +304,13 @@ function AppManager.launchGitHubWithProjectSelection()
             openWindowTitles[title] = true
         end
 
-        -- Add a separator
-        table.insert(choices, {
-            text = "──────────────────────────────────",
-            subText = "Projects",
-            disabled = true
-        })
+        if enableMenuSeparators then
+            table.insert(choices, {
+                text = "──────────────────────────────────",
+                subText = "Projects",
+                disabled = true
+            })
+        end
 
         -- Add projects list as choices
         local projects_list = FileManager.getProjectsList()
@@ -375,8 +380,8 @@ function AppManager.launchGitHubWithProjectSelection()
                     end
                 end
 
-                -- Add separator if we have any matches
-                if hasMatches and separatorChoice then
+                -- Add separator if we have any matches and menu separators are enabled
+                if hasMatches and separatorChoice and enableMenuSeparators then
                     table.insert(filteredChoices, separatorChoice)
                 end
 
@@ -416,12 +421,14 @@ function AppManager.launchCursorWithGitHubDesktop()
         -- If Cursor isn't running, launch it with the selection menu
         local choices = {}
 
-        -- Add a separator
-        table.insert(choices, {
-            text = "──────────────────────────────────",
-            subText = "Projects",
-            disabled = true
-        })
+        -- Add a separator if enabled
+        if enableMenuSeparators then
+            table.insert(choices, {
+                text = "──────────────────────────────────",
+                subText = "Projects",
+                disabled = true
+            })
+        end
 
         -- Add projects list as choices
         local projects_list = FileManager.getProjectsList()
@@ -488,8 +495,8 @@ function AppManager.launchCursorWithGitHubDesktop()
                     end
                 end
 
-                -- Add separator if we have any matches
-                if hasMatches and separatorChoice then
+                -- Add separator if we have any matches and menu separators are enabled
+                if hasMatches and separatorChoice and enableMenuSeparators then
                     table.insert(filteredChoices, separatorChoice)
                 end
 
@@ -545,12 +552,14 @@ function AppManager.launchCursorWithGitHubDesktop()
             openWindowTitles[title] = true
         end
 
-        -- Add a separator
-        table.insert(choices, {
-            text = "──────────────────────────────────",
-            subText = "Projects",
-            disabled = true
-        })
+        -- Add a separator if enabled
+        if enableMenuSeparators then
+            table.insert(choices, {
+                text = "──────────────────────────────────",
+                subText = "Projects",
+                disabled = true
+            })
+        end
 
         -- Add projects list as choices
         local projects_list = FileManager.getProjectsList()
@@ -626,8 +635,8 @@ function AppManager.launchCursorWithGitHubDesktop()
                     end
                 end
 
-                -- Add separator if we have any matches
-                if hasMatches and separatorChoice then
+                -- Add separator if we have any matches and menu separators are enabled
+                if hasMatches and separatorChoice and enableMenuSeparators then
                     table.insert(filteredChoices, separatorChoice)
                 end
 
@@ -655,10 +664,12 @@ function AppManager.launchCursorWithGitHubDesktop()
         chooser:show()
     end
 end
+
 -- Application Launch Functions
 function AppManager.open_github()
     local githubAppName = "GitHub Desktop"
-    hs.execute("open -a '" .. githubAppName .. "'")
+    local seatOfMadness = "/Users/d.edens/lab/madness_interactive"
+    hs.execute("open -a '" .. githubAppName .. "' " .. seatOfMadness)
 end
 
 function AppManager.open_slack()
@@ -706,7 +717,86 @@ function AppManager.open_cursor_with_github()
 end
 
 function AppManager.open_barrier()
-    hs.execute("open -a 'Barrier'")
+    AppManager.launchOrFocusWithWindowSelection("Barrier")
+end
+
+-- scrcpy - Special handling for command-line tools
+function AppManager.open_scrcpy()
+    -- scrcpy is a command-line tool, not a traditional app
+    -- We need to find windows by title rather than application
+    local scrcpyWindows = {}
+
+    -- Get all windows and filter for scrcpy windows
+    local allWindows = hs.window.allWindows()
+    for _, win in ipairs(allWindows) do
+        local title = win:title()
+        -- Look for scrcpy windows (they typically have device names or "scrcpy" in the title)
+        if title and (title:lower():match("scrcpy") or title:match("SM%-[A-Z]%d+") or title:match("%d+x%d+")) then
+            local app = win:application()
+            if app and app:name() then
+                table.insert(scrcpyWindows, {
+                    window = win,
+                    title = title,
+                    appName = app:name()
+                })
+            end
+        end
+    end
+
+    -- If no scrcpy windows are found, launch scrcpy
+    if #scrcpyWindows == 0 then
+        log:i('No scrcpy windows found, launching scrcpy')
+        local cmd = string.format("nohup %s/launch_scrcpy.sh samsung &> /dev/null &", scripts_dir)
+        log:d('Executing command:', cmd)
+        local success, output, error = os.execute(cmd)
+        if success then
+            log:i('Successfully launched scrcpy script')
+        else
+            log:e('Error launching scrcpy script:', error)
+        end
+        return
+    end
+
+    -- If only one scrcpy window, focus it
+    if #scrcpyWindows == 1 then
+        log:i('Focusing single scrcpy window: ' .. scrcpyWindows[1].title)
+        scrcpyWindows[1].window:focus()
+        return
+    end
+
+    -- If multiple scrcpy windows, show chooser
+    local choices = {}
+    for i, scrcpyWin in ipairs(scrcpyWindows) do
+        table.insert(choices, {
+            text = scrcpyWin.title,
+            subText = "Focus scrcpy window (" .. scrcpyWin.appName .. ")",
+            window = scrcpyWin.window,
+            type = "window"
+        })
+    end
+
+    -- Add option to launch new scrcpy instance
+    table.insert(choices, {
+        text = "Launch New scrcpy",
+        subText = "Start a new scrcpy instance",
+        type = "new"
+    })
+
+    local chooser = hs.chooser.new(function(choice)
+        if not choice then return end
+
+        if choice.type == "window" then
+            log:i('Focusing selected scrcpy window: ' .. choice.text)
+            choice.window:focus()
+        elseif choice.type == "new" then
+            log:i('Launching new scrcpy instance')
+            hs.execute("/opt/homebrew/bin/scrcpy &")
+        end
+    end)
+
+    chooser:placeholderText("Select scrcpy window or launch new")
+    chooser:choices(choices)
+    chooser:show()
 end
 
 function AppManager.open_mission_control()
@@ -728,7 +818,6 @@ end
 function AppManager.open_medis()
     AppManager.launchOrFocusWithWindowSelection("Medis")
 end
-
 
 -- Save in global environment for module reuse
 _G.AppManager = AppManager

@@ -45,39 +45,6 @@ local FullLayoutState = {
     currentState = 0 -- 0: fullScreen, 1: nearlyFull, 2: trueFull
 }
 
-function toggleRightLayout()
-    rightLayoutState.isSmall = not rightLayoutState.isSmall
-    if rightLayoutState.isSmall then
-        WindowManager.applyLayout('rightSmall')
-        log:d("Right Small Layout", __FILE__, 48)
-    else
-        WindowManager.applyLayout('rightHalf')
-        log:d("Right Half Layout", __FILE__, 51)
-    end
-end
-function toggleLeftLayout()
-    leftLayoutState.isSmall = not leftLayoutState.isSmall
-    if leftLayoutState.isSmall then
-        WindowManager.applyLayout('leftSmall')
-        log:d("Left Small Layout", __FILE__, 58)
-    else
-        WindowManager.applyLayout('leftHalf')
-        log:d("Left Half Layout", __FILE__, 61)
-    end
-end
-function toggleFullLayout()
-    FullLayoutState.currentState = (FullLayoutState.currentState + 1) % 3
-    if FullLayoutState.currentState == 0 then
-        WindowManager.applyLayout('fullScreen')
-        log:d("Full Screen Layout", __FILE__, 67)
-    elseif FullLayoutState.currentState == 1 then
-        WindowManager.applyLayout('nearlyFull')
-        log:d("Nearly Full Layout", __FILE__, 69)
-    else
-        WindowManager.applyLayout('trueFull')
-        log:d("True Full Layout", __FILE__, 71)
-    end
-end
 -- Keybindings
 -- Window Management
 hs.hotkey.bind(hammer, "1", "Move Top-Left Corner", function() WindowManager.applyLayout("topLeft") end)
@@ -148,9 +115,9 @@ hs.hotkey.bind(hammer, "l", "Open Logi Options+", function() AppManager.open_log
 hs.hotkey.bind(_hyper, "l", "Open System Settings", function() AppManager.open_system() end)
 hs.hotkey.bind(hammer, "s", "Open Slack", function() AppManager.open_slack() end)
 hs.hotkey.bind(hammer, "g", "Open GitHub Desktop", function() AppManager.launchGitHubWithProjectSelection() end)
-hs.hotkey.bind(_hyper, "g", "Open just GitHub Destop", function() AppManager.open_github() end)
-hs.hotkey.bind(hammer, "`", "Open Cursor", function() AppManager.open_cursor_with_github() end)
-hs.hotkey.bind(_hyper, "`", "Open Cursor", function() AppManager.open_cursor() end)
+hs.hotkey.bind(_hyper, "g", "Open just GitHub Desktop", function() AppManager.open_github() end)
+hs.hotkey.bind(hammer, "`", "Open Cursor with GitHub", function() AppManager.open_cursor_with_github() end)
+hs.hotkey.bind(_hyper, "`", "Open Cursor", function() AppManager.open_medis() end)
 hs.hotkey.bind(hammer, "Tab", "Open Mission Control", function() AppManager.open_mission_control() end)
 hs.hotkey.bind(_hyper, "Tab", "Open Launchpad", function() AppManager.open_launchpad() end)
 hs.hotkey.bind(hammer, "t", "Open Barrier", function() AppManager.open_barrier() end)
@@ -163,7 +130,7 @@ hs.hotkey.bind(_hyper, "e", "Show Editor Menu", function() FileManager.showEdito
 hs.hotkey.bind(hammer, "x", "Toggle Dragon Grid", function() spoon.DragonGrid:toggleGridDisplay() end)
 hs.hotkey.bind(_hyper, "x", "Dragon Grid Settings", function() spoon.DragonGrid:showSettingsMenu() end)
 -- Misc
-hs.hotkey.bind(hammer, "f", "Open Scrcpy", function() hs.execute("open -a '/opt/homebrew/bin/scrcpy'") end)
+hs.hotkey.bind(hammer, "f", "Open Scrcpy", function() AppManager.open_scrcpy() end)
 -- hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. FileManager.getEditor() .. "' ~/.zshrc") end)
 
 -- Help/Documentation

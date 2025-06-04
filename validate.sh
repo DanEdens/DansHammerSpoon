@@ -25,6 +25,23 @@ print_error() {
 
 print_message "Starting validation of Hammerspoon configuration..."
 
+# Determine which Lua interpreter to use
+LUA_CMD=""
+if command -v luajit &> /dev/null; then
+    LUA_CMD="luajit"
+elif command -v lua &> /dev/null; then
+    LUA_CMD="lua"
+elif command -v lua5.4 &> /dev/null; then
+    LUA_CMD="lua5.4"
+elif command -v lua5.3 &> /dev/null; then
+    LUA_CMD="lua5.3"
+else
+    print_error "No Lua interpreter found. Please install lua or luajit."
+    exit 1
+fi
+
+print_message "Using Lua interpreter: $LUA_CMD"
+
 # Check if luacheck is available
 if ! command -v luacheck &> /dev/null; then
   print_warning "luacheck not found. Basic syntax checking only."
@@ -43,15 +60,24 @@ ERRORS=0
 validate_file() {
   local file=$1
   print_message "Checking $file..."
-  
-  # Basic Lua syntax check
-  if ! lua -c "$file" &> /dev/null; then
-    print_error "Syntax error in $file"
-    lua -c "$file" 2>&1
-    ERRORS=$((ERRORS + 1))
-    return 1
+
+  # Basic Lua syntax check - luajit doesn't support -c, so we use -b /dev/null
+  if [[ "$LUA_CMD" == "luajit" ]]; then
+    if ! $LUA_CMD -b "$file" /dev/null &> /dev/null; then
+      print_error "Syntax error in $file"
+      $LUA_CMD -b "$file" /dev/null 2>&1
+      ERRORS=$((ERRORS + 1))
+      return 1
+    fi
+  else
+    if ! $LUA_CMD -c "$file" &> /dev/null; then
+      print_error "Syntax error in $file"
+      $LUA_CMD -c "$file" 2>&1
+      ERRORS=$((ERRORS + 1))
+      return 1
+    fi
   fi
-  
+
   # Advanced check with luacheck if available
   if [ "$LUA_CHECK" = true ]; then
     if ! luacheck --no-unused-args --no-max-line-length "$file" &> /dev/null; then
@@ -60,7 +86,7 @@ validate_file() {
       # Don't count warnings as errors
     fi
   fi
-  
+
   return 0
 }
 
@@ -82,4 +108,4 @@ if [ $ERRORS -eq 0 ]; then
 else
   print_error "Validation complete. Found $ERRORS error(s)."
   exit 1
-fi 
+fi

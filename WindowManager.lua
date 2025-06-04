@@ -34,7 +34,12 @@ local WindowManager = {
     sectionHeight = 0,
 
     -- Multi-window layout management
-    savedLayouts = {}
+    savedLayouts = {},
+
+    -- Toggle layout state tracking
+    rightLayoutState = { isSmall = true },
+    leftLayoutState = { isSmall = true },
+    fullLayoutState = { currentState = 0 } -- 0: fullScreen, 1: nearlyFull, 2: trueFull
 }
 
 -- Layouts
@@ -149,6 +154,30 @@ local standardLayouts = {
         y = function(max) return max.y + (max.h * 0.01) end,
         w = function(max) return max.w * 0.27 end,
         h = function(max) return max.h * 0.98 end
+    },
+    splitVertical = { -- Top half
+        x = function(max) return max.x end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w end,
+        h = function(max) return max.h / 2 end
+    },
+    splitHorizontal = { -- Bottom half
+        x = function(max) return max.x end,
+        y = function(max) return max.y + (max.h / 2) end,
+        w = function(max) return max.w end,
+        h = function(max) return max.h / 2 end
+    },
+    centerScreen = { -- 80% centered
+        x = function(max) return max.x + (max.w * 0.1) end,
+        y = function(max) return max.y + (max.h * 0.1) end,
+        w = function(max) return max.w - (max.w * 0.2) end,
+        h = function(max) return max.h - (max.h * 0.2) end
+    },
+    bottomHalf = { -- Bottom half
+        x = function(max) return max.x end,
+        y = function(max) return max.y + (max.h / 2) end,
+        w = function(max) return max.w end,
+        h = function(max) return max.h / 2 end
     }
 }
 
@@ -423,6 +452,42 @@ function WindowManager.resetShuffleCounters()
     WindowManager.currentFrame = nil
     WindowManager.sectionWidth = 0
     WindowManager.sectionHeight = 0
+end
+-- Toggle layout functions
+function WindowManager.toggleRightLayout()
+    WindowManager.rightLayoutState.isSmall = not WindowManager.rightLayoutState.isSmall
+    if WindowManager.rightLayoutState.isSmall then
+        WindowManager.applyLayout('rightSmall')
+        log:d("Right Small Layout", __FILE__, 485)
+    else
+        WindowManager.applyLayout('rightHalf')
+        log:d("Right Half Layout", __FILE__, 488)
+    end
+end
+
+function WindowManager.toggleLeftLayout()
+    WindowManager.leftLayoutState.isSmall = not WindowManager.leftLayoutState.isSmall
+    if WindowManager.leftLayoutState.isSmall then
+        WindowManager.applyLayout('leftSmall')
+        log:d("Left Small Layout", __FILE__, 495)
+    else
+        WindowManager.applyLayout('leftHalf')
+        log:d("Left Half Layout", __FILE__, 498)
+    end
+end
+
+function WindowManager.toggleFullLayout()
+    WindowManager.fullLayoutState.currentState = (WindowManager.fullLayoutState.currentState + 1) % 3
+    if WindowManager.fullLayoutState.currentState == 0 then
+        WindowManager.applyLayout('fullScreen')
+        log:d("Full Screen Layout", __FILE__, 505)
+    elseif WindowManager.fullLayoutState.currentState == 1 then
+        WindowManager.applyLayout('nearlyFull')
+        log:d("Nearly Full Layout", __FILE__, 508)
+    else
+        WindowManager.applyLayout('trueFull')
+        log:d("True Full Layout", __FILE__, 511)
+    end
 end
 -- Multi-window layout management
 function WindowManager.saveCurrentLayout(layoutName)

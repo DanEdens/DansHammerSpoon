@@ -297,6 +297,15 @@ Several improvements have been made to the codebase:
     - Established consistent pattern: `hs.hotkey.bind(modifier, "key", "Description", function() ModuleName.functionName() end)`
     - See [hotkey_refactor_summary.md](hotkey_refactor_summary.md) for complete details
 
+17. **Window Toggle Functions Refactoring** - Moved window layout toggle functions from hotkeys.lua to WindowManager.lua
+    - Moved toggle state variables (`rightLayoutState`, `leftLayoutState`, `fullLayoutState`) to WindowManager module
+    - Refactored three toggle functions: `toggleRightLayout()`, `toggleLeftLayout()`, and `toggleFullLayout()`
+    - Added missing layout definitions: `splitVertical`, `splitHorizontal`, `centerScreen`, and `bottomHalf`
+    - Updated hotkey bindings to call `WindowManager.toggleXXXLayout()` instead of local functions
+    - Improved code organization by centralizing all window management functionality in one module
+    - Enhanced maintainability through proper separation of concerns and state encapsulation
+    - See [window_toggle_refactor_summary.md](window_toggle_refactor_summary.md) for complete details
+
 ## Recent Updates
 
 - **Added Cursor with GitHub Desktop Integration**: Open projects in both Cursor IDE and GitHub Desktop simultaneously with hyper+g, ensuring final focus on Cursor while also updating GitHub Desktop with the selected project path.

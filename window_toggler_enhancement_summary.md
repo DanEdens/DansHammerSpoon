@@ -36,10 +36,10 @@ Enhanced the WindowToggler system to provide advanced window position management
 
 | Hotkey | Function | Description |
 |--------|----------|-------------|
-| `Cmd+Ctrl+Alt+F10` | Save to Location 1 | Save current window position |
-| `Cmd+Shift+Ctrl+Alt+F10` | Restore to Location 1 | Restore saved position |
-| `Cmd+Ctrl+Alt+F11` | Save to Location 2 | Save current window position |
-| `Cmd+Shift+Ctrl+Alt+F11` | Restore to Location 2 | Restore saved position |
+| `Cmd+Ctrl+Alt+O` | Save to Location 1 | Save current window position |
+| `Cmd+Shift+Ctrl+Alt+O` | Restore to Location 1 | Restore saved position |
+| `Cmd+Ctrl+Alt+N` | Save to Location 2 | Save current window position |
+| `Cmd+Shift+Ctrl+Alt+N` | Restore to Location 2 | Restore saved position |
 | `Cmd+Ctrl+Alt+F12` | List Saved Windows | Show all saved positions |
 | `Cmd+Shift+Ctrl+Alt+Q` | Clear All Locations | Clear Location 1 & 2 saves |
 
@@ -170,6 +170,7 @@ WindowToggler = {
 - Function key combinations (F10, F11) provide good expansion space
 - Consistent modifier patterns (hammer vs hyper) aid memorization
 - Documentation in hotkey descriptions improves maintainability
+- **Hotkey Conflict Resolution**: F10/F11 combinations conflicted with macOS system shortcuts, resolved by using available letter keys (O/N) which provide better accessibility and muscle memory
 
 ### 4. Code Organization
 

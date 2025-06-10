@@ -551,10 +551,10 @@ Windows are identified using the format: `AppName:WindowTitle`
 |--------|----------|-------------|
 | `Cmd+Ctrl+Alt+W` | Toggle Window Position | Toggle between saved position and nearly full layout |
 | `Cmd+Shift+Ctrl+Alt+W` | Window Locations Menu | Show interactive menu for window location management |
-| `Cmd+Ctrl+Alt+F10` | Save to Location 1 | Save current window position to Location 1 |
-| `Cmd+Shift+Ctrl+Alt+F10` | Restore to Location 1 | Restore window to saved Location 1 |
-| `Cmd+Ctrl+Alt+F11` | Save to Location 2 | Save current window position to Location 2 |
-| `Cmd+Shift+Ctrl+Alt+F11` | Restore to Location 2 | Restore window to saved Location 2 |
+| `Cmd+Ctrl+Alt+O` | Save to Location 1 | Save current window position to Location 1 |
+| `Cmd+Shift+Ctrl+Alt+O` | Restore to Location 1 | Restore window to saved Location 1 |
+| `Cmd+Ctrl+Alt+N` | Save to Location 2 | Save current window position to Location 2 |
+| `Cmd+Shift+Ctrl+Alt+N` | Restore to Location 2 | Restore window to saved Location 2 |
 | `Cmd+Ctrl+Alt+F12` | List Saved Windows | Show all saved window positions and locations |
 | `Cmd+Ctrl+Alt+Q` | Clear Toggle Positions | Clear all saved toggle positions |
 | `Cmd+Shift+Ctrl+Alt+Q` | Clear All Locations | Clear all saved Location 1 and Location 2 positions |
@@ -571,9 +571,9 @@ Windows are identified using the format: `AppName:WindowTitle`
 
 1. **Save Locations**:
    - Position window at desired location
-   - Press `Cmd+Ctrl+Alt+F10` for Location 1 or `Cmd+Ctrl+Alt+F11` for Location 2
+   - Press `Cmd+Ctrl+Alt+O` for Location 1 or `Cmd+Ctrl+Alt+N` for Location 2
 2. **Restore Locations**:
-   - Press `Cmd+Shift+Ctrl+Alt+F10` for Location 1 or `Cmd+Shift+Ctrl+Alt+F11` for Location 2
+   - Press `Cmd+Shift+Ctrl+Alt+O` for Location 1 or `Cmd+Shift+Ctrl+Alt+N` for Location 2
 
 #### Interactive Menu
 

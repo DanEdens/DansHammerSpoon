@@ -98,10 +98,10 @@ hs.hotkey.bind(hammer, "F8", "Temporary Function", function() tempFunction() end
 hs.hotkey.bind(_hyper, "F8", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F9", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "F9", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind(hammer, "F10", "Save Window to Location 1", function() WindowToggler.saveToLocation1() end)
-hs.hotkey.bind(_hyper, "F10", "Restore Window to Location 1", function() WindowToggler.restoreToLocation1() end)
-hs.hotkey.bind(hammer, "F11", "Save Window to Location 2", function() WindowToggler.saveToLocation2() end)
-hs.hotkey.bind(_hyper, "F11", "Restore Window to Location 2", function() WindowToggler.restoreToLocation2() end)
+-- hs.hotkey.bind(hammer, "F10", "Save Window to Location 1", function() WindowToggler.saveToLocation1() end)
+-- hs.hotkey.bind(_hyper, "F10", "Restore Window to Location 1", function() WindowToggler.restoreToLocation1() end)
+-- hs.hotkey.bind(hammer, "F11", "Save Window to Location 2", function() WindowToggler.saveToLocation2() end)
+-- hs.hotkey.bind(_hyper, "F11", "Restore Window to Location 2", function() WindowToggler.restoreToLocation2() end)
 hs.hotkey.bind(hammer, "F12", "List Saved Windows", function() WindowToggler.listSavedWindows() end)
 hs.hotkey.bind(_hyper, "F12", "Temporary Function", function() tempFunction() end)
 -- Application Launching
@@ -154,10 +154,22 @@ hs.hotkey.bind(hammer, "j", "Toggle Project Manager", function() ProjectManager.
 hs.hotkey.bind(_hyper, "j", "Show Active Project Info", function() ProjectManager.showActiveProjectInfo() end)
 hs.hotkey.bind(hammer, "k", "Reset Project Manager UI", function() ProjectManager.resetUI() end)
 hs.hotkey.bind(_hyper, "k", "Hide Project Manager UI", function() ProjectManager.hideUI() end)
+
 -- Clipboard and productivity tools
 -- hs.hotkey.bind(hammer, "c", function() FileManager.showClipboardManager() end)
 -- hs.hotkey.bind(_hyper, "c", function() FileManager.clearClipboard() end)
 
+-- Window Location Management (using available letter keys)
+hs.hotkey.bind(hammer, "o", "Save Window to Location 1", function() WindowToggler.saveToLocation1() end)
+hs.hotkey.bind(_hyper, "o", "Restore Window to Location 1", function() WindowToggler.restoreToLocation1() end)
+hs.hotkey.bind(hammer, "n", "Save Window to Location 2", function() WindowToggler.saveToLocation2() end)
+hs.hotkey.bind(_hyper, "n", "Restore Window to Location 2", function() WindowToggler.restoreToLocation2() end)
+
+-- Add window toggle hotkeys
+hs.hotkey.bind(hammer, "w", "Toggle Window Position", function() WindowToggler.toggleWindowPosition() end)
+hs.hotkey.bind(_hyper, "w", "Window Locations Menu", function() WindowToggler.showLocationsMenu() end)
+hs.hotkey.bind(hammer, "q", "Clear Saved Window Positions", function() WindowToggler.clearSavedPositions() end)
+hs.hotkey.bind(_hyper, "q", "Clear All Saved Locations", function() WindowToggler.clearSavedLocations(true) end)
 -- -- Add tempFunction for remaining letters
 -- hs.hotkey.bind(hammer, "a", function() tempFunction() end)
 -- hs.hotkey.bind(_hyper, "a", function() tempFunction() end)
@@ -217,11 +229,7 @@ function tempFunction()
     hs.alert.show("Temporary Function Placeholder")
 end
 
--- Add window toggle hotkeys
-hs.hotkey.bind(hammer, "w", "Toggle Window Position", function() WindowToggler.toggleWindowPosition() end)
-hs.hotkey.bind(_hyper, "w", "Window Locations Menu", function() WindowToggler.showLocationsMenu() end)
-hs.hotkey.bind(hammer, "q", "Clear Saved Window Positions", function() WindowToggler.clearSavedPositions() end)
-hs.hotkey.bind(_hyper, "q", "Clear All Saved Locations", function() WindowToggler.clearSavedLocations(true) end)
+
 
 -- Window layout management hotkeys
 -- hs.hotkey.bind(hammer, "s", "Save Current Layout", function() saveLayoutWithDialog() end)

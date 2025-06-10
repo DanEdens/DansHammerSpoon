@@ -98,11 +98,11 @@ hs.hotkey.bind(hammer, "F8", "Temporary Function", function() tempFunction() end
 hs.hotkey.bind(_hyper, "F8", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F9", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "F9", "Temporary Function", function() tempFunction() end)
--- hs.hotkey.bind(hammer, "F10", "Temporary Function", function() tempFunction() end)
--- hs.hotkey.bind(_hyper, "F10", "Temporary Function", function() tempFunction() end)
--- hs.hotkey.bind(hammer, "F11", "Temporary Function", function() tempFunction() end)
--- hs.hotkey.bind(_hyper, "F11", "Temporary Function", function() tempFunction() end)
--- hs.hotkey.bind(hammer, "F12", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F10", "Save Window to Location 1", function() WindowToggler.saveToLocation1() end)
+hs.hotkey.bind(_hyper, "F10", "Restore Window to Location 1", function() WindowToggler.restoreToLocation1() end)
+hs.hotkey.bind(hammer, "F11", "Save Window to Location 2", function() WindowToggler.saveToLocation2() end)
+hs.hotkey.bind(_hyper, "F11", "Restore Window to Location 2", function() WindowToggler.restoreToLocation2() end)
+hs.hotkey.bind(hammer, "F12", "List Saved Windows", function() WindowToggler.listSavedWindows() end)
 hs.hotkey.bind(_hyper, "F12", "Temporary Function", function() tempFunction() end)
 -- Application Launching
 hs.hotkey.bind(hammer, "p", "Open PyCharm", function() AppManager.open_pycharm() end)
@@ -219,8 +219,9 @@ end
 
 -- Add window toggle hotkeys
 hs.hotkey.bind(hammer, "w", "Toggle Window Position", function() WindowToggler.toggleWindowPosition() end)
-hs.hotkey.bind(_hyper, "w", "List Saved Windows", function() WindowToggler.listSavedWindows() end)
+hs.hotkey.bind(_hyper, "w", "Window Locations Menu", function() WindowToggler.showLocationsMenu() end)
 hs.hotkey.bind(hammer, "q", "Clear Saved Window Positions", function() WindowToggler.clearSavedPositions() end)
+hs.hotkey.bind(_hyper, "q", "Clear All Saved Locations", function() WindowToggler.clearSavedLocations(true) end)
 
 -- Window layout management hotkeys
 -- hs.hotkey.bind(hammer, "s", "Save Current Layout", function() saveLayoutWithDialog() end)

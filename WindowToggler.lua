@@ -15,81 +15,286 @@ log:i('Initializing window toggler system')
 local WindowManager = require('WindowManager')
 
 local WindowToggler = {
-    -- Store positions by window title
-    savedPositions = {}
+    -- Store positions by unique window identifier (app_name:window_title)
+    savedPositions = {},
+    -- Store specific save locations (location1, location2) by window identifier
+    location1 = {},
+    location2 = {}
 }
 
--- Toggle a window between its current position and nearly full
-function WindowToggler.toggleWindowPosition()
+-- Helper function to get unique window identifier
+local function getWindowIdentifier(win)
+    if not win then return nil end
+    local app = win:application()
+    local appName = app and app:name() or "Unknown"
+    local title = win:title() or "Untitled"
+    return appName .. ":" .. title
+end
+
+-- Helper function to get or select a window
+local function getTargetWindow(callback)
     local win = hs.window.focusedWindow()
-    if not win then
-        log.w('No focused window found')
+    if win then
+        callback(win)
+        return
+    end
+    
+    -- No focused window, show window picker
+    local allWindows = hs.window.allWindows()
+    local visibleWindows = {}
+
+    for _, w in ipairs(allWindows) do
+        if w:isVisible() and w:isStandard() then
+            local app = w:application()
+            local appName = app and app:name() or "Unknown"
+            local title = w:title() or "Untitled"
+            table.insert(visibleWindows, {
+                window = w,
+                text = appName .. " - " .. title,
+                subText = "App: " .. appName
+            })
+        end
+    end
+
+    if #visibleWindows == 0 then
+        hs.alert.show("No available windows found")
         return
     end
 
-    local windowTitle = win:title()
-    local currentFrame = win:frame()
+    local chooser = hs.chooser.new(function(choice)
+        if choice and choice.window then
+            callback(choice.window)
+        end
+    end)
 
-    -- If we have a saved position for this window title
-    if WindowToggler.savedPositions[windowTitle] then
-        -- Check if current position is roughly the "nearlyFull" layout
-        local screen = win:screen()
-        local max = screen:frame()
-        local nearlyFullX = max.x + (max.w * 0.1)
-        local nearlyFullY = max.y + (max.h * 0.1)
-        local nearlyFullW = max.w * 0.8
-        local nearlyFullH = max.h * 0.8
+    chooser:placeholderText("Select a window...")
+    chooser:choices(visibleWindows)
+    chooser:show()
+end
 
-        -- Check if current position is similar to nearlyFull layout
-        local isNearlyFull = math.abs(currentFrame.x - nearlyFullX) < 10 and
-            math.abs(currentFrame.y - nearlyFullY) < 10 and
-            math.abs(currentFrame.w - nearlyFullW) < 10 and
-            math.abs(currentFrame.h - nearlyFullH) < 10
+-- Toggle a window between its current position and nearly full
+function WindowToggler.toggleWindowPosition()
+    getTargetWindow(function(win)
+        local windowId = getWindowIdentifier(win)
+        local currentFrame = win:frame()
 
-        if isNearlyFull then
-            -- Restore the saved position
-            win:setFrame(WindowToggler.savedPositions[windowTitle])
-            log.i('Restored saved position for window:', windowTitle)
-            hs.alert.show("Restored window position")
+        -- If we have a saved position for this window
+        if WindowToggler.savedPositions[windowId] then
+            -- Check if current position is roughly the "nearlyFull" layout
+            local screen = win:screen()
+            local max = screen:frame()
+            local nearlyFullX = max.x + (max.w * 0.1)
+            local nearlyFullY = max.y + (max.h * 0.1)
+            local nearlyFullW = max.w * 0.8
+            local nearlyFullH = max.h * 0.8
+
+            -- Check if current position is similar to nearlyFull layout
+            local isNearlyFull = math.abs(currentFrame.x - nearlyFullX) < 10 and
+                math.abs(currentFrame.y - nearlyFullY) < 10 and
+                math.abs(currentFrame.w - nearlyFullW) < 10 and
+                math.abs(currentFrame.h - nearlyFullH) < 10
+
+            if isNearlyFull then
+                -- Restore the saved position
+                win:setFrame(WindowToggler.savedPositions[windowId])
+                log:i('Restored saved position for window:', windowId)
+                hs.alert.show("Restored window position")
+            else
+                -- Save current position and move to nearlyFull
+                WindowToggler.savedPositions[windowId] = currentFrame
+                WindowManager.applyLayout('nearlyFull')
+                log:i('Saved position and applied nearlyFull layout for window:', windowId)
+                hs.alert.show("Applied nearly full layout")
+            end
         else
-            -- Save current position and move to nearlyFull
-            WindowToggler.savedPositions[windowTitle] = currentFrame
+            -- First time seeing this window, save position and apply nearlyFull
+            WindowToggler.savedPositions[windowId] = currentFrame
             WindowManager.applyLayout('nearlyFull')
-            log.i('Saved position and applied nearlyFull layout for window:', windowTitle)
+            log:i('First time: saved position and applied nearlyFull layout for window:', windowId)
             hs.alert.show("Applied nearly full layout")
         end
-    else
-        -- First time seeing this window title, save position and apply nearlyFull
-        WindowToggler.savedPositions[windowTitle] = currentFrame
-        WindowManager.applyLayout('nearlyFull')
-        log.i('First time: saved position and applied nearlyFull layout for window:', windowTitle)
-        hs.alert.show("Applied nearly full layout")
-    end
+    end)
+end
+
+-- Save current window position to location 1
+function WindowToggler.saveToLocation1()
+    getTargetWindow(function(win)
+        local windowId = getWindowIdentifier(win)
+        local currentFrame = win:frame()
+        WindowToggler.location1[windowId] = currentFrame
+        local app = win:application()
+        local appName = app and app:name() or "Unknown"
+        log:i('Saved location 1 for window:', windowId)
+        hs.alert.show("Saved " .. appName .. " to Location 1")
+    end)
+end
+
+-- Save current window position to location 2
+function WindowToggler.saveToLocation2()
+    getTargetWindow(function(win)
+        local windowId = getWindowIdentifier(win)
+        local currentFrame = win:frame()
+        WindowToggler.location2[windowId] = currentFrame
+        local app = win:application()
+        local appName = app and app:name() or "Unknown"
+        log:i('Saved location 2 for window:', windowId)
+        hs.alert.show("Saved " .. appName .. " to Location 2")
+    end)
+end
+
+-- Restore window to location 1
+function WindowToggler.restoreToLocation1()
+    getTargetWindow(function(win)
+        local windowId = getWindowIdentifier(win)
+        if WindowToggler.location1[windowId] then
+            win:setFrame(WindowToggler.location1[windowId])
+            local app = win:application()
+            local appName = app and app:name() or "Unknown"
+            log:i('Restored location 1 for window:', windowId)
+            hs.alert.show("Restored " .. appName .. " to Location 1")
+        else
+            hs.alert.show("No saved Location 1 for this window")
+        end
+    end)
+end
+
+-- Restore window to location 2
+function WindowToggler.restoreToLocation2()
+    getTargetWindow(function(win)
+        local windowId = getWindowIdentifier(win)
+        if WindowToggler.location2[windowId] then
+            win:setFrame(WindowToggler.location2[windowId])
+            local app = win:application()
+            local appName = app and app:name() or "Unknown"
+            log:i('Restored location 2 for window:', windowId)
+            hs.alert.show("Restored " .. appName .. " to Location 2")
+        else
+            hs.alert.show("No saved Location 2 for this window")
+        end
+    end)
 end
 
 -- Clear all saved positions
 function WindowToggler.clearSavedPositions()
     WindowToggler.savedPositions = {}
-    log.i('Cleared all saved window positions')
+    log:i('Cleared all saved window positions')
     hs.alert.show("Cleared all saved window positions")
 end
 
--- List all saved window titles
+-- Clear saved locations for a specific window or all
+function WindowToggler.clearSavedLocations(clearAll)
+    if clearAll then
+        WindowToggler.location1 = {}
+        WindowToggler.location2 = {}
+        log:i('Cleared all saved window locations')
+        hs.alert.show("Cleared all saved locations")
+    else
+        getTargetWindow(function(win)
+            local windowId = getWindowIdentifier(win)
+            WindowToggler.location1[windowId] = nil
+            WindowToggler.location2[windowId] = nil
+            local app = win:application()
+            local appName = app and app:name() or "Unknown"
+            log:i('Cleared saved locations for window:', windowId)
+            hs.alert.show("Cleared locations for " .. appName)
+        end)
+    end
+end
+
+-- List all saved window titles and locations
 function WindowToggler.listSavedWindows()
-    local result = "Saved window positions:\n"
+    local result = "Saved window positions:\n\n"
     local count = 0
 
-    for title, _ in pairs(WindowToggler.savedPositions) do
-        result = result .. "- " .. title .. "\n"
+    -- Regular toggle positions
+    for windowId, _ in pairs(WindowToggler.savedPositions) do
+        result = result .. "Toggle: " .. windowId .. "\n"
+        count = count + 1
+    end
+
+    -- Location 1 positions
+    for windowId, _ in pairs(WindowToggler.location1) do
+        result = result .. "Loc 1: " .. windowId .. "\n"
+        count = count + 1
+    end
+
+    -- Location 2 positions
+    for windowId, _ in pairs(WindowToggler.location2) do
+        result = result .. "Loc 2: " .. windowId .. "\n"
         count = count + 1
     end
 
     if count == 0 then
-        result = "No saved window positions"
+        result = "No saved window positions or locations"
     end
 
-    log.i('Listed saved windows:', count)
-    hs.alert.show(result, 3)
+    log:i('Listed saved windows:', count)
+    hs.alert.show(result, 4)
+end
+
+-- Show window locations menu
+function WindowToggler.showLocationsMenu()
+    getTargetWindow(function(win)
+        local windowId = getWindowIdentifier(win)
+        local app = win:application()
+        local appName = app and app:name() or "Unknown"
+
+        local hasLocation1 = WindowToggler.location1[windowId] ~= nil
+        local hasLocation2 = WindowToggler.location2[windowId] ~= nil
+        local hasTogglePos = WindowToggler.savedPositions[windowId] ~= nil
+
+        local menuItems = {
+            {
+                text = "Save to Location 1",
+                subText = hasLocation1 and "Overwrite existing" or "New location"
+            },
+            {
+                text = "Save to Location 2",
+                subText = hasLocation2 and "Overwrite existing" or "New location"
+            }
+        }
+
+        if hasLocation1 then
+            table.insert(menuItems, {
+                text = "Restore to Location 1",
+                subText = "Go to saved location 1"
+            })
+        end
+
+        if hasLocation2 then
+            table.insert(menuItems, {
+                text = "Restore to Location 2",
+                subText = "Go to saved location 2"
+            })
+        end
+
+        if hasLocation1 or hasLocation2 then
+            table.insert(menuItems, {
+                text = "Clear This Window's Locations",
+                subText = "Remove saved locations for " .. appName
+            })
+        end
+
+        local chooser = hs.chooser.new(function(choice)
+            if not choice then return end
+
+            if choice.text == "Save to Location 1" then
+                WindowToggler.saveToLocation1()
+            elseif choice.text == "Save to Location 2" then
+                WindowToggler.saveToLocation2()
+            elseif choice.text == "Restore to Location 1" then
+                WindowToggler.restoreToLocation1()
+            elseif choice.text == "Restore to Location 2" then
+                WindowToggler.restoreToLocation2()
+            elseif choice.text == "Clear This Window's Locations" then
+                WindowToggler.clearSavedLocations(false)
+            end
+        end)
+        
+        chooser:placeholderText("Window Locations for " .. appName)
+        chooser:choices(menuItems)
+        chooser:show()
+    end)
 end
 
 -- Save in global environment for module reuse

@@ -525,3 +525,82 @@ hs.reload()
 ```
 
 This will track module loading order, timing, and detect any redundancies in the initialization process.
+
+## WindowToggler Enhanced Features
+
+The WindowToggler system has been significantly enhanced to provide advanced window position management with support for multiple save locations and intelligent window handling.
+
+### Key Features
+
+1. **Multiple Save Locations**: Save window positions to Location 1 and Location 2 for each window
+2. **Smart Window Identification**: Uses app name + window title for unique identification (handles multiple Cursor windows, etc.)
+3. **Window Selection Menu**: Automatically shows window picker when no window is focused
+4. **Original Toggle Functionality**: Toggle between current position and "nearly full" layout
+
+### Window Identification System
+
+Windows are identified using the format: `AppName:WindowTitle`
+
+- Example: `Cursor:my-project` vs `Cursor:another-project`
+- This allows different windows from the same app to have separate saved positions
+- Perfect for managing multiple Cursor windows, Terminal windows, etc.
+
+### Hotkey Mappings
+
+| Hotkey | Function | Description |
+|--------|----------|-------------|
+| `Cmd+Ctrl+Alt+W` | Toggle Window Position | Toggle between saved position and nearly full layout |
+| `Cmd+Shift+Ctrl+Alt+W` | Window Locations Menu | Show interactive menu for window location management |
+| `Cmd+Ctrl+Alt+F10` | Save to Location 1 | Save current window position to Location 1 |
+| `Cmd+Shift+Ctrl+Alt+F10` | Restore to Location 1 | Restore window to saved Location 1 |
+| `Cmd+Ctrl+Alt+F11` | Save to Location 2 | Save current window position to Location 2 |
+| `Cmd+Shift+Ctrl+Alt+F11` | Restore to Location 2 | Restore window to saved Location 2 |
+| `Cmd+Ctrl+Alt+F12` | List Saved Windows | Show all saved window positions and locations |
+| `Cmd+Ctrl+Alt+Q` | Clear Toggle Positions | Clear all saved toggle positions |
+| `Cmd+Shift+Ctrl+Alt+Q` | Clear All Locations | Clear all saved Location 1 and Location 2 positions |
+
+### Usage Patterns
+
+#### Basic Window Toggle
+
+1. Position a window where you want it
+2. Press `Cmd+Ctrl+Alt+W` to save position and move to nearly full
+3. Press `Cmd+Ctrl+Alt+W` again to restore original position
+
+#### Multiple Location Management
+
+1. **Save Locations**:
+   - Position window at desired location
+   - Press `Cmd+Ctrl+Alt+F10` for Location 1 or `Cmd+Ctrl+Alt+F11` for Location 2
+2. **Restore Locations**:
+   - Press `Cmd+Shift+Ctrl+Alt+F10` for Location 1 or `Cmd+Shift+Ctrl+Alt+F11` for Location 2
+
+#### Interactive Menu
+
+- Press `Cmd+Shift+Ctrl+Alt+W` to open the Window Locations Menu
+- Choose from available options based on current window's saved locations
+- Menu shows different options based on what's available for the current window
+
+### Window Selection Behavior
+
+When no window is focused:
+
+- System automatically shows a window picker menu
+- Lists all visible, standard windows
+- Format: "AppName - WindowTitle" with app subtitle
+- Select any window to apply the action
+
+### Multi-App Support
+
+Perfect for managing multiple instances of the same application:
+
+- **Multiple Cursor windows**: Each project maintains separate saved positions
+- **Multiple Terminal windows**: Each terminal session has its own locations
+- **Multiple Browser windows**: Different browser windows/profiles keep separate positions
+
+### Technical Implementation
+
+- **Singleton Pattern**: Module uses singleton to avoid re-initialization
+- **Persistent Storage**: Positions stored in module memory (resets on Hammerspoon reload)
+- **Error Handling**: Graceful handling of closed windows and missing applications
+- **Smart Comparison**: Fuzzy position matching for "nearly full" detection (±10 pixel tolerance)

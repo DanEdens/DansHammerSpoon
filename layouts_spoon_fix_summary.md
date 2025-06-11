@@ -13,7 +13,13 @@ stack traceback:
 
 ## Root Cause Analysis
 
-The issue was in `hotkeys.lua` line 66, where the code was trying to call `FileManager.showLayoutsMenu()`:
+The issue had two parts:
+
+1. **Missing Spoon Loading**: The `loadConfig.lua` module was never being loaded in `init.lua`, which meant that no Spoons were loaded and the `spoon` global table was nil. This caused the error "attempt to index a nil value (global 'spoon')".
+
+2. **Incorrect Function Call**: Even if the Spoons were loaded, the hotkey was trying to call `FileManager.showLayoutsMenu()` instead of the correct `spoon.Layouts:chooseLayout()`.
+
+The original error in `hotkeys.lua` line 66 was:
 
 ```lua
 hs.hotkey.bind(hammer, "8", "Show Layouts Menu", function() FileManager.showLayoutsMenu() end)
@@ -23,7 +29,19 @@ However, this function does not exist in the FileManager module. The correct fun
 
 ## Fix Applied
 
-Changed the hotkey binding from:
+### 1. Added Spoon Loading to init.lua
+
+Added the loadConfig requirement to `init.lua`:
+
+```lua
+-- Load additional modules as needed
+require('loadConfig')
+dofile(hs.configdir .. "/hotkeys.lua")
+```
+
+### 2. Changed the hotkey binding
+
+Changed from:
 
 ```lua
 hs.hotkey.bind(hammer, "8", "Show Layouts Menu", function() FileManager.showLayoutsMenu() end)
@@ -37,9 +55,11 @@ hs.hotkey.bind(hammer, "8", "Show Layouts Menu", function() spoon.Layouts:choose
 
 ## Verification
 
-1. The Layouts spoon is properly listed in `loadConfig.lua` and should be loaded
-2. The Layouts spoon's `init.lua` provides the `chooseLayout()` function which shows a chooser dialog
-3. Configuration validation passes with `./validate.sh`
+1. ✅ Added `require('loadConfig')` to `init.lua` to ensure Spoons are loaded
+2. ✅ The Layouts spoon is properly listed in `loadConfig.lua` and should now be loaded
+3. ✅ The Layouts spoon's `init.lua` provides the `chooseLayout()` function which shows a chooser dialog
+4. ✅ Fixed the hotkey to call the correct `spoon.Layouts:chooseLayout()` function
+5. ✅ Configuration validation passes with `./validate.sh`
 
 ## Available Layouts Spoon Functions
 

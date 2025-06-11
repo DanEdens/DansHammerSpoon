@@ -11,6 +11,7 @@ _G.AppLogger = log
 log:d('Logger initialized', __FILE__, 10)
 
 -- Load additional modules as needed
+require('loadConfig')
 dofile(hs.configdir .. "/hotkeys.lua")
 
 -- Load the HammerGhost spoon
@@ -442,5 +443,3 @@ sandybrown = hs.drawing.color.x11.sandybrown
 black50 = { red = 0, blue = 0, green = 0, alpha = 0.5 }
 darkblue = { red = 24 / 255, blue = 195 / 255, green = 145 / 255, alpha = 1 }
 gray = { red = 246 / 255, blue = 246 / 255, green = 246 / 255, alpha = 0.3 }
-
-

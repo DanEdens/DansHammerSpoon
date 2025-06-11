@@ -14,6 +14,8 @@ log:i('Initializing window toggler system')
 
 local WindowManager = require('WindowManager')
 
+-- Define the persistence file path
+local LOCATIONS_FILE = os.getenv("HOME") .. "/.hammerspoon/data/window_locations.json"
 local WindowToggler = {
     -- Store positions by unique window identifier (app_name:window_title)
     savedPositions = {},
@@ -22,6 +24,74 @@ local WindowToggler = {
     location2 = {}
 }
 
+-- Helper function to ensure data directory exists
+local function ensureDataDirectory()
+    local dataDir = os.getenv("HOME") .. "/.hammerspoon/data"
+    hs.execute("mkdir -p '" .. dataDir .. "'")
+end
+
+-- Save locations to persistent storage
+local function saveLocations()
+    ensureDataDirectory()
+
+    local data = {
+        location1 = WindowToggler.location1,
+        location2 = WindowToggler.location2,
+        savedAt = os.time()
+    }
+
+    local success, result = pcall(function()
+        local jsonString = hs.json.encode(data)
+        local file = io.open(LOCATIONS_FILE, "w")
+        if file then
+            file:write(jsonString)
+            file:close()
+            return true
+        end
+        return false
+    end)
+
+    if success and result then
+        log:d('Window locations saved to:', LOCATIONS_FILE)
+    else
+        log:e('Failed to save window locations:', result)
+    end
+end
+
+-- Load locations from persistent storage
+local function loadLocations()
+    local success, result = pcall(function()
+        local file = io.open(LOCATIONS_FILE, "r")
+        if not file then
+            return nil
+        end
+
+        local jsonString = file:read("*all")
+        file:close()
+
+        if jsonString and jsonString ~= "" then
+            return hs.json.decode(jsonString)
+        end
+        return nil
+    end)
+
+    if success and result then
+        -- Restore the locations
+        WindowToggler.location1 = result.location1 or {}
+        WindowToggler.location2 = result.location2 or {}
+
+        local loc1Count = 0
+        local loc2Count = 0
+        for _ in pairs(WindowToggler.location1) do loc1Count = loc1Count + 1 end
+        for _ in pairs(WindowToggler.location2) do loc2Count = loc2Count + 1 end
+
+        log:i('Loaded window locations - Location 1:', loc1Count, 'Location 2:', loc2Count)
+    else
+        log:d('No saved window locations found or failed to load')
+        WindowToggler.location1 = {}
+        WindowToggler.location2 = {}
+    end
+end
 -- Helper function to get unique window identifier
 local function getWindowIdentifier(win)
     if not win then return nil end
@@ -122,6 +192,7 @@ function WindowToggler.saveToLocation1()
         local windowId = getWindowIdentifier(win)
         local currentFrame = win:frame()
         WindowToggler.location1[windowId] = currentFrame
+        saveLocations() -- Persist to file
         local app = win:application()
         local appName = app and app:name() or "Unknown"
         log:i('Saved location 1 for window:', windowId)
@@ -135,6 +206,7 @@ function WindowToggler.saveToLocation2()
         local windowId = getWindowIdentifier(win)
         local currentFrame = win:frame()
         WindowToggler.location2[windowId] = currentFrame
+        saveLocations() -- Persist to file
         local app = win:application()
         local appName = app and app:name() or "Unknown"
         log:i('Saved location 2 for window:', windowId)
@@ -186,6 +258,7 @@ function WindowToggler.clearSavedLocations(clearAll)
     if clearAll then
         WindowToggler.location1 = {}
         WindowToggler.location2 = {}
+        saveLocations() -- Persist to file
         log:i('Cleared all saved window locations')
         hs.alert.show("Cleared all saved locations")
     else
@@ -193,6 +266,7 @@ function WindowToggler.clearSavedLocations(clearAll)
             local windowId = getWindowIdentifier(win)
             WindowToggler.location1[windowId] = nil
             WindowToggler.location2[windowId] = nil
+            saveLocations() -- Persist to file
             local app = win:application()
             local appName = app and app:name() or "Unknown"
             log:i('Cleared saved locations for window:', windowId)
@@ -297,6 +371,8 @@ function WindowToggler.showLocationsMenu()
     end)
 end
 
+-- Initialize by loading saved locations
+loadLocations()
 -- Save in global environment for module reuse
 _G.WindowToggler = WindowToggler
 return WindowToggler

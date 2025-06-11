@@ -601,6 +601,7 @@ Perfect for managing multiple instances of the same application:
 ### Technical Implementation
 
 - **Singleton Pattern**: Module uses singleton to avoid re-initialization
-- **Persistent Storage**: Positions stored in module memory (resets on Hammerspoon reload)
+- **Persistent Storage**: Window locations (Location 1 and Location 2) are automatically saved to `~/.hammerspoon/data/window_locations.json` and persist across Hammerspoon reloads
 - **Error Handling**: Graceful handling of closed windows and missing applications
 - **Smart Comparison**: Fuzzy position matching for "nearly full" detection (±10 pixel tolerance)
+- **Automatic Persistence**: Locations are saved immediately when changed and restored on module initialization

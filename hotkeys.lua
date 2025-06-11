@@ -63,7 +63,7 @@ hs.hotkey.bind(hammer, "6", "Left Small Layout", function() WindowManager.toggle
 hs.hotkey.bind(_hyper, "6", "Left Half Layout", function() WindowManager.applyLayout('leftHalf') end)
 hs.hotkey.bind(hammer, "7", "Toggle Right Layout", function() WindowManager.toggleRightLayout() end)
 hs.hotkey.bind(_hyper, "7", "Right Half Layout", function() WindowManager.applyLayout('rightHalf') end)
-hs.hotkey.bind(hammer, "8", "Show Layouts Menu", function() FileManager.showLayoutsMenu() end)
+hs.hotkey.bind(hammer, "8", "Show Layouts Menu", function() spoon.Layouts:chooseLayout() end)
 hs.hotkey.bind(_hyper, "8", "Open System Preferences", function() AppManager.open_system_preferences() end)
 hs.hotkey.bind(hammer, "9", "Move Window to Mouse", function() WindowManager.moveWindowMouseCenter() end)
 hs.hotkey.bind(_hyper, "9", "Open Selected File", function() FileManager.openSelectedFile() end)
@@ -160,10 +160,10 @@ hs.hotkey.bind(_hyper, "k", "Hide Project Manager UI", function() ProjectManager
 -- hs.hotkey.bind(_hyper, "c", function() FileManager.clearClipboard() end)
 
 -- Window Location Management (using available letter keys)
-hs.hotkey.bind(hammer, "o", "Save Window to Location 1", function() WindowToggler.saveToLocation1() end)
-hs.hotkey.bind(_hyper, "o", "Restore Window to Location 1", function() WindowToggler.restoreToLocation1() end)
-hs.hotkey.bind(hammer, "n", "Save Window to Location 2", function() WindowToggler.saveToLocation2() end)
-hs.hotkey.bind(_hyper, "n", "Restore Window to Location 2", function() WindowToggler.restoreToLocation2() end)
+hs.hotkey.bind(hammer, "o", "Restore Window to Location 1", function() WindowToggler.restoreToLocation1() end)
+hs.hotkey.bind(_hyper, "o", "Save Window to Location 1", function() WindowToggler.saveToLocation1() end)
+hs.hotkey.bind(hammer, "n", "Restore Window to Location 2", function() WindowToggler.restoreToLocation2() end)
+hs.hotkey.bind(_hyper, "n", "Save Window to Location 2", function() WindowToggler.saveToLocation2() end)
 
 -- Add window toggle hotkeys
 hs.hotkey.bind(hammer, "w", "Toggle Window Position", function() WindowToggler.toggleWindowPosition() end)

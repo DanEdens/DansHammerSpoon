@@ -1,3 +1,6 @@
 [submodule "Spoons/Layouts.spoon"]
 	path = Spoons/Layouts.spoon
 	url = https://github.com/DanEdens/Layouts.spoon.git
+[submodule "data"]
+	path = data
+	url = https://github.com/DanEdens/DansDesktopLayouts

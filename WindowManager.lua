@@ -39,148 +39,365 @@ local WindowManager = {
     -- Toggle layout state tracking
     rightLayoutState = { isSmall = true },
     leftLayoutState = { isSmall = true },
-    fullLayoutState = { currentState = 0 } -- 0: fullScreen, 1: nearlyFull, 2: trueFull
+    fullLayoutState = { currentState = 0 }, -- 0: fullScreen, 1: nearlyFull, 2: trueFull
+
+    -- Monitor configuration tracking
+    currentMonitorConfig = "unknown",
+    detectedScreens = {},
+    layoutSets = {}
 }
 
--- Layouts
-local miniLayouts = {
-    { -- Layout 1
-        x = function(max) return max.x + (max.w * 0.72) end,
-        y = function(max) return max.y + (max.h * 0.01) + 25 end,
-        w = function(max) return max.w * 0.26 end,
-        h = function(max) return max.h * 0.97 end
-    },
-    { -- Layout 2
-        x = function(max) return max.x + (max.w * 0.76) end,
-        y = function(max) return max.y + (max.h * 0.01) - 25 end,
-        w = function(max) return max.w * 0.24 end,
-        h = function(max) return max.h * 0.97 end
-    },
-    { -- Layout 3
-        x = function(max) return max.x + (max.w * 0.7) end,
-        y = function(max) return max.y + (max.h * 0.01) - 30 end,
-        w = function(max) return max.w * 0.5 end,
-        h = function(max) return max.h * 0.9 end
-    },
-    { -- Layout 4
-        x = function(max) return max.x + (max.w * 0.5) end,
-        y = function(max) return max.y + (max.h * 0.01) end,
-        w = function(max) return max.w * 0.5 end,
-        h = function(max) return max.h * 0.9 end
+-- Monitor Configuration Detection
+function WindowManager.detectMonitorConfiguration()
+    local screens = hs.screen.allScreens()
+    local screenCount = #screens
+    local config = {
+        count = screenCount,
+        primary = hs.screen.mainScreen():name(),
+        screens = {}
     }
-}
 
-local standardLayouts = {
-    fullScreen = { -- Full screen
-        x = function(max) return max.x + 35 end,
-        y = function(max) return max.y + 35 end,
-        w = function(max) return max.w - 70 end,
-        h = function(max) return max.h - 70 end
-    },
-    trueFull = { -- 100% centered
-        x = function(max) return max.x end,
-        y = function(max) return max.y end,
-        w = function(max) return max.w end,
-        h = function(max) return max.h end
-    },
-    nearlyFull = { -- 90% centered
-        x = function(max) return max.x + (max.w * 0.05) end,
-        y = function(max) return max.y + (max.h * 0.05) end,
-        w = function(max) return max.w - (max.w * 0.1) end,
-        h = function(max) return max.h - (max.h * 0.1) end
-    },
-    sevenByFive = { -- 70% centered
-        x = function(max) return max.x + (max.w * 0.15) end,
-        y = function(max) return max.y + (max.h * 0.15) end,
-        w = function(max) return max.w - (max.w * 0.3) end,
-        h = function(max) return max.h - (max.h * 0.3) end
-    },
-    leftHalf = { -- Left half
-        x = function(max) return max.x end,
-        y = function(max) return max.y end,
-        w = function(max) return max.w / 2 end,
-        h = function(max) return max.h end
-    },
-    rightHalf = { -- Right half
-        x = function(max) return max.x + (max.w / 2) end,
-        y = function(max) return max.y end,
-        w = function(max) return max.w / 2 end,
-        h = function(max) return max.h end
-    },
-    leftSmall = { -- Small left side
-        x = function(max) return max.x end,
-        y = function(max) return max.y + (max.h * 0.1) end,
-        w = function(max) return max.w * 0.4 end,
-        h = function(max) return max.h * 0.8 end
-    },
-    rightSmall = { -- Small right side
-        x = function(max) return max.x + (max.w * 0.6) end,
-        y = function(max) return max.y + (max.h * 0.1) end,
-        w = function(max) return max.w * 0.4 end,
-        h = function(max) return max.h * 0.8 end
-    },
-    topLeft = { -- Top left corner
-        x = function(max) return max.x end,
-        y = function(max) return max.y end,
-        w = function(max) return max.w / 2 end,
-        h = function(max) return max.h / 2 end
-    },
-    topRight = { -- Top right corner
-        x = function(max) return max.x + (max.w / 2) end,
-        y = function(max) return max.y end,
-        w = function(max) return max.w / 2 end,
-        h = function(max) return max.h / 2 end
-    },
-    bottomLeft = { -- Bottom left corner
-        x = function(max) return max.x end,
-        y = function(max) return max.y + (max.h / 2) end,
-        w = function(max) return max.w / 2 end,
-        h = function(max) return max.h / 2 end
-    },
-    bottomRight = { -- Bottom right corner
-        x = function(max) return max.x + (max.w / 2) end,
-        y = function(max) return max.y + (max.h / 2) end,
-        w = function(max) return max.w / 2 end,
-        h = function(max) return max.h / 2 end
-    },
-    leftWide = { -- 72% left side
-        x = function(max) return max.x + 30 end,
-        y = function(max) return max.y + (max.h * 0.01) end,
-        w = function(max) return max.w * 0.72 - 30 end,
-        h = function(max) return max.h * 0.98 end
-    },
-    rightNarrow = { -- 27% right side
-        x = function(max) return max.x + (max.w * 0.73) end,
-        y = function(max) return max.y + (max.h * 0.01) end,
-        w = function(max) return max.w * 0.27 end,
-        h = function(max) return max.h * 0.98 end
-    },
-    splitVertical = { -- Top half
-        x = function(max) return max.x end,
-        y = function(max) return max.y end,
-        w = function(max) return max.w end,
-        h = function(max) return max.h / 2 end
-    },
-    splitHorizontal = { -- Bottom half
-        x = function(max) return max.x end,
-        y = function(max) return max.y + (max.h / 2) end,
-        w = function(max) return max.w end,
-        h = function(max) return max.h / 2 end
-    },
-    centerScreen = { -- 80% centered
-        x = function(max) return max.x + (max.w * 0.1) end,
-        y = function(max) return max.y + (max.h * 0.1) end,
-        w = function(max) return max.w - (max.w * 0.2) end,
-        h = function(max) return max.h - (max.h * 0.2) end
-    },
-    bottomHalf = { -- Bottom half
-        x = function(max) return max.x end,
-        y = function(max) return max.y + (max.h / 2) end,
-        w = function(max) return max.w end,
-        h = function(max) return max.h / 2 end
+    -- Collect screen information
+    for i, screen in ipairs(screens) do
+        local frame = screen:frame()
+        table.insert(config.screens, {
+            name = screen:name(),
+            uuid = screen:getUUID(),
+            frame = frame,
+            size = string.format("%dx%d", frame.w, frame.h),
+            position = string.format("%.0f,%.0f", frame.x, frame.y)
+        })
+    end
+
+    -- Determine configuration type
+    local configType
+    if screenCount == 1 then
+        configType = "laptop"
+    elseif screenCount == 2 then
+        configType = "dual_monitor"
+    elseif screenCount == 3 then
+        configType = "triple_monitor"
+    else
+        configType = "multi_monitor"
+    end
+
+    config.type = configType
+    WindowManager.currentMonitorConfig = configType
+    WindowManager.detectedScreens = config.screens
+
+    log:i('Detected monitor configuration:', configType, 'with', screenCount, 'screens')
+    log:d('Screen configuration details:', hs.inspect(config))
+
+    return config
+end
+
+-- Layout Sets for Different Monitor Configurations
+local function initializeLayoutSets()
+    WindowManager.layoutSets = {
+        laptop = {
+            miniLayouts = {
+                { -- Layout 1 - More compact for laptop screen
+                    x = function(max) return max.x + (max.w * 0.75) end,
+                    y = function(max) return max.y + (max.h * 0.02) end,
+                    w = function(max) return max.w * 0.24 end,
+                    h = function(max) return max.h * 0.96 end
+                },
+                { -- Layout 2 - Small window mode
+                    x = function(max) return max.x + (max.w * 0.6) end,
+                    y = function(max) return max.y + (max.h * 0.1) end,
+                    w = function(max) return max.w * 0.38 end,
+                    h = function(max) return max.h * 0.8 end
+                },
+                { -- Layout 3 - Half screen
+                    x = function(max) return max.x + (max.w * 0.5) end,
+                    y = function(max) return max.y end,
+                    w = function(max) return max.w * 0.5 end,
+                    h = function(max) return max.h end
+                }
+            },
+            standardLayouts = {
+                fullScreen = {
+                    x = function(max) return max.x + 20 end,
+                    y = function(max) return max.y + 20 end,
+                    w = function(max) return max.w - 40 end,
+                    h = function(max) return max.h - 40 end
+                },
+                leftHalf = {
+                    x = function(max) return max.x end,
+                    y = function(max) return max.y end,
+                    w = function(max) return max.w / 2 end,
+                    h = function(max) return max.h end
+                },
+                rightHalf = {
+                    x = function(max) return max.x + (max.w / 2) end,
+                    y = function(max) return max.y end,
+                    w = function(max) return max.w / 2 end,
+                    h = function(max) return max.h end
+                },
+                leftSmall = {
+                    x = function(max) return max.x end,
+                    y = function(max) return max.y + (max.h * 0.1) end,
+                    w = function(max) return max.w * 0.4 end,
+                    h = function(max) return max.h * 0.8 end
+                },
+                rightSmall = {
+                    x = function(max) return max.x + (max.w * 0.6) end,
+                    y = function(max) return max.y + (max.h * 0.1) end,
+                    w = function(max) return max.w * 0.4 end,
+                    h = function(max) return max.h * 0.8 end
+                }
+            }
+        },
+
+        dual_monitor = {
+            miniLayouts = {
+                { -- Layout 1 - Right side of primary
+                    x = function(max) return max.x + (max.w * 0.72) end,
+                    y = function(max) return max.y + (max.h * 0.01) + 25 end,
+                    w = function(max) return max.w * 0.26 end,
+                    h = function(max) return max.h * 0.97 end
+                },
+                { -- Layout 2 - Narrow right side
+                    x = function(max) return max.x + (max.w * 0.76) end,
+                    y = function(max) return max.y + (max.h * 0.01) - 25 end,
+                    w = function(max) return max.w * 0.24 end,
+                    h = function(max) return max.h * 0.97 end
+                },
+                { -- Layout 3 - Wide right side
+                    x = function(max) return max.x + (max.w * 0.7) end,
+                    y = function(max) return max.y + (max.h * 0.01) - 30 end,
+                    w = function(max) return max.w * 0.5 end,
+                    h = function(max) return max.h * 0.9 end
+                },
+                { -- Layout 4 - Half screen
+                    x = function(max) return max.x + (max.w * 0.5) end,
+                    y = function(max) return max.y + (max.h * 0.01) end,
+                    w = function(max) return max.w * 0.5 end,
+                    h = function(max) return max.h * 0.9 end
+                }
+            },
+            standardLayouts = {
+                fullScreen = {
+                    x = function(max) return max.x + 35 end,
+                    y = function(max) return max.y + 35 end,
+                    w = function(max) return max.w - 70 end,
+                    h = function(max) return max.h - 70 end
+                },
+                leftWide = {
+                    x = function(max) return max.x + 30 end,
+                    y = function(max) return max.y + (max.h * 0.01) end,
+                    w = function(max) return max.w * 0.72 - 30 end,
+                    h = function(max) return max.h * 0.98 end
+                },
+                rightNarrow = {
+                    x = function(max) return max.x + (max.w * 0.73) end,
+                    y = function(max) return max.y + (max.h * 0.01) end,
+                    w = function(max) return max.w * 0.27 end,
+                    h = function(max) return max.h * 0.98 end
+                }
+            }
+        },
+
+        triple_monitor = {
+            miniLayouts = {
+                { -- Layout 1 - Far right monitor small
+                    x = function(max) return max.x + (max.w * 0.85) end,
+                    y = function(max) return max.y + (max.h * 0.05) end,
+                    w = function(max) return max.w * 0.14 end,
+                    h = function(max) return max.h * 0.9 end
+                },
+                { -- Layout 2 - Center monitor right side
+                    x = function(max) return max.x + (max.w * 0.75) end,
+                    y = function(max) return max.y + (max.h * 0.02) end,
+                    w = function(max) return max.w * 0.24 end,
+                    h = function(max) return max.h * 0.96 end
+                },
+                { -- Layout 3 - Full right monitor
+                    x = function(max) return max.x + (max.w * 0.67) end,
+                    y = function(max) return max.y end,
+                    w = function(max) return max.w * 0.33 end,
+                    h = function(max) return max.h end
+                }
+            },
+            standardLayouts = {
+                fullScreen = {
+                    x = function(max) return max.x + 50 end,
+                    y = function(max) return max.y + 50 end,
+                    w = function(max) return max.w - 100 end,
+                    h = function(max) return max.h - 100 end
+                },
+                leftThird = {
+                    x = function(max) return max.x end,
+                    y = function(max) return max.y end,
+                    w = function(max) return max.w / 3 end,
+                    h = function(max) return max.h end
+                },
+                centerThird = {
+                    x = function(max) return max.x + (max.w / 3) end,
+                    y = function(max) return max.y end,
+                    w = function(max) return max.w / 3 end,
+                    h = function(max) return max.h end
+                },
+                rightThird = {
+                    x = function(max) return max.x + (max.w * 2 / 3) end,
+                    y = function(max) return max.y end,
+                    w = function(max) return max.w / 3 end,
+                    h = function(max) return max.h end
+                },
+                leftTwoThirds = {
+                    x = function(max) return max.x end,
+                    y = function(max) return max.y end,
+                    w = function(max) return max.w * 2 / 3 end,
+                    h = function(max) return max.h end
+                },
+                rightTwoThirds = {
+                    x = function(max) return max.x + (max.w / 3) end,
+                    y = function(max) return max.y end,
+                    w = function(max) return max.w * 2 / 3 end,
+                    h = function(max) return max.h end
+                }
+            }
+        }
     }
-}
 
+    -- Add common layouts to all configurations
+    for _, layoutSet in pairs(WindowManager.layoutSets) do
+        local commonLayouts = {
+            trueFull = {
+                x = function(max) return max.x end,
+                y = function(max) return max.y end,
+                w = function(max) return max.w end,
+                h = function(max) return max.h end
+            },
+            nearlyFull = {
+                x = function(max) return max.x + (max.w * 0.05) end,
+                y = function(max) return max.y + (max.h * 0.05) end,
+                w = function(max) return max.w - (max.w * 0.1) end,
+                h = function(max) return max.h - (max.h * 0.1) end
+            },
+            topHalf = {
+                x = function(max) return max.x end,
+                y = function(max) return max.y end,
+                w = function(max) return max.w end,
+                h = function(max) return max.h / 2 end
+            },
+            bottomHalf = {
+                x = function(max) return max.x end,
+                y = function(max) return max.y + (max.h / 2) end,
+                w = function(max) return max.w end,
+                h = function(max) return max.h / 2 end
+            },
+            topLeft = {
+                x = function(max) return max.x end,
+                y = function(max) return max.y end,
+                w = function(max) return max.w / 2 end,
+                h = function(max) return max.h / 2 end
+            },
+            topRight = {
+                x = function(max) return max.x + (max.w / 2) end,
+                y = function(max) return max.y end,
+                w = function(max) return max.w / 2 end,
+                h = function(max) return max.h / 2 end
+            },
+            bottomLeft = {
+                x = function(max) return max.x end,
+                y = function(max) return max.y + (max.h / 2) end,
+                w = function(max) return max.w / 2 end,
+                h = function(max) return max.h / 2 end
+            },
+            bottomRight = {
+                x = function(max) return max.x + (max.w / 2) end,
+                y = function(max) return max.y + (max.h / 2) end,
+                w = function(max) return max.w / 2 end,
+                h = function(max) return max.h / 2 end
+            },
+            centerScreen = {
+                x = function(max) return max.x + (max.w * 0.1) end,
+                y = function(max) return max.y + (max.h * 0.1) end,
+                w = function(max) return max.w - (max.w * 0.2) end,
+                h = function(max) return max.h - (max.h * 0.2) end
+            }
+        }
+
+        -- Merge common layouts into each configuration
+        for name, layout in pairs(commonLayouts) do
+            if not layoutSet.standardLayouts[name] then
+                layoutSet.standardLayouts[name] = layout
+            end
+        end
+    end
+end
+
+-- Get current layouts based on monitor configuration
+function WindowManager.getCurrentLayouts()
+    local config = WindowManager.currentMonitorConfig
+    if config == "unknown" then
+        WindowManager.detectMonitorConfiguration()
+        config = WindowManager.currentMonitorConfig
+    end
+
+    local layoutSet = WindowManager.layoutSets[config]
+    if not layoutSet then
+        log:w('No layout set found for configuration:', config, 'using dual_monitor as fallback')
+        layoutSet = WindowManager.layoutSets.dual_monitor
+    end
+
+    return layoutSet.miniLayouts, layoutSet.standardLayouts
+end
+
+-- Legacy layout definitions (now populated by current configuration)
+local miniLayouts = {}
+local standardLayouts = {}
+
+-- Initialize the layout system
+function WindowManager.initializeLayouts()
+    initializeLayoutSets()
+    WindowManager.detectMonitorConfiguration()
+
+    -- Update legacy layout variables
+    local currentMini, currentStandard = WindowManager.getCurrentLayouts()
+    miniLayouts = currentMini
+    standardLayouts = currentStandard
+
+    log:i('Layout system initialized for configuration:', WindowManager.currentMonitorConfig)
+end
+
+-- Function to manually refresh layouts (useful when monitors are connected/disconnected)
+function WindowManager.refreshLayouts()
+    log:i('Refreshing layouts due to monitor configuration change')
+    local oldConfig = WindowManager.currentMonitorConfig
+    WindowManager.detectMonitorConfiguration()
+    local newConfig = WindowManager.currentMonitorConfig
+
+    if oldConfig ~= newConfig then
+        log:i('Monitor configuration changed from', oldConfig, 'to', newConfig)
+        local currentMini, currentStandard = WindowManager.getCurrentLayouts()
+        miniLayouts = currentMini
+        standardLayouts = currentStandard
+        hs.alert.show(string.format("Layout updated for %s setup", newConfig:gsub("_", " ")))
+    else
+        log:d('Monitor configuration unchanged:', newConfig)
+    end
+end
+
+-- Monitor configuration info function
+function WindowManager.showMonitorInfo()
+    local config = WindowManager.detectMonitorConfiguration()
+    local info = string.format("Monitor Setup: %s (%d screens)\n",
+        config.type:gsub("_", " "), config.count)
+
+    for i, screen in ipairs(config.screens) do
+        info = info .. string.format("Screen %d: %s (%s)\n",
+            i, screen.name, screen.size)
+    end
+
+    hs.alert.show(info, 4)
+    log:i('Monitor configuration info displayed')
+    return config
+end
+
+-- Initialize layout system on module load
+WindowManager.initializeLayouts()
 local function calculatePosition(counter, max, rows)
     WindowManager.row = math.floor(counter / WindowManager.cols)
     local col = counter % WindowManager.cols
@@ -197,8 +414,10 @@ function WindowManager.miniShuffle()
     local screen = win:screen()
     local max = screen:frame()
 
+    -- Get current layout set
+    local currentMini, _ = WindowManager.getCurrentLayouts()
     -- Get current layout based on counter
-    local layout = miniLayouts[(WindowManager.counter % #miniLayouts) + 1]
+    local layout = currentMini[(WindowManager.counter % #currentMini) + 1]
 
     -- Create new frame using layout functions
     local newFrame = hs.geometry.rect(
@@ -213,7 +432,7 @@ function WindowManager.miniShuffle()
     WindowManager.currentFrame = newFrame
 
     -- Increment counter
-    WindowManager.counter = (WindowManager.counter + 1) % #miniLayouts
+    WindowManager.counter = (WindowManager.counter + 1) % #currentMini
 end
 
 function WindowManager.halfShuffle(numRows, numCols)
@@ -257,9 +476,12 @@ function WindowManager.applyLayout(layoutName)
         return
     end
 
-    local layout = standardLayouts[layoutName]
+    -- Get current layout set
+    local _, currentStandard = WindowManager.getCurrentLayouts()
+    local layout = currentStandard[layoutName]
     if not layout then
         hs.alert.show('Invalid layout name: ' .. layoutName)
+        log:w('Invalid layout requested:', layoutName, 'for configuration:', WindowManager.currentMonitorConfig)
         return
     end
 
@@ -282,7 +504,7 @@ function WindowManager.applyLayout(layoutName)
 
     -- Log the result
     if success then
-        log.i('Successfully applied layout:', layoutName)
+        log.i('Successfully applied layout:', layoutName, 'for', WindowManager.currentMonitorConfig)
     else
         log.w('Applied layout with potential issues:', layoutName)
     end

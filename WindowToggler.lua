@@ -14,14 +14,36 @@ log:i('Initializing window toggler system')
 
 local WindowManager = require('WindowManager')
 
--- Define the persistence file path
-local LOCATIONS_FILE = os.getenv("HOME") .. "/.hammerspoon/data/window_locations.json"
+-- Monitor configuration detection
+local function detectMonitorConfiguration()
+    local screens = hs.screen.allScreens()
+    local screenCount = #screens
+
+    if screenCount == 1 then
+        return "laptop"
+    elseif screenCount == 2 then
+        return "dual_monitor"
+    elseif screenCount == 3 then
+        return "triple_monitor"
+    else
+        return "multi_monitor"
+    end
+end
+
+-- Get configuration-specific file path
+local function getLocationsFilePath()
+    local config = detectMonitorConfiguration()
+    local dataDir = os.getenv("HOME") .. "/.hammerspoon/data"
+    return dataDir .. "/window_locations_" .. config .. ".json"
+end
 local WindowToggler = {
     -- Store positions by unique window identifier (app_name:window_title)
     savedPositions = {},
     -- Store specific save locations (location1, location2) by window identifier
     location1 = {},
-    location2 = {}
+    location2 = {},
+    -- Current monitor configuration
+    currentConfig = detectMonitorConfiguration()
 }
 
 -- Helper function to ensure data directory exists
@@ -76,7 +98,7 @@ local function saveLocations()
 
     local success, result = pcall(function()
         local jsonString = hs.json.encode(data)
-        local file = io.open(LOCATIONS_FILE, "w")
+        local file = io.open(getLocationsFilePath(), "w")
         if file then
             file:write(jsonString)
             file:close()
@@ -86,7 +108,7 @@ local function saveLocations()
     end)
 
     if success and result then
-        log:d('Window locations saved to:', LOCATIONS_FILE)
+        log:d('Window locations saved to:', getLocationsFilePath())
     else
         log:e('Failed to save window locations:', result)
     end
@@ -95,7 +117,7 @@ end
 -- Load locations from persistent storage
 local function loadLocations()
     local success, result = pcall(function()
-        local file = io.open(LOCATIONS_FILE, "r")
+        local file = io.open(getLocationsFilePath(), "r")
         if not file then
             return nil
         end
@@ -119,9 +141,10 @@ local function loadLocations()
         for _ in pairs(WindowToggler.location1) do loc1Count = loc1Count + 1 end
         for _ in pairs(WindowToggler.location2) do loc2Count = loc2Count + 1 end
 
-        log:i('Loaded window locations - Location 1:', loc1Count, 'Location 2:', loc2Count)
+        log:i('Loaded window locations for', WindowToggler.currentConfig, '- Location 1:', loc1Count, 'Location 2:',
+            loc2Count)
     else
-        log:d('No saved window locations found or failed to load')
+        log:d('No saved window locations found for', WindowToggler.currentConfig)
         WindowToggler.location1 = {}
         WindowToggler.location2 = {}
     end
@@ -440,8 +463,81 @@ function WindowToggler.showLocationsMenu()
     end)
 end
 
+-- Refresh configuration when monitors change
+function WindowToggler.refreshConfiguration()
+    local oldConfig = WindowToggler.currentConfig
+    local newConfig = detectMonitorConfiguration()
+
+    if oldConfig ~= newConfig then
+        log:i('Monitor configuration changed from', oldConfig, 'to', newConfig)
+        WindowToggler.currentConfig = newConfig
+
+        -- Save current locations before switching
+        if next(WindowToggler.location1) or next(WindowToggler.location2) then
+            saveLocations()
+            log:i('Saved window locations for', oldConfig, 'configuration')
+        end
+
+        -- Load locations for new configuration
+        loadLocations()
+
+        hs.alert.show(string.format("Switched to %s window locations", newConfig:gsub("_", " ")))
+        return true
+    else
+        log:d('Monitor configuration unchanged:', newConfig)
+        return false
+    end
+end
+
+-- Show current configuration info
+function WindowToggler.showConfigurationInfo()
+    local config = WindowToggler.currentConfig
+    local loc1Count = 0
+    local loc2Count = 0
+
+    for _ in pairs(WindowToggler.location1) do loc1Count = loc1Count + 1 end
+    for _ in pairs(WindowToggler.location2) do loc2Count = loc2Count + 1 end
+
+    local info = string.format("Window Locations: %s\nLocation 1: %d windows\nLocation 2: %d windows\nFile: %s",
+        config:gsub("_", " "), loc1Count, loc2Count, getLocationsFilePath():match("[^/]+$"))
+
+    hs.alert.show(info, 3)
+    log:i('Configuration info displayed for', config)
+end
+
+-- Migrate existing window_locations.json to configuration-specific file
+local function migrateExistingLocations()
+    local oldFile = os.getenv("HOME") .. "/.hammerspoon/data/window_locations.json"
+    local newFile = getLocationsFilePath()
+
+    -- Check if old file exists and new file doesn't
+    local oldExists = io.open(oldFile, "r")
+    local newExists = io.open(newFile, "r")
+
+    if oldExists and not newExists then
+        oldExists:close()
+        if newExists then newExists:close() end
+
+        -- Copy old file to new location
+        local success = os.execute(string.format("cp '%s' '%s'", oldFile, newFile))
+        if success then
+            log:i('Migrated existing window locations to', WindowToggler.currentConfig, 'configuration')
+            hs.alert.show("Migrated window locations to " .. WindowToggler.currentConfig:gsub("_", " ") .. " setup")
+
+            -- Optionally rename the old file as backup
+            os.execute(string.format("mv '%s' '%s.backup'", oldFile, oldFile))
+        else
+            log:e('Failed to migrate window locations file')
+        end
+    else
+        if oldExists then oldExists:close() end
+        if newExists then newExists:close() end
+    end
+end
 -- Initialize by loading saved locations
+migrateExistingLocations()
 loadLocations()
+
 -- Save in global environment for module reuse
 _G.WindowToggler = WindowToggler
 return WindowToggler

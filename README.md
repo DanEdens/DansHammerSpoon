@@ -535,7 +535,7 @@ The WindowToggler system has been significantly enhanced to provide advanced win
 1. **Multiple Save Locations**: Save window positions to Location 1 and Location 2 for each window
 2. **Smart Window Identification**: Uses app name + window title for unique identification (handles multiple Cursor windows, etc.)
 3. **Window Selection Menu**: Automatically shows window picker when no window is focused
-4. **Original Toggle Functionality**: Toggle between current position and "nearly full" layout
+4. **Location Toggle Functionality**: Quickly cycle between Location 1 and Location 2 with a single hotkey
 
 ### Window Identification System
 
@@ -549,7 +549,7 @@ Windows are identified using the format: `AppName:WindowTitle`
 
 | Hotkey | Function | Description |
 |--------|----------|-------------|
-| `Cmd+Ctrl+Alt+W` | Toggle Window Position | Toggle between saved position and nearly full layout |
+| `Cmd+Ctrl+Alt+W` | Toggle Between Locations | Cycle between Location 1 and Location 2, or save current position if none exist |
 | `Cmd+Shift+Ctrl+Alt+W` | Window Locations Menu | Show interactive menu for window location management |
 | `Cmd+Ctrl+Alt+O` | Save to Location 1 | Save current window position to Location 1 |
 | `Cmd+Shift+Ctrl+Alt+O` | Restore to Location 1 | Restore window to saved Location 1 |
@@ -563,9 +563,9 @@ Windows are identified using the format: `AppName:WindowTitle`
 
 #### Basic Window Toggle
 
-1. Position a window where you want it
-2. Press `Cmd+Ctrl+Alt+W` to save position and move to nearly full
-3. Press `Cmd+Ctrl+Alt+W` again to restore original position
+1. Position a window where you want it and press `Cmd+Ctrl+Alt+W` - this saves the position as Location 1
+2. Move the window to a second position and press `Cmd+Ctrl+Alt+W` again - this saves the second position as Location 2
+3. Press `Cmd+Ctrl+Alt+W` repeatedly to cycle between Location 1 and Location 2
 
 #### Multiple Location Management
 

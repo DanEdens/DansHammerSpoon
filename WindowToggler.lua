@@ -143,7 +143,7 @@ local function getTargetWindow(callback)
         callback(win)
         return
     end
-    
+
     -- No focused window, show window picker
     local allWindows = hs.window.allWindows()
     local visibleWindows = {}
@@ -177,46 +177,80 @@ local function getTargetWindow(callback)
     chooser:show()
 end
 
--- Toggle a window between its current position and nearly full
+-- Toggle a window between Location 1 and Location 2
 function WindowToggler.toggleWindowPosition()
     getTargetWindow(function(win)
         local windowId = getWindowIdentifier(win)
         local currentFrame = win:frame()
+        local app = win:application()
+        local appName = app and app:name() or "Unknown"
 
-        -- If we have a saved position for this window
-        if WindowToggler.savedPositions[windowId] then
-            -- Check if current position is roughly the "nearlyFull" layout
-            local screen = win:screen()
-            local max = screen:frame()
-            local nearlyFullX = max.x + (max.w * 0.1)
-            local nearlyFullY = max.y + (max.h * 0.1)
-            local nearlyFullW = max.w * 0.8
-            local nearlyFullH = max.h * 0.8
+        local hasLocation1 = WindowToggler.location1[windowId] ~= nil
+        local hasLocation2 = WindowToggler.location2[windowId] ~= nil
 
-            -- Check if current position is similar to nearlyFull layout
-            local isNearlyFull = math.abs(currentFrame.x - nearlyFullX) < 10 and
-                math.abs(currentFrame.y - nearlyFullY) < 10 and
-                math.abs(currentFrame.w - nearlyFullW) < 10 and
-                math.abs(currentFrame.h - nearlyFullH) < 10
+        -- Helper function to check if current position matches a saved location (within tolerance)
+        local function positionMatches(savedFrame, tolerance)
+            if not savedFrame then return false end
+            tolerance = tolerance or 10
+            return math.abs(currentFrame.x - savedFrame.x) < tolerance and
+                math.abs(currentFrame.y - savedFrame.y) < tolerance and
+                math.abs(currentFrame.w - savedFrame.w) < tolerance and
+                math.abs(currentFrame.h - savedFrame.h) < tolerance
+        end
 
-            if isNearlyFull then
-                -- Restore the saved position
-                win:setFrame(WindowToggler.savedPositions[windowId])
-                log:i('Restored saved position for window:', windowId)
-                hs.alert.show("Restored window position")
+        -- Determine toggle behavior based on current position and available locations
+        if hasLocation1 and hasLocation2 then
+            -- Both locations exist - cycle between them
+            if positionMatches(WindowToggler.location1[windowId]) then
+                -- Currently at Location 1, move to Location 2
+                win:setFrame(WindowToggler.location2[windowId])
+                log:i('Toggled from Location 1 to Location 2 for window:', windowId)
+                hs.alert.show(appName .. ": Location 1 → Location 2")
+            elseif positionMatches(WindowToggler.location2[windowId]) then
+                -- Currently at Location 2, move to Location 1
+                win:setFrame(WindowToggler.location1[windowId])
+                log:i('Toggled from Location 2 to Location 1 for window:', windowId)
+                hs.alert.show(appName .. ": Location 2 → Location 1")
             else
-                -- Save current position and move to nearlyFull
-                WindowToggler.savedPositions[windowId] = currentFrame
-                WindowManager.applyLayout('nearlyFull')
-                log:i('Saved position and applied nearlyFull layout for window:', windowId)
-                hs.alert.show("Applied nearly full layout")
+                -- Not at either location, go to Location 1 by default
+                win:setFrame(WindowToggler.location1[windowId])
+                log:i('Moved to Location 1 from unknown position for window:', windowId)
+                hs.alert.show(appName .. ": → Location 1")
+            end
+        elseif hasLocation1 then
+            -- Only Location 1 exists
+            if positionMatches(WindowToggler.location1[windowId]) then
+                -- Currently at Location 1, save current position as Location 2 and move there
+                WindowToggler.location2[windowId] = currentFrame
+                saveLocations()
+                hs.alert.show(appName .. ": Saved current position as Location 2")
+                log:i('Saved current position as Location 2 for window:', windowId)
+            else
+                -- Not at Location 1, move to Location 1
+                win:setFrame(WindowToggler.location1[windowId])
+                log:i('Moved to Location 1 for window:', windowId)
+                hs.alert.show(appName .. ": → Location 1")
+            end
+        elseif hasLocation2 then
+            -- Only Location 2 exists
+            if positionMatches(WindowToggler.location2[windowId]) then
+                -- Currently at Location 2, save current position as Location 1 and move there
+                WindowToggler.location1[windowId] = currentFrame
+                saveLocations()
+                hs.alert.show(appName .. ": Saved current position as Location 1")
+                log:i('Saved current position as Location 1 for window:', windowId)
+            else
+                -- Not at Location 2, move to Location 2
+                win:setFrame(WindowToggler.location2[windowId])
+                log:i('Moved to Location 2 for window:', windowId)
+                hs.alert.show(appName .. ": → Location 2")
             end
         else
-            -- First time seeing this window, save position and apply nearlyFull
-            WindowToggler.savedPositions[windowId] = currentFrame
-            WindowManager.applyLayout('nearlyFull')
-            log:i('First time: saved position and applied nearlyFull layout for window:', windowId)
-            hs.alert.show("Applied nearly full layout")
+            -- No saved locations exist, save current position as Location 1
+            WindowToggler.location1[windowId] = currentFrame
+            saveLocations()
+            log:i('Saved current position as Location 1 for window:', windowId)
+            hs.alert.show(appName .. ": Saved current position as Location 1")
         end
     end)
 end
@@ -399,7 +433,7 @@ function WindowToggler.showLocationsMenu()
                 WindowToggler.clearSavedLocations(false)
             end
         end)
-        
+
         chooser:placeholderText("Window Locations for " .. appName)
         chooser:choices(menuItems)
         chooser:show()

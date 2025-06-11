@@ -122,18 +122,6 @@ local function initializeLayoutSets()
                     w = function(max) return max.w - 40 end,
                     h = function(max) return max.h - 40 end
                 },
-                leftHalf = {
-                    x = function(max) return max.x end,
-                    y = function(max) return max.y end,
-                    w = function(max) return max.w / 2 end,
-                    h = function(max) return max.h end
-                },
-                rightHalf = {
-                    x = function(max) return max.x + (max.w / 2) end,
-                    y = function(max) return max.y end,
-                    w = function(max) return max.w / 2 end,
-                    h = function(max) return max.h end
-                },
                 leftSmall = {
                     x = function(max) return max.x end,
                     y = function(max) return max.y + (max.h * 0.1) end,
@@ -275,6 +263,18 @@ local function initializeLayoutSets()
                 w = function(max) return max.w - (max.w * 0.1) end,
                 h = function(max) return max.h - (max.h * 0.1) end
             },
+            leftHalf = {
+                x = function(max) return max.x end,
+                y = function(max) return max.y end,
+                w = function(max) return max.w / 2 end,
+                h = function(max) return max.h end
+            },
+            rightHalf = {
+                x = function(max) return max.x + (max.w / 2) end,
+                y = function(max) return max.y end,
+                w = function(max) return max.w / 2 end,
+                h = function(max) return max.h end
+            },
             topHalf = {
                 x = function(max) return max.x end,
                 y = function(max) return max.y end,
@@ -316,9 +316,27 @@ local function initializeLayoutSets()
                 y = function(max) return max.y + (max.h * 0.1) end,
                 w = function(max) return max.w - (max.w * 0.2) end,
                 h = function(max) return max.h - (max.h * 0.2) end
+            },
+            splitVertical = {
+                x = function(max) return max.x end,
+                y = function(max) return max.y end,
+                w = function(max) return max.w end,
+                h = function(max) return max.h / 2 end
+            },
+            splitHorizontal = {
+                x = function(max) return max.x end,
+                y = function(max) return max.y + (max.h / 2) end,
+                w = function(max) return max.w end,
+                h = function(max) return max.h / 2 end
+            },
+            sevenByFive = {
+                x = function(max) return max.x + (max.w * 0.15) end,
+                y = function(max) return max.y + (max.h * 0.15) end,
+                w = function(max) return max.w - (max.w * 0.3) end,
+                h = function(max) return max.h - (max.h * 0.3) end
             }
         }
-
+        
         -- Merge common layouts into each configuration
         for name, layout in pairs(commonLayouts) do
             if not layoutSet.standardLayouts[name] then

@@ -328,9 +328,8 @@ function WindowManager.moveWindow(direction)
     local move = movements[direction]
     f.x = f.x + move.x
     f.y = f.y + move.y
-
     hs.window.animationDuration = 0.0
-    win:setFrame(f)
+    win:setFrame(f, 0.0)
     -- WindowManager.currentFrame = f
 end
 
@@ -343,7 +342,7 @@ function WindowManager.moveWindowMouseCenter()
     f.x = mouse.x - (f.w / 2)
     f.y = mouse.y - (f.h / 2)
     hs.window.animationDuration = 0.0
-    win:setFrame(f)
+    win:setFrame(f, 0.0)
     -- WindowManager.currentFrame = f
 end
 
@@ -356,7 +355,7 @@ function WindowManager.moveWindowMouseCorner()
     f.x = mouse.x
     f.y = mouse.y
     hs.window.animationDuration = 0.0
-    win:setFrame(f)
+    win:setFrame(f, 0.0)
     --  WindowManager.currentFrame = f
 end
 
@@ -375,15 +374,15 @@ end
 
 -- Helper function to set window frame with verification and retry
 function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
-    retryCount = retryCount or 3
+    retryCount = retryCount or 5
 
 
     -- Ensure animations are always disabled for reliable positioning
     hs.window.animationDuration = 0
 
     -- Try to set the frame
-    win:setFrame(newFrame)
-    hs.timer.usleep(50000)
+    win:setFrame(newFrame, 0)
+    hs.timer.usleep(300000)
 
     -- Verify the frame was set correctly by comparing with a small tolerance
     local resultFrame = win:frame()
@@ -401,7 +400,7 @@ function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
         win:setFrameWithWorkarounds(newFrame)
 
         -- Add a small delay
-        hs.timer.usleep(50000)
+        hs.timer.usleep(300000)
 
         -- Recursive call with one fewer retry
         return WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount - 1)

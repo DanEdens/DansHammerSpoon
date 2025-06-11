@@ -107,6 +107,8 @@ Created and ran comprehensive test suite (`test_window_toggler_persistence.lua`)
 
 4. **Testing Strategy**: Creating focused test scripts helps validate complex functionality like file I/O and JSON operations within the Hammerspoon environment.
 
+5. **Geometry Object Serialization**: Hammerspoon's `hs.geometry` objects cannot be directly serialized to JSON because they contain methods and metadata. They must be converted to plain tables with only the numerical properties (`x`, `y`, `w`, `h`) before JSON encoding, then converted back to geometry objects after loading.
+
 ## Future Enhancements
 
 Potential improvements that could be made:
@@ -118,7 +120,29 @@ Potential improvements that could be made:
 
 ## Commit Information
 
-- **Commit Hash**: f2c5f8a
-- **Files Changed**: 2 (WindowToggler.lua, README.md)
-- **Lines Added**: 78 insertions, 1 deletion
+- **Initial Commit Hash**: f2c5f8a
+- **JSON Fix Commit Hash**: 7dca122
+- **Files Changed**: 2 (WindowToggler.lua, README.md) + 1 fix (WindowToggler.lua)
+- **Lines Added**: 78 insertions + 40 additional for JSON fix
 - **Testing**: Comprehensive test suite created and validated
+
+## Post-Implementation Fix
+
+### JSON Serialization Issue
+
+After initial implementation, discovered that `hs.geometry` objects returned by `win:frame()` cannot be directly serialized to JSON due to containing methods and non-serializable data.
+
+**Error encountered:**
+
+```
+LuaSkin: Object cannot be serialised as JSON
+```
+
+**Solution implemented:**
+
+1. **`geometryToTable(geom)`**: Converts geometry objects to plain Lua tables
+2. **`tableToGeometry(tbl)`**: Converts plain tables back to geometry objects
+3. **`prepareLocationsForSaving(locations)`**: Converts all geometry objects before JSON encoding
+4. **`prepareLocationsAfterLoading(locations)`**: Converts all tables back to geometry objects after JSON decoding
+
+**Key insight:** Hammerspoon's geometry objects must be converted to plain tables containing only `x`, `y`, `w`, `h` values for JSON serialization.

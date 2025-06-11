@@ -30,13 +30,47 @@ local function ensureDataDirectory()
     hs.execute("mkdir -p '" .. dataDir .. "'")
 end
 
+-- Helper function to convert geometry object to plain table
+local function geometryToTable(geom)
+    if not geom then return nil end
+    return {
+        x = geom.x,
+        y = geom.y,
+        w = geom.w,
+        h = geom.h
+    }
+end
+
+-- Helper function to convert plain table to geometry object
+local function tableToGeometry(tbl)
+    if not tbl then return nil end
+    return hs.geometry.rect(tbl.x, tbl.y, tbl.w, tbl.h)
+end
+
+-- Helper function to convert locations table to serializable format
+local function prepareLocationsForSaving(locations)
+    local serializable = {}
+    for windowId, frame in pairs(locations) do
+        serializable[windowId] = geometryToTable(frame)
+    end
+    return serializable
+end
+
+-- Helper function to convert loaded locations back to geometry objects
+local function prepareLocationsAfterLoading(locations)
+    local withGeometry = {}
+    for windowId, frameTable in pairs(locations) do
+        withGeometry[windowId] = tableToGeometry(frameTable)
+    end
+    return withGeometry
+end
 -- Save locations to persistent storage
 local function saveLocations()
     ensureDataDirectory()
 
     local data = {
-        location1 = WindowToggler.location1,
-        location2 = WindowToggler.location2,
+        location1 = prepareLocationsForSaving(WindowToggler.location1),
+        location2 = prepareLocationsForSaving(WindowToggler.location2),
         savedAt = os.time()
     }
 
@@ -76,9 +110,9 @@ local function loadLocations()
     end)
 
     if success and result then
-        -- Restore the locations
-        WindowToggler.location1 = result.location1 or {}
-        WindowToggler.location2 = result.location2 or {}
+        -- Restore the locations, converting back to geometry objects
+        WindowToggler.location1 = prepareLocationsAfterLoading(result.location1 or {})
+        WindowToggler.location2 = prepareLocationsAfterLoading(result.location2 or {})
 
         local loc1Count = 0
         local loc2Count = 0
@@ -92,6 +126,7 @@ local function loadLocations()
         WindowToggler.location2 = {}
     end
 end
+
 -- Helper function to get unique window identifier
 local function getWindowIdentifier(win)
     if not win then return nil end

@@ -200,28 +200,72 @@ end
 
 function FileManager.showEditorMenu()
     log:i('Showing editor selection menu')
+    -- Ensure editorList exists and is not empty
+    if not editorList or #editorList == 0 then
+        log:e('Editor list is empty or not available')
+        hs.alert.show("Error: No editors available")
+        return
+    end
     local choices = {}
     for _, editorOption in ipairs(editorList) do
-        table.insert(choices, {
-            text = editorOption.name,
-            subText = "Select this editor",
-            command = editorOption.command
-        })
+        -- Validate each editor option
+        if editorOption and editorOption.name and editorOption.command then
+            table.insert(choices, {
+                text = editorOption.name,
+                subText = "Select this editor",
+                command = editorOption.command
+            })
+        else
+            log:w('Invalid editor option found, skipping:', hs.inspect(editorOption))
+        end
     end
 
-    local chooser = hs.chooser.new(function(choice)
-        if choice then
-            log:i('Editor selected: ' .. choice.text)
-            editor = choice.command
-            lastSelected.editor = choice
-            hs.alert.show("Editor set to: " .. editor)
-            chooser:hide()
-        else
-            log:d('Editor selection canceled')
-        end
+    -- Check if we have any valid choices
+    if #choices == 0 then
+        log:e('No valid editor choices available')
+        hs.alert.show("Error: No valid editors found")
+        return
+    end
+
+    -- Create the chooser with proper closure handling
+    local chooser = nil
+
+    local success, error_msg = pcall(function()
+        chooser = hs.chooser.new(function(choice)
+            if choice then
+                log:i('Editor selected: ' .. tostring(choice.text))
+                editor = choice.command
+                lastSelected.editor = choice
+                hs.alert.show("Editor set to: " .. tostring(editor))
+                -- Hide the chooser safely
+                if chooser then
+                    pcall(function() chooser:hide() end)
+                end
+            else
+                log:d('Editor selection canceled')
+            end
+        end)
     end)
-    chooser:choices(choices)
-    chooser:show()
+
+    if not success or not chooser then
+        log:e('Failed to create editor chooser:', error_msg)
+        hs.alert.show("Error: Could not create editor menu")
+        return
+    end
+
+    -- Set choices and show the chooser
+    local success2, error_msg2 = pcall(function()
+        chooser:choices(choices)
+        chooser:show()
+    end)
+
+    if not success2 then
+        log:e('Failed to show editor chooser:', error_msg2)
+        hs.alert.show("Error: Could not display editor menu")
+        return
+    end
+
+    log:d('Editor menu displayed successfully with', #choices, 'options')
 end
 
 function FileManager.openMostRecentImage()

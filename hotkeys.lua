@@ -63,7 +63,7 @@ hs.hotkey.bind(hammer, "6", "Left Small Layout", function() WindowManager.toggle
 hs.hotkey.bind(_hyper, "6", "Left Half Layout", function() WindowManager.applyLayout('leftHalf') end)
 hs.hotkey.bind(hammer, "7", "Toggle Right Layout", function() WindowManager.toggleRightLayout() end)
 hs.hotkey.bind(_hyper, "7", "Right Half Layout", function() WindowManager.applyLayout('rightHalf') end)
-hs.hotkey.bind(hammer, "8", "Show Layouts Menu", function() spoon.Layouts:chooseLayout() end)
+hs.hotkey.bind(hammer, "8", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "8", "Open System Preferences", function() AppManager.open_system_preferences() end)
 hs.hotkey.bind(hammer, "9", "Move Window to Mouse", function() WindowManager.moveWindowMouseCenter() end)
 hs.hotkey.bind(_hyper, "9", "Open Selected File", function() FileManager.openSelectedFile() end)
@@ -86,7 +86,7 @@ hs.hotkey.bind(_hyper, "F2", "Temporary Function", function() tempFunction() end
 hs.hotkey.bind("cmd", "F3", "Open GitHub", function() AppManager.open_github() end)
 hs.hotkey.bind(hammer, "F3", "Toggle USB Logging", function() DeviceManager.toggleUSBLogging() end)
 hs.hotkey.bind(_hyper, "F3", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind(hammer, "F4", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F4", "Show Layouts Menu", function() spoon.Layouts:chooseLayout() end)
 hs.hotkey.bind(_hyper, "F4", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F5", "Reload Hammerspoon", function() hs.reload() end)
 hs.hotkey.bind(_hyper, "F5", "Temporary Function", function() tempFunction() end)
@@ -102,7 +102,7 @@ hs.hotkey.bind(_hyper, "F9", "Temporary Function", function() tempFunction() end
 -- hs.hotkey.bind(_hyper, "F10", "Restore Window to Location 1", function() WindowToggler.restoreToLocation1() end)
 -- hs.hotkey.bind(hammer, "F11", "Save Window to Location 2", function() WindowToggler.saveToLocation2() end)
 -- hs.hotkey.bind(_hyper, "F11", "Restore Window to Location 2", function() WindowToggler.restoreToLocation2() end)
-hs.hotkey.bind(hammer, "F12", "List Saved Windows", function() WindowToggler.listSavedWindows() end)
+-- hs.hotkey.bind(hammer, "F12", "List Saved Windows", function() WindowToggler.listSavedWindows() end)
 hs.hotkey.bind(_hyper, "F12", "Temporary Function", function() tempFunction() end)
 -- Application Launching
 hs.hotkey.bind(hammer, "p", "Open PyCharm", function() AppManager.open_pycharm() end)
@@ -124,7 +124,15 @@ hs.hotkey.bind(hammer, "t", "Open Barrier", function() AppManager.open_barrier()
 -- File Management
 hs.hotkey.bind(hammer, "i", "Open Most Recent Image", function() FileManager.openMostRecentImage() end)
 hs.hotkey.bind(hammer, "e", "Show File Menu", function() FileManager.showFileMenu() end)
-hs.hotkey.bind(_hyper, "e", "Show Editor Menu", function() FileManager.showEditorMenu() end)
+hs.hotkey.bind(_hyper, "e", "Show Editor Menu", function()
+    local success, error_msg = pcall(function()
+        FileManager.showEditorMenu()
+    end)
+    if not success then
+        log:e('Error calling FileManager.showEditorMenu:', error_msg, __FILE__, 130)
+        hs.alert.show("Error opening editor menu: " .. tostring(error_msg))
+    end
+end)
 -- Device Management
 -- Dragon Grid (now using the Spoon)
 hs.hotkey.bind(hammer, "x", "Toggle Dragon Grid", function() spoon.DragonGrid:toggleGridDisplay() end)

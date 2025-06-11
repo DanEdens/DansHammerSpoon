@@ -203,17 +203,17 @@ function WindowToggler.toggleWindowPosition()
             -- Both locations exist - cycle between them
             if positionMatches(WindowToggler.location1[windowId]) then
                 -- Currently at Location 1, move to Location 2
-                win:setFrame(WindowToggler.location2[windowId])
+                WindowManager.setFrameInScreenWithRetry(win, WindowToggler.location2[windowId])
                 log:i('Toggled from Location 1 to Location 2 for window:', windowId)
                 hs.alert.show(appName .. ": Location 1 → Location 2")
             elseif positionMatches(WindowToggler.location2[windowId]) then
                 -- Currently at Location 2, move to Location 1
-                win:setFrame(WindowToggler.location1[windowId])
+                WindowManager.setFrameInScreenWithRetry(win, WindowToggler.location1[windowId])
                 log:i('Toggled from Location 2 to Location 1 for window:', windowId)
                 hs.alert.show(appName .. ": Location 2 → Location 1")
             else
                 -- Not at either location, go to Location 1 by default
-                win:setFrame(WindowToggler.location1[windowId])
+                WindowManager.setFrameInScreenWithRetry(win, WindowToggler.location1[windowId])
                 log:i('Moved to Location 1 from unknown position for window:', windowId)
                 hs.alert.show(appName .. ": → Location 1")
             end
@@ -227,7 +227,7 @@ function WindowToggler.toggleWindowPosition()
                 log:i('Saved current position as Location 2 for window:', windowId)
             else
                 -- Not at Location 1, move to Location 1
-                win:setFrame(WindowToggler.location1[windowId])
+                WindowManager.setFrameInScreenWithRetry(win, WindowToggler.location1[windowId])
                 log:i('Moved to Location 1 for window:', windowId)
                 hs.alert.show(appName .. ": → Location 1")
             end
@@ -241,7 +241,7 @@ function WindowToggler.toggleWindowPosition()
                 log:i('Saved current position as Location 1 for window:', windowId)
             else
                 -- Not at Location 2, move to Location 2
-                win:setFrame(WindowToggler.location2[windowId])
+                WindowManager.setFrameInScreenWithRetry(win, WindowToggler.location2[windowId])
                 log:i('Moved to Location 2 for window:', windowId)
                 hs.alert.show(appName .. ": → Location 2")
             end
@@ -288,7 +288,7 @@ function WindowToggler.restoreToLocation1()
     getTargetWindow(function(win)
         local windowId = getWindowIdentifier(win)
         if WindowToggler.location1[windowId] then
-            win:setFrame(WindowToggler.location1[windowId])
+            WindowManager.setFrameInScreenWithRetry(win, WindowToggler.location1[windowId])
             local app = win:application()
             local appName = app and app:name() or "Unknown"
             log:i('Restored location 1 for window:', windowId)
@@ -304,7 +304,7 @@ function WindowToggler.restoreToLocation2()
     getTargetWindow(function(win)
         local windowId = getWindowIdentifier(win)
         if WindowToggler.location2[windowId] then
-            win:setFrame(WindowToggler.location2[windowId])
+            WindowManager.setFrameInScreenWithRetry(win, WindowToggler.location2[windowId])
             local app = win:application()
             local appName = app and app:name() or "Unknown"
             log:i('Restored location 2 for window:', windowId)

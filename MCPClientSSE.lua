@@ -152,7 +152,7 @@ function MCPClientSSE.simulateSSE()
         MCPClientSSE.sseConnection:stop()
     end
 
-    MCPClientSSE.sseConnection = hs.timer.doEvery(10, function()
+    MCPClientSSE.sseConnection = hs.timer.doEvery(99999, function()
         -- Check for updates every 10 seconds
         MCPClientSSE.checkForUpdates()
     end)
@@ -167,7 +167,7 @@ end
 
 -- Check for updates (SSE simulation)
 function MCPClientSSE.checkForUpdates()
-    log:d('Checking for updates from MCP server')
+    -- log:d('Checking for updates from MCP server')
 
     -- Make a request to check for updates
     local url = MCPClientSSE.serverUrl .. "/api/updates"

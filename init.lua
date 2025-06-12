@@ -10,7 +10,25 @@ local log = HyperLogger.new('HammerspoonApp')
 _G.AppLogger = log
 log:d('Logger initialized', __FILE__, 10)
 
--- Load additional modules as needed
+-- Load secrets and configure MCP client BEFORE loading other modules
+local secrets = require("load_secrets")
+log:d('Secrets module loaded', __FILE__, 14)
+
+-- Configure environment variables from secrets
+local AWSIP = secrets.get("AWSIP", "localhost")
+local AWSIP2 = secrets.get("AWSIP2", "localhost")
+local MCP_PORT = secrets.get("MCP_PORT", "8000")
+
+-- MCP Client Configuration - Toggle between HTTP and SSE modes
+-- Set MCP_CLIENT_MODE in secrets file: "sse" (default) or "http"
+local MCP_CLIENT_MODE = secrets.get("MCP_CLIENT_MODE", "sse")
+log:i('MCP client mode configured: ' .. MCP_CLIENT_MODE, __FILE__, 18)
+
+-- Make MCP client configuration available globally BEFORE loading other modules
+_G.MCPClientType = MCP_CLIENT_MODE
+log:d('Global MCP client type set to: ' .. MCP_CLIENT_MODE, __FILE__, 20)
+
+-- Load additional modules as needed (they will now see the correct MCP client type)
 require('loadConfig')
 dofile(hs.configdir .. "/hotkeys.lua")
 
@@ -27,23 +45,9 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "H", function()
     end
 end)
 
-local secrets = require("load_secrets")
-log:d('Secrets module loaded', __FILE__, 14)
-
--- Configure environment variables from secrets
-local AWSIP = secrets.get("AWSIP", "localhost")
-local AWSIP2 = secrets.get("AWSIP2", "localhost")
-local MCP_PORT = secrets.get("MCP_PORT", "8000")
-
--- MCP Client Configuration - Toggle between HTTP and SSE modes
--- Set MCP_CLIENT_MODE in secrets file: "sse" (default) or "http"
-local MCP_CLIENT_MODE = secrets.get("MCP_CLIENT_MODE", "sse")
-log:i('MCP client mode configured: ' .. MCP_CLIENT_MODE, __FILE__, 18)
-
--- Load appropriate MCP client based on configuration
-log:d('Loading MCP client for centralized project management (mode: ' .. MCP_CLIENT_MODE .. ')', __FILE__, 20)
+-- Now load appropriate MCP client based on configuration
+log:d('Loading MCP client for centralized project management (mode: ' .. MCP_CLIENT_MODE .. ')', __FILE__, 35)
 local mcpClientLoaded = false
-local mcpClientType = MCP_CLIENT_MODE
 
 if MCP_CLIENT_MODE == "sse" then
     -- Load SSE-based MCP client
@@ -66,7 +70,10 @@ if MCP_CLIENT_MODE == "sse" then
 
         if initSuccess then
             mcpClientLoaded = true
-            log:i('MCP SSE client initialized successfully with server: ' .. mcpServerUrl, __FILE__, 25)
+            log:i('MCP SSE client initialized successfully with server: ' .. mcpServerUrl, __FILE__, 55)
+
+            -- Make SSE client globally available
+            _G.MCPClientSSE = MCPClientSSE
 
             -- Start SSE connection for real-time updates
             MCPClientSSE.startSSEConnection()
@@ -75,18 +82,19 @@ if MCP_CLIENT_MODE == "sse" then
             hs.timer.doAfter(3.0, function()
                 local connected = MCPClientSSE.testConnection()
                 if connected then
-                    log:i('MCP SSE server connectivity confirmed', __FILE__, 28)
+                    log:i('MCP SSE server connectivity confirmed', __FILE__, 65)
                 else
-                    log:w('MCP SSE server connectivity test failed - using fallback mode', __FILE__, 29)
+                    log:w('MCP SSE server connectivity test failed - using fallback mode', __FILE__, 67)
                 end
             end)
         else
-            log:w('Failed to initialize MCP SSE client - using fallback mode', __FILE__, 31)
+            log:w('Failed to initialize MCP SSE client - using fallback mode', __FILE__, 70)
         end
     else
         log:w('Failed to load MCP SSE client module - using fallback mode: ' .. (MCPClientSSE or "unknown error"),
-            __FILE__, 33)
+            __FILE__, 72)
     end
+    
 else
     -- Load HTTP-based MCP client (legacy mode)
     local success, MCPClient = pcall(function()
@@ -105,29 +113,31 @@ else
 
         if initSuccess then
             mcpClientLoaded = true
-            log:i('MCP HTTP client initialized successfully with server: ' .. mcpServerUrl, __FILE__, 25)
+            log:i('MCP HTTP client initialized successfully with server: ' .. mcpServerUrl, __FILE__, 90)
+
+            -- Make HTTP client globally available
+            _G.MCPClient = MCPClient
 
             -- Test connectivity in background
             hs.timer.doAfter(2.0, function()
                 local connected = MCPClient.testConnection()
                 if connected then
-                    log:i('MCP HTTP server connectivity confirmed', __FILE__, 28)
+                    log:i('MCP HTTP server connectivity confirmed', __FILE__, 98)
                 else
-                    log:w('MCP HTTP server connectivity test failed - using fallback mode', __FILE__, 29)
+                    log:w('MCP HTTP server connectivity test failed - using fallback mode', __FILE__, 100)
                 end
             end)
         else
-            log:w('Failed to initialize MCP HTTP client - using fallback mode', __FILE__, 31)
+            log:w('Failed to initialize MCP HTTP client - using fallback mode', __FILE__, 103)
         end
     else
         log:w('Failed to load MCP HTTP client module - using fallback mode: ' .. (MCPClient or "unknown error"), __FILE__,
-            33)
+            105)
     end
 end
 
--- Make MCP client status and type available globally
+-- Make MCP client status available globally
 _G.MCPClientLoaded = mcpClientLoaded
-_G.MCPClientType = mcpClientType
 
 -- Configure Console Dark Mode
 log:d('Configuring console appearance', __FILE__, 23)

@@ -363,7 +363,7 @@ This repository contains a Hammerspoon configuration with plans for improvements
 
 We've created several documents to guide the improvement process:
 
-1. **[TODO.md](TODO.md)**: Comprehensive list of tasks organized by category
+1. **[TODO.md](docs/TODO.md)**: Comprehensive list of tasks organized by category
 2. **[PROJECT_ANALYSIS.md](docs/PROJECT_ANALYSIS.md)**: Detailed analysis of current structure and issues
 3. **[IMPLEMENTATION_PRIORITY.md](docs/IMPLEMENTATION_PRIORITY.md)**: Prioritized implementation plan with complexity/impact assessments
 

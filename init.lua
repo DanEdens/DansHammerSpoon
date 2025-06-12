@@ -35,45 +35,99 @@ local AWSIP = secrets.get("AWSIP", "localhost")
 local AWSIP2 = secrets.get("AWSIP2", "localhost")
 local MCP_PORT = secrets.get("MCP_PORT", "8000")
 
--- Load MCP client for centralized project management
-log:d('Loading MCP client for centralized project management', __FILE__, 18)
+-- MCP Client Configuration - Toggle between HTTP and SSE modes
+-- Set MCP_CLIENT_MODE in secrets file: "sse" (default) or "http"
+local MCP_CLIENT_MODE = secrets.get("MCP_CLIENT_MODE", "sse")
+log:i('MCP client mode configured: ' .. MCP_CLIENT_MODE, __FILE__, 18)
+
+-- Load appropriate MCP client based on configuration
+log:d('Loading MCP client for centralized project management (mode: ' .. MCP_CLIENT_MODE .. ')', __FILE__, 20)
 local mcpClientLoaded = false
-local success, MCPClient = pcall(function()
-    return require('MCPClient')
-end)
+local mcpClientType = MCP_CLIENT_MODE
 
-if success then
-    -- Configure MCP client with server URL from secrets
-    local mcpServerUrl = secrets.get("MCP_SERVER_URL", "http://localhost:" .. MCP_PORT)
-    local mcpTimeout = tonumber(secrets.get("MCP_TIMEOUT", "10"))
+if MCP_CLIENT_MODE == "sse" then
+    -- Load SSE-based MCP client
+    local success, MCPClientSSE = pcall(function()
+        return require('MCPClientSSE')
+    end)
 
-    local initSuccess = MCPClient.init({
-        serverUrl = mcpServerUrl,
-        timeout = mcpTimeout
-    })
+    if success then
+        -- Configure MCP SSE client with server URL from secrets
+        local mcpServerUrl = secrets.get("MCP_SERVER_URL", "http://" .. AWSIP .. ":" .. MCP_PORT)
+        local mcpTimeout = tonumber(secrets.get("MCP_TIMEOUT", "30"))
 
-    if initSuccess then
-        mcpClientLoaded = true
-        log:i('MCP client initialized successfully with server: ' .. mcpServerUrl, __FILE__, 25)
-        
-        -- Test connectivity in background
-        hs.timer.doAfter(2.0, function()
-            local connected = MCPClient.testConnection()
-            if connected then
-                log:i('MCP server connectivity confirmed', __FILE__, 28)
-            else
-                log:w('MCP server connectivity test failed - using fallback mode', __FILE__, 29)
+        local initSuccess = MCPClientSSE.init({
+            serverUrl = mcpServerUrl,
+            timeout = mcpTimeout,
+            onConnectionStatus = function(connected, message)
+                log:i('MCP SSE connection status: ' .. (connected and "connected" or "disconnected") .. " - " .. message)
             end
-        end)
+        })
+
+        if initSuccess then
+            mcpClientLoaded = true
+            log:i('MCP SSE client initialized successfully with server: ' .. mcpServerUrl, __FILE__, 25)
+
+            -- Start SSE connection for real-time updates
+            MCPClientSSE.startSSEConnection()
+
+            -- Test connectivity in background
+            hs.timer.doAfter(3.0, function()
+                local connected = MCPClientSSE.testConnection()
+                if connected then
+                    log:i('MCP SSE server connectivity confirmed', __FILE__, 28)
+                else
+                    log:w('MCP SSE server connectivity test failed - using fallback mode', __FILE__, 29)
+                end
+            end)
+        else
+            log:w('Failed to initialize MCP SSE client - using fallback mode', __FILE__, 31)
+        end
     else
-        log:w('Failed to initialize MCP client - using fallback mode', __FILE__, 31)
+        log:w('Failed to load MCP SSE client module - using fallback mode: ' .. (MCPClientSSE or "unknown error"),
+            __FILE__, 33)
     end
 else
-    log:w('Failed to load MCP client module - using fallback mode: ' .. (MCPClient or "unknown error"), __FILE__, 33)
+    -- Load HTTP-based MCP client (legacy mode)
+    local success, MCPClient = pcall(function()
+        return require('MCPClient')
+    end)
+
+    if success then
+        -- Configure MCP client with server URL from secrets
+        local mcpServerUrl = secrets.get("MCP_SERVER_URL", "http://localhost:" .. MCP_PORT)
+        local mcpTimeout = tonumber(secrets.get("MCP_TIMEOUT", "10"))
+
+        local initSuccess = MCPClient.init({
+            serverUrl = mcpServerUrl,
+            timeout = mcpTimeout
+        })
+
+        if initSuccess then
+            mcpClientLoaded = true
+            log:i('MCP HTTP client initialized successfully with server: ' .. mcpServerUrl, __FILE__, 25)
+
+            -- Test connectivity in background
+            hs.timer.doAfter(2.0, function()
+                local connected = MCPClient.testConnection()
+                if connected then
+                    log:i('MCP HTTP server connectivity confirmed', __FILE__, 28)
+                else
+                    log:w('MCP HTTP server connectivity test failed - using fallback mode', __FILE__, 29)
+                end
+            end)
+        else
+            log:w('Failed to initialize MCP HTTP client - using fallback mode', __FILE__, 31)
+        end
+    else
+        log:w('Failed to load MCP HTTP client module - using fallback mode: ' .. (MCPClient or "unknown error"), __FILE__,
+            33)
+    end
 end
 
--- Make MCP client status available globally
+-- Make MCP client status and type available globally
 _G.MCPClientLoaded = mcpClientLoaded
+_G.MCPClientType = mcpClientType
 
 -- Configure Console Dark Mode
 log:d('Configuring console appearance', __FILE__, 23)

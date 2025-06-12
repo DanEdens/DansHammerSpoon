@@ -393,9 +393,22 @@ end
 
 -- Initialize SSE on module load
 if sseClientAvailable then
-    hs.timer.doAfter(1.0, function()
-        FileManagerSSE.initSSE()
-    end)
+    -- Only auto-initialize if global MCP client is not already in SSE mode
+    local globalMCPType = _G.MCPClientType
+    if globalMCPType ~= "sse" then
+        log:i('Global MCP client not in SSE mode, initializing FileManagerSSE independently')
+        hs.timer.doAfter(1.0, function()
+            FileManagerSSE.initSSE()
+        end)
+    else
+        log:i('Global MCP client already in SSE mode, FileManagerSSE will use existing SSE client')
+        -- Use the global SSE client instead of creating our own
+        if _G.MCPClientSSE then
+            MCPClientSSE = _G.MCPClientSSE
+            FileManagerSSE.isRealTimeEnabled = true
+            log:i('FileManagerSSE using global SSE client')
+        end
+    end
 end
 
 -- Save in global environment for module reuse

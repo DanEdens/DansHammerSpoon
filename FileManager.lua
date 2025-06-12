@@ -44,19 +44,52 @@ local fileList = {
     { name = "swarmonomicon",  path = seatOfMadness .. "/projects/common/swarmonomicon/.cursorrules" },
 }
 
--- Try to load MCP client for centralized project management
+-- Check global MCP client configuration
+local mcpClientType = _G.MCPClientType or "http"
+local mcpClientLoaded = _G.MCPClientLoaded or false
+
+log:i('FileManager using MCP client mode: ' .. mcpClientType .. ' (loaded: ' .. tostring(mcpClientLoaded) .. ')')
+
+-- Try to load appropriate MCP client based on global configuration
 local MCPClient
 local mcpClientAvailable = false
-local success, mcpClientModule = pcall(function()
-    return require('MCPClient')
-end)
+if mcpClientType == "sse" then
+    -- Use SSE client if that's the configured mode
+    local success, mcpClientModule = pcall(function()
+        return _G.MCPClientSSE or require('MCPClientSSE')
+    end)
 
-if success and mcpClientModule then
-    MCPClient = mcpClientModule
-    mcpClientAvailable = true
-    log:i('MCP client loaded successfully for centralized project management')
+    if success and mcpClientModule then
+        MCPClient = mcpClientModule
+        mcpClientAvailable = true
+        log:i('MCP SSE client loaded successfully for FileManager')
+    else
+        log:w('MCP SSE client not available for FileManager, falling back to HTTP mode: ' ..
+            (mcpClientModule or "unknown error"))
+        -- Fallback to HTTP client
+        local success2, mcpClientModule2 = pcall(function()
+            return require('MCPClient')
+        end)
+        if success2 and mcpClientModule2 then
+            MCPClient = mcpClientModule2
+            mcpClientAvailable = true
+            log:i('MCP HTTP client loaded as fallback for FileManager')
+        end
+    end
 else
-    log:w('MCP client not available, falling back to hardcoded project list: ' .. (mcpClientModule or "unknown error"))
+    -- Use HTTP client for legacy mode
+    local success, mcpClientModule = pcall(function()
+        return require('MCPClient')
+    end)
+
+    if success and mcpClientModule then
+        MCPClient = mcpClientModule
+        mcpClientAvailable = true
+        log:i('MCP HTTP client loaded successfully for FileManager')
+    else
+        log:w('MCP HTTP client not available for FileManager, falling back to hardcoded project list: ' ..
+            (mcpClientModule or "unknown error"))
+    end
 end
 
 -- Legacy hardcoded projects list (kept as fallback)
@@ -166,18 +199,31 @@ function FileManager.setEditor(newEditor)
 end
 
 function FileManager.getProjectsList()
-    log:d('Getting projects list')
+    log:d('Getting projects list (mode: ' .. mcpClientType .. ')')
     -- Try to get projects from MCP client first
     if mcpClientAvailable then
-        log:d('Attempting to get projects from MCP client')
-        local mcpResult = MCPClient.getProjectsListForFileManager()
+        log:d('Attempting to get projects from MCP ' .. mcpClientType .. ' client')
+
+        local mcpResult
+        if mcpClientType == "sse" then
+            mcpResult = MCPClient.getProjectsListForFileManager()
+        else
+            mcpResult = MCPClient.getProjectsListForFileManager()
+        end
 
         if mcpResult and mcpResult.success and mcpResult.data then
+            local statusIndicator = ""
+            if mcpClientType == "sse" then
+                local sseStatus = MCPClient.getConnectionStatus()
+                statusIndicator = sseStatus.connected and " [LIVE]" or " [OFFLINE]"
+            end
+            statusIndicator = statusIndicator .. (mcpResult.cached and " (cached)" or "")
             log:i('Retrieved ' ..
-            #mcpResult.data .. ' projects from MCP server' .. (mcpResult.cached and ' (cached)' or ''))
+                #mcpResult.data .. ' projects from MCP ' .. mcpClientType .. ' server' .. statusIndicator)
             return mcpResult.data
         else
-            log:w('Failed to get projects from MCP client: ' .. (mcpResult and mcpResult.error or "unknown error"))
+            log:w('Failed to get projects from MCP ' ..
+                mcpClientType .. ' client: ' .. (mcpResult and mcpResult.error or "unknown error"))
         end
     end
 
@@ -336,45 +382,55 @@ end
 
 -- Add function to refresh projects from MCP server
 function FileManager.refreshProjectsList()
-    log:d('Refreshing projects list from MCP server')
+    log:d('Refreshing projects list from MCP ' .. mcpClientType .. ' server')
 
     if mcpClientAvailable then
-        log:d('Forcing refresh from MCP client')
-        local mcpResult = MCPClient.getProjectsListForFileManager(true) -- Force refresh
+        log:d('Forcing refresh from MCP ' .. mcpClientType .. ' client')
+
+        local mcpResult
+        if mcpClientType == "sse" then
+            mcpResult = MCPClient.getProjectsListForFileManager(true) -- Force refresh
+        else
+            mcpResult = MCPClient.getProjectsListForFileManager(true) -- Force refresh
+        end
 
         if mcpResult and mcpResult.success and mcpResult.data then
-            log:i('Refreshed ' .. #mcpResult.data .. ' projects from MCP server')
-            hs.alert.show("Projects refreshed from MCP server: " .. #mcpResult.data .. " projects")
+            local statusIndicator = mcpClientType == "sse" and " [SSE]" or " [HTTP]"
+            log:i('Refreshed ' .. #mcpResult.data .. ' projects from MCP ' .. mcpClientType .. ' server')
+            hs.alert.show("Projects refreshed from MCP " ..
+                mcpClientType .. " server: " .. #mcpResult.data .. " projects" .. statusIndicator)
             return mcpResult.data
         else
-            log:w('Failed to refresh projects from MCP client: ' .. (mcpResult and mcpResult.error or "unknown error"))
-            hs.alert.show("Failed to refresh projects from MCP server")
+            log:w('Failed to refresh projects from MCP ' ..
+                mcpClientType .. ' client: ' .. (mcpResult and mcpResult.error or "unknown error"))
+            hs.alert.show("Failed to refresh projects from MCP " .. mcpClientType .. " server")
             return nil
         end
     else
-        log:w('MCP client not available for refresh')
-        hs.alert.show("MCP client not available")
+        log:w('MCP ' .. mcpClientType .. ' client not available for refresh')
+        hs.alert.show("MCP " .. mcpClientType .. " client not available")
         return nil
     end
 end
 
 -- Add function to test MCP connectivity
 function FileManager.testMCPConnection()
-    log:d('Testing MCP server connection')
+    log:d('Testing MCP ' .. mcpClientType .. ' server connection')
 
     if mcpClientAvailable then
         local connected = MCPClient.testConnection()
         if connected then
-            log:i('MCP server connection test successful')
-            hs.alert.show("MCP server connection: OK")
+            log:i('MCP ' .. mcpClientType .. ' server connection test successful')
+            local statusIndicator = mcpClientType == "sse" and " [SSE]" or " [HTTP]"
+            hs.alert.show("MCP " .. mcpClientType .. " server connection: OK" .. statusIndicator)
         else
-            log:w('MCP server connection test failed')
-            hs.alert.show("MCP server connection: FAILED")
+            log:w('MCP ' .. mcpClientType .. ' server connection test failed')
+            hs.alert.show("MCP " .. mcpClientType .. " server connection: FAILED")
         end
         return connected
     else
-        log:w('MCP client not available for connection test')
-        hs.alert.show("MCP client not available")
+        log:w('MCP ' .. mcpClientType .. ' client not available for connection test')
+        hs.alert.show("MCP " .. mcpClientType .. " client not available")
         return false
     end
 end

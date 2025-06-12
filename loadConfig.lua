@@ -4,7 +4,7 @@ local loadConfig = {} -- Create module table
 
 -- Define default Spoons which will be loaded
 local hspoon_list = {
-    "OmniLadle", -- MCP client spoon for centralized project management
+    -- "OmniLadle", -- MCP client spoon for centralized project management
     "AClock",
     "EmmyLua",
     "ClipShow",

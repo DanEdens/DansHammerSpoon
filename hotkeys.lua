@@ -28,6 +28,7 @@ local DeviceManager = getModule('DeviceManager')
 local HotkeyManager = getModule('HotkeyManager')
 local WindowToggler = getModule('WindowToggler')
 local ProjectManager = getModule('ProjectManager')
+local WindowMenu = getModule('WindowMenu')
 
 -- Define modifier key combinations
 hammer = { "cmd", "ctrl", "alt" }
@@ -51,6 +52,7 @@ hs.hotkey.bind(hammer, "1", "Move Top-Left Corner", function() WindowManager.app
 hs.hotkey.bind(_hyper, "1", "Move Bottom-Left Corner", function() WindowManager.applyLayout("bottomLeft") end)
 hs.hotkey.bind(hammer, "2", "Move Top-Right Corner", function() WindowManager.applyLayout("topRight") end)
 hs.hotkey.bind(_hyper, "2", "Move Bottom-Right Corner", function() WindowManager.applyLayout("bottomRight") end)
+hs.hotkey.bind(hammer, "r", "Show Window Management Menu", function() WindowMenu.toggleMenu() end)
 hs.hotkey.bind(_hyper, "r", "Reset Shuffle Counters", function() WindowManager.resetShuffleCounters() end)
 hs.hotkey.bind(hammer, "3", "Full Screen", function() WindowManager.toggleFullLayout() end)
 hs.hotkey.bind(_hyper, "3", "Nearly Full Screen", function() WindowManager.applyLayout('sevenByFive') end)
@@ -178,6 +180,8 @@ hs.hotkey.bind(hammer, "w", "Toggle Between Location 1 and 2", function() Window
 hs.hotkey.bind(_hyper, "w", "Window Locations Menu", function() WindowToggler.showLocationsMenu() end)
 hs.hotkey.bind(hammer, "q", "Clear Saved Window Positions", function() WindowToggler.clearSavedPositions() end)
 hs.hotkey.bind(_hyper, "q", "Clear All Saved Locations", function() WindowToggler.clearSavedLocations(true) end)
+
+-- DO NOT REMOVE
 -- -- Add tempFunction for remaining letters
 -- hs.hotkey.bind(hammer, "a", function() tempFunction() end)
 -- hs.hotkey.bind(_hyper, "a", function() tempFunction() end)

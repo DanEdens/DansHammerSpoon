@@ -1,13 +1,14 @@
--- FileManager.lua - File management utilities
+-- FileManager.lua - File management utilities with centralized project management
 -- Using singleton pattern to avoid multiple initializations
 -- Use HyperLogger for clickable debugging logs
 local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new()
 -- Check if module is already initialized
 if _G.FileManager then
+    log:d('Returning existing FileManager module')
     return _G.FileManager
 end
-log:d('Initializing file management system')
+log:i('Initializing file management system')
 
 local FileManager = {}
 
@@ -43,7 +44,23 @@ local fileList = {
     { name = "swarmonomicon",  path = seatOfMadness .. "/projects/common/swarmonomicon/.cursorrules" },
 }
 
-local projects_list = {
+-- Try to load MCP client for centralized project management
+local MCPClient
+local mcpClientAvailable = false
+local success, mcpClientModule = pcall(function()
+    return require('MCPClient')
+end)
+
+if success and mcpClientModule then
+    MCPClient = mcpClientModule
+    mcpClientAvailable = true
+    log:i('MCP client loaded successfully for centralized project management')
+else
+    log:w('MCP client not available, falling back to hardcoded project list: ' .. (mcpClientModule or "unknown error"))
+end
+
+-- Legacy hardcoded projects list (kept as fallback)
+local fallback_projects_list = {
     -- Core projects
     { name = "madness_interactive",        path = seatOfMadness },
     { name = ".hammerspoon",        path = "~/.hammerspoon" },
@@ -150,7 +167,23 @@ end
 
 function FileManager.getProjectsList()
     log:d('Getting projects list')
-    return projects_list
+    -- Try to get projects from MCP client first
+    if mcpClientAvailable then
+        log:d('Attempting to get projects from MCP client')
+        local mcpResult = MCPClient.getProjectsListForFileManager()
+
+        if mcpResult and mcpResult.success and mcpResult.data then
+            log:i('Retrieved ' ..
+            #mcpResult.data .. ' projects from MCP server' .. (mcpResult.cached and ' (cached)' or ''))
+            return mcpResult.data
+        else
+            log:w('Failed to get projects from MCP client: ' .. (mcpResult and mcpResult.error or "unknown error"))
+        end
+    end
+
+    -- Fallback to hardcoded project list
+    log:w('Using fallback hardcoded projects list')
+    return fallback_projects_list
 end
 
 function FileManager.getLastSelected()
@@ -301,6 +334,50 @@ function FileManager.openMostRecentImage()
     end
 end
 
+-- Add function to refresh projects from MCP server
+function FileManager.refreshProjectsList()
+    log:d('Refreshing projects list from MCP server')
+
+    if mcpClientAvailable then
+        log:d('Forcing refresh from MCP client')
+        local mcpResult = MCPClient.getProjectsListForFileManager(true) -- Force refresh
+
+        if mcpResult and mcpResult.success and mcpResult.data then
+            log:i('Refreshed ' .. #mcpResult.data .. ' projects from MCP server')
+            hs.alert.show("Projects refreshed from MCP server: " .. #mcpResult.data .. " projects")
+            return mcpResult.data
+        else
+            log:w('Failed to refresh projects from MCP client: ' .. (mcpResult and mcpResult.error or "unknown error"))
+            hs.alert.show("Failed to refresh projects from MCP server")
+            return nil
+        end
+    else
+        log:w('MCP client not available for refresh')
+        hs.alert.show("MCP client not available")
+        return nil
+    end
+end
+
+-- Add function to test MCP connectivity
+function FileManager.testMCPConnection()
+    log:d('Testing MCP server connection')
+
+    if mcpClientAvailable then
+        local connected = MCPClient.testConnection()
+        if connected then
+            log:i('MCP server connection test successful')
+            hs.alert.show("MCP server connection: OK")
+        else
+            log:w('MCP server connection test failed')
+            hs.alert.show("MCP server connection: FAILED")
+        end
+        return connected
+    else
+        log:w('MCP client not available for connection test')
+        hs.alert.show("MCP client not available")
+        return false
+    end
+end
 -- Save in global environment for module reuse
 _G.FileManager = FileManager
 return FileManager

@@ -29,7 +29,8 @@ local AltDragManager = {
         resizeButton = "right",
         enabled = true,
         sensitivity = 1.0,                 -- Multiplier for drag sensitivity
-        minWindowSize = { w = 100, h = 100 } -- Minimum window size when resizing
+        minWindowSize = { w = 100, h = 100 }, -- Minimum window size when resizing
+        debug = true                          -- Enable debug logging
     },
 
     -- Event taps
@@ -50,19 +51,32 @@ local function modifiersPressed(modifiers, eventFlags)
     return true
 end
 
--- Get window under mouse cursor
-local function getWindowUnderMouse()
-    local mousePos = hs.mouse.absolutePosition()
+-- Get window under mouse cursor (improved version)
+local function getWindowUnderMouse(mousePos)
+    if not mousePos then
+        mousePos = hs.mouse.absolutePosition()
+    end
     local windows = hs.window.orderedWindows()
 
-    for _, win in ipairs(windows) do
+    if AltDragManager.config.debug then
+        log:d('Checking windows at mouse position:', mousePos.x, mousePos.y)
+        log:d('Found', #windows, 'total windows')
+    end
+
+    for i, win in ipairs(windows) do
         if win:isVisible() and not win:isMinimized() then
             local frame = win:frame()
             if mousePos.x >= frame.x and mousePos.x <= frame.x + frame.w and
                 mousePos.y >= frame.y and mousePos.y <= frame.y + frame.h then
+                if AltDragManager.config.debug then
+                    log:d('Found window under mouse:', win:title(), 'at index', i)
+                end
                 return win
             end
         end
+    end
+    if AltDragManager.config.debug then
+        log:d('No window found under mouse at', mousePos.x, mousePos.y)
     end
     return nil
 end
@@ -79,7 +93,11 @@ local function startWindowDrag(window, mousePos)
     -- Bring window to front
     window:focus()
 
-    log:d('Started dragging window:', window:title())
+    if AltDragManager.config.debug then
+        log:d('Started dragging window:', window:title())
+        log:d('Initial frame:', hs.inspect(AltDragManager.initialWindowFrame))
+        log:d('Initial mouse pos:', hs.inspect(AltDragManager.initialMousePos))
+    end
     return true
 end
 
@@ -95,7 +113,11 @@ local function startWindowResize(window, mousePos)
     -- Bring window to front
     window:focus()
 
-    log:d('Started resizing window:', window:title())
+    if AltDragManager.config.debug then
+        log:d('Started resizing window:', window:title())
+        log:d('Initial frame:', hs.inspect(AltDragManager.initialWindowFrame))
+        log:d('Initial mouse pos:', hs.inspect(AltDragManager.initialMousePos))
+    end
     return true
 end
 
@@ -113,6 +135,9 @@ local function updateWindowPosition(mousePos)
         h = AltDragManager.initialWindowFrame.h
     }
 
+    if AltDragManager.config.debug then
+        log:d('Updating window position. Delta:', deltaX, deltaY, 'New frame:', hs.inspect(newFrame))
+    end
     -- Disable animations for smooth dragging
     hs.window.animationDuration = 0
     AltDragManager.draggedWindow:setFrame(newFrame, 0)
@@ -135,6 +160,9 @@ local function updateWindowSize(mousePos)
         h = newHeight
     }
 
+    if AltDragManager.config.debug then
+        log:d('Updating window size. Delta:', deltaX, deltaY, 'New frame:', hs.inspect(newFrame))
+    end
     -- Disable animations for smooth resizing
     hs.window.animationDuration = 0
     AltDragManager.draggedWindow:setFrame(newFrame, 0)
@@ -143,11 +171,15 @@ end
 -- Stop drag/resize operation
 local function stopDragResize()
     if AltDragManager.isDragging then
-        log:d('Stopped dragging window:',
-            AltDragManager.draggedWindow and AltDragManager.draggedWindow:title() or 'unknown')
+        if AltDragManager.config.debug then
+            log:d('Stopped dragging window:',
+                AltDragManager.draggedWindow and AltDragManager.draggedWindow:title() or 'unknown')
+        end
     elseif AltDragManager.isResizing then
-        log:d('Stopped resizing window:',
-            AltDragManager.draggedWindow and AltDragManager.draggedWindow:title() or 'unknown')
+        if AltDragManager.config.debug then
+            log:d('Stopped resizing window:',
+                AltDragManager.draggedWindow and AltDragManager.draggedWindow:title() or 'unknown')
+        end
     end
 
     AltDragManager.isDragging = false
@@ -163,20 +195,32 @@ local function handleMouseEvent(event)
 
     local eventType = event:getType()
     local eventFlags = event:getFlags()
-    local mousePos = hs.mouse.absolutePosition()
+    -- Get mouse position from event (more accurate than hs.mouse.absolutePosition())
+    local eventLocation = event:location()
+    local mousePos = { x = eventLocation.x, y = eventLocation.y }
+
+    if AltDragManager.config.debug then
+        log:d('Mouse event:', eventType, 'at', mousePos.x, mousePos.y, 'flags:', hs.inspect(eventFlags))
+    end
 
     -- Handle mouse down events
     if eventType == hs.eventtap.event.types.leftMouseDown then
         if modifiersPressed(AltDragManager.config.moveModifier, eventFlags) then
-            local window = getWindowUnderMouse()
+            local window = getWindowUnderMouse(mousePos)
             if window and startWindowDrag(window, mousePos) then
+                if AltDragManager.config.debug then
+                    log:d('Consuming left mouse down event for drag')
+                end
                 return true -- Consume the event
             end
         end
     elseif eventType == hs.eventtap.event.types.rightMouseDown then
         if modifiersPressed(AltDragManager.config.resizeModifier, eventFlags) then
-            local window = getWindowUnderMouse()
+            local window = getWindowUnderMouse(mousePos)
             if window and startWindowResize(window, mousePos) then
+                if AltDragManager.config.debug then
+                    log:d('Consuming right mouse down event for resize')
+                end
                 return true -- Consume the event
             end
         end
@@ -218,10 +262,16 @@ local function handleFlagsChanged(event)
     -- If we're dragging or resizing and the required modifiers are no longer pressed, stop
     if AltDragManager.isDragging then
         if not modifiersPressed(AltDragManager.config.moveModifier, eventFlags) then
+            if AltDragManager.config.debug then
+                log:d('Stopping drag due to modifier release')
+            end
             stopDragResize()
         end
     elseif AltDragManager.isResizing then
         if not modifiersPressed(AltDragManager.config.resizeModifier, eventFlags) then
+            if AltDragManager.config.debug then
+                log:d('Stopping resize due to modifier release')
+            end
             stopDragResize()
         end
     end
@@ -252,11 +302,27 @@ function AltDragManager.start()
         hs.eventtap.event.types.flagsChanged
     }, handleFlagsChanged)
 
-    AltDragManager.dragTap:start()
-    AltDragManager.flagsTap:start()
+    -- Start the event taps
+    local success1 = AltDragManager.dragTap:start()
+    local success2 = AltDragManager.flagsTap:start()
 
-    log:i('Alt-Drag Manager started')
-    hs.alert.show("Alt-Drag enabled: Alt+drag to move, Alt+right-drag to resize", 3)
+    if success1 and success2 then
+        log:i('Alt-Drag Manager started successfully')
+        hs.alert.show("Alt-Drag enabled: Alt+drag to move, Alt+right-drag to resize", 3)
+    else
+        log:e('Failed to start Alt-Drag Manager. Check accessibility permissions!')
+        hs.alert.show("Alt-Drag failed to start! Check accessibility permissions.", 4)
+
+        -- Clean up if only partially started
+        if AltDragManager.dragTap then
+            AltDragManager.dragTap:stop()
+            AltDragManager.dragTap = nil
+        end
+        if AltDragManager.flagsTap then
+            AltDragManager.flagsTap:stop()
+            AltDragManager.flagsTap = nil
+        end
+    end
 end
 
 function AltDragManager.stop()
@@ -308,10 +374,27 @@ function AltDragManager.getStatus()
         running = AltDragManager.isRunning(),
         isDragging = AltDragManager.isDragging,
         isResizing = AltDragManager.isResizing,
-        currentWindow = AltDragManager.draggedWindow and AltDragManager.draggedWindow:title() or nil
+        currentWindow = AltDragManager.draggedWindow and AltDragManager.draggedWindow:title() or nil,
+        debug = AltDragManager.config.debug
     }
 end
 
+-- Test function to verify event taps are working
+function AltDragManager.testEventTaps()
+    log:i('Testing event taps...')
+    local mousePos = hs.mouse.absolutePosition()
+    log:i('Current mouse position:', mousePos.x, mousePos.y)
+
+    local window = getWindowUnderMouse(mousePos)
+    if window then
+        log:i('Window under mouse:', window:title())
+    else
+        log:w('No window under mouse')
+    end
+
+    log:i('Event tap status - Drag tap:', AltDragManager.dragTap and 'running' or 'not running')
+    log:i('Event tap status - Flags tap:', AltDragManager.flagsTap and 'running' or 'not running')
+end
 -- Auto-start by default
 AltDragManager.start()
 

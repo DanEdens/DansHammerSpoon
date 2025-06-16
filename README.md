@@ -9,6 +9,7 @@ A powerful, customized Hammerspoon configuration for macOS automation and window
 This Hammerspoon configuration provides a comprehensive set of tools for macOS automation, featuring:
 
 - Advanced window management with multiple layouts and precise positioning
+- KineticLatch system for intuitive alt-drag window manipulation
 - DragonGrid system for pixel-perfect mouse control
 - Smart application launching with window selection
 - File and project management
@@ -19,6 +20,21 @@ This Hammerspoon configuration provides a comprehensive set of tools for macOS a
 The configuration is modular, customizable, and designed for power users seeking to streamline their workflow.
 
 ## Core Modules
+
+### KineticLatch
+
+**The Mad Tinker's Window Manipulation Contraption** 🔧⚡
+
+A kinetic window latching system that allows you to grab and manipulate windows from anywhere on their surface using modifier keys - just like those fancy Linux window managers and Windows utilities, but with more MADNESS!
+
+- **Alt + Left-Click + Drag**: Move windows from any point on their surface
+- **Alt + Right-Click + Drag**: Resize windows from any point
+- **Configurable Modifiers**: Customize keys and mouse buttons
+- **Smooth Operation**: Lag-free, responsive window manipulation
+- **Auto-Focus**: Automatically brings manipulated windows to the foreground
+- **Sensitivity Control**: Fine-tune responsiveness of kinetic movements
+
+See `Spoons/KineticLatch.spoon/README.md` for complete details.
 
 ### DragonGrid
 
@@ -116,6 +132,19 @@ Shortcuts use these modifier combinations:
 | hammer+g | Open GitHub Desktop |
 | hammer+\` | Open Cursor |
 | hyper+\` | Open VS Code |
+
+### KineticLatch (Alt-Drag Window Control)
+
+| Shortcut | Action |
+|----------|--------|
+| hammer+a | Toggle KineticLatch on/off |
+| hyper+a | Show KineticLatch status |
+| meta+a | Run KineticLatch diagnostics |
+
+**Usage:**
+
+- **Alt + Left-Click + Drag**: Move windows from any point
+- **Alt + Right-Click + Drag**: Resize windows from any point
 
 ### DragonGrid
 
@@ -320,7 +349,7 @@ Several improvements have been made to the codebase:
     - Enhanced maintainability through proper separation of concerns and state encapsulation
     - See [window_toggle_refactor_summary.md](window_toggle_refactor_summary.md) for complete details
 
-19. 3. **Scrcpy Special Handling** - Added specialized support for command-line tools like scrcpy
+19. **Scrcpy Special Handling** - Added specialized support for command-line tools like scrcpy
 
 - Created dedicated `open_scrcpy()` function that handles scrcpy as a command-line tool rather than traditional app
 - Smart window detection by title patterns (scrcpy, device models, resolutions)
@@ -328,6 +357,18 @@ Several improvements have been made to the codebase:
 - Supports multiple scrcpy instances with user-friendly selection interface
 - Updated hotkey binding (hammer+f) to use the specialized function
 - See [scrcpy_special_handling_fix.md](scrcpy_special_handling_fix.md) for complete details
+
+20. **KineticLatch.spoon - Alt-Drag Window Control** - Implemented advanced window manipulation system
+
+- **Alt + Left-Click + Drag**: Move windows from any point on their surface (like Linux window managers)
+- **Alt + Right-Click + Drag**: Resize windows from any point
+- **Event Tap System**: Intercepts mouse events before applications for smooth operation
+- **Configurable Controls**: Customize modifier keys, mouse buttons, and sensitivity
+- **Auto-Focus**: Automatically brings manipulated windows to the foreground
+- **Performance Optimized**: Minimal debug logging and disabled animations for smooth operation
+- **Publication Ready**: Complete with LICENSE file, README, example config, and docs.json
+- **Mad Tinker Themed**: Embraces the "Madness Interactive" project aesthetic with kinetic terminology
+- See `Spoons/KineticLatch.spoon/README.md` for complete documentation
 
 ## Recent Updates
 

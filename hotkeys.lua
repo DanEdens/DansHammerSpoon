@@ -29,8 +29,6 @@ local HotkeyManager = getModule('HotkeyManager')
 local WindowToggler = getModule('WindowToggler')
 local ProjectManager = getModule('ProjectManager')
 local WindowMenu = getModule('WindowMenu')
--- Load KineticLatch Spoon for mad tinker window manipulation
-hs.loadSpoon("KineticLatch")
 
 -- Define modifier key combinations
 hammer = { "cmd", "ctrl", "alt" }

@@ -33,13 +33,6 @@ end
 
 dofile(hs.configdir .. "/hotkeys.lua")
 
--- Initialize KineticLatch: The Mad Tinker's Window Manipulation Contraption! 🔧⚡
-if spoon.KineticLatch then
-    spoon.KineticLatch:start()
-    log:i('KineticLatch engaged! Ready for kinetic window manipulation!', __FILE__, 33)
-else
-    log:w('KineticLatch Spoon not loaded - alt-drag window management unavailable', __FILE__, 35)
-end
 -- Load the HammerGhost spoon
 -- hs.loadSpoon("HammerGhost")
 

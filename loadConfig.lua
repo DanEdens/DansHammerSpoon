@@ -11,6 +11,7 @@ local hspoon_list = {
     "ClipboardTool",
     "DragonGrid",
     "Layouts",
+    "KineticLatch", -- The Mad Tinker's Window Manipulation Contraption! 🔧⚡
     -- Disabled/Optional Spoons (uncomment to enable)
     -- "BingDaily",
     -- "CircleClock",

@@ -29,7 +29,8 @@ local HotkeyManager = getModule('HotkeyManager')
 local WindowToggler = getModule('WindowToggler')
 local ProjectManager = getModule('ProjectManager')
 local WindowMenu = getModule('WindowMenu')
-local AltDragManager = getModule('AltDragManager')
+-- Load KineticLatch Spoon for mad tinker window manipulation
+hs.loadSpoon("KineticLatch")
 
 -- Define modifier key combinations
 hammer = { "cmd", "ctrl", "alt" }
@@ -182,25 +183,12 @@ hs.hotkey.bind(_hyper, "w", "Window Locations Menu", function() WindowToggler.sh
 hs.hotkey.bind(hammer, "q", "Clear Saved Window Positions", function() WindowToggler.clearSavedPositions() end)
 hs.hotkey.bind(_hyper, "q", "Clear All Saved Locations", function() WindowToggler.clearSavedLocations(true) end)
 
--- Alt-Drag Window Management
-hs.hotkey.bind(hammer, "a", "Toggle Alt-Drag", function() AltDragManager.toggle() end)
-hs.hotkey.bind(_hyper, "a", "Alt-Drag Status", function()
-    local status = AltDragManager.getStatus()
-    local message = string.format("Alt-Drag: %s | Running: %s",
-        status.enabled and "Enabled" or "Disabled",
-        status.running and "Yes" or "No")
-    if status.isDragging then
-        message = message .. " | Currently dragging: " .. (status.currentWindow or "unknown")
-    elseif status.isResizing then
-        message = message .. " | Currently resizing: " .. (status.currentWindow or "unknown")
-    end
-    hs.alert.show(message, 4)
-end)
+-- KineticLatch: The Mad Tinker's Window Manipulation Contraption! 🔧⚡
+hs.hotkey.bind(hammer, "a", "Toggle KineticLatch", function() spoon.KineticLatch:toggle() end)
+hs.hotkey.bind(_hyper, "a", "KineticLatch Status", function() spoon.KineticLatch:showStatus() end)
+hs.hotkey.bind(_meta, "a", "KineticLatch Diagnostics", function() spoon.KineticLatch:diagnose() end)
 
--- Debug Alt-Drag functionality
-hs.hotkey.bind(_meta, "a", "Test Alt-Drag Event Taps", function()
-    AltDragManager.testEventTaps()
-end)
+-- Application-specific hotkeys
 
 -- Add a definition for tempFunction at the end of the file
 function tempFunction()

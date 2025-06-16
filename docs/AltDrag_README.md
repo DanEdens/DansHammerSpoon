@@ -1,100 +1,103 @@
-# Alt-Drag Window Management
+# KineticLatch.spoon - The Mad Tinker's Window Manipulation Contraption! 🔧⚡
 
-A powerful window management system that allows you to move and resize windows from anywhere on the window surface, similar to Linux window managers and Windows utilities like "alt-drag".
+**A kinetic window latching system that allows you to grab and manipulate windows from anywhere on their surface using modifier keys - just like those fancy Linux window managers and Windows utilities, but with more MADNESS!**
 
-## Features
+## Mad Science Features ⚡
 
-- **Alt + Left-Click + Drag**: Move windows by clicking and dragging anywhere on the window (not just the title bar)
-- **Alt + Right-Click + Drag**: Resize windows by clicking and dragging anywhere on the window
-- **Configurable modifiers**: Customize which keys to use for different operations
-- **Automatic window focus**: Windows are automatically brought to the front when dragging/resizing
-- **Smooth operation**: Animations are disabled during drag operations for responsive feel
+- **Alt + Left-Click + Drag**: Latch onto windows and drag them around from any point
+- **Alt + Right-Click + Drag**: Kinetically reshape windows from any point  
+- **Configurable modifiers**: Customize which keys unleash the kinetic forces
+- **Smooth, lag-free operation**: Optimized for mad tinkering with minimal debug logging
+- **Auto-focusing**: Windows automatically come to the foreground for kinetic manipulation
+- **Kinetic feedback**: Visual alerts and status messages for the contraption
 
-## Usage
+## Installation & Usage 🔧
 
-### Basic Operations
+### Automatic Start (Default)
 
-1. **Move a window**: Hold `Alt` and left-click anywhere on a window, then drag to move it
-2. **Resize a window**: Hold `Alt` and right-click anywhere on a window, then drag to resize it
-3. **Release modifier**: Let go of the `Alt` key or mouse button to stop the operation
+KineticLatch engages automatically when Hammerspoon loads! No manual intervention required for the mad science to begin.
 
-### Hotkeys
+### Hotkey Controls
 
-- **Cmd+Ctrl+Alt+A**: Toggle Alt-Drag functionality on/off
-- **Cmd+Shift+Ctrl+Alt+A**: Show Alt-Drag status and current operation info
+- **`Cmd+Ctrl+Alt+A`**: Toggle the kinetic contraption on/off
+- **`Cmd+Shift+Ctrl+Alt+A`**: Show detailed status of the kinetic system
+- **`Cmd+Shift+Alt+A`**: Run kinetic diagnostics for troubleshooting
 
-## Configuration
+### Basic Kinetic Operations
 
-The Alt-Drag system can be configured through the `AltDragManager.setConfig()` function:
+1. **Latch and Move**: Hold `Alt` and left-click anywhere on a window, then drag to move it around
+2. **Kinetic Reshaping**: Hold `Alt` and right-click anywhere on a window, then drag to resize it
+3. **Release**: Simply release the mouse button to disengage the kinetic latch
+
+## Configuration 🛠️
+
+You can configure KineticLatch through Lua:
 
 ```lua
-AltDragManager.setConfig({
-    moveModifier = {"alt"},        -- Keys for moving windows
-    resizeModifier = {"alt"},      -- Keys for resizing windows
-    enabled = true,                -- Enable/disable the system
-    sensitivity = 1.0,             -- Drag sensitivity multiplier
-    minWindowSize = {w = 100, h = 100} -- Minimum window size when resizing
+-- Configure kinetic parameters
+spoon.KineticLatch:configure({
+    moveModifier = {"alt"},              -- Keys for kinetic latching
+    resizeModifier = {"alt"},            -- Keys for kinetic reshaping
+    sensitivity = 1.0,                   -- Kinetic sensitivity multiplier
+    minWindowSize = {w = 100, h = 100}, -- Minimum window dimensions
+    debug = false                        -- Mad scientist debug mode
 })
 ```
 
-### Available Modifiers
+## Mad Tinker API 🔬
 
-- `"alt"` - Alt/Option key
-- `"cmd"` - Command key
-- `"ctrl"` - Control key
-- `"shift"` - Shift key
+### Core Methods
 
-You can use combinations like `{"alt", "shift"}` for more complex modifier requirements.
+- `spoon.KineticLatch:start()` - Engage the kinetic contraption
+- `spoon.KineticLatch:stop()` - Disengage the kinetic contraption  
+- `spoon.KineticLatch:toggle()` - Toggle kinetic engagement
+- `spoon.KineticLatch:isRunning()` - Check contraption status
+- `spoon.KineticLatch:showStatus()` - Display kinetic status alert
+- `spoon.KineticLatch:diagnose()` - Run kinetic diagnostics
 
-## Technical Details
+### Configuration Methods
 
-The Alt-Drag system uses Hammerspoon's `hs.eventtap` to intercept mouse events and check for modifier keys. When the correct combination is detected:
+- `spoon.KineticLatch:configure(config)` - Update kinetic parameters
+- `spoon.KineticLatch:getConfig()` - Get current configuration
+- `spoon.KineticLatch:getStatus()` - Get detailed status information
 
-1. The system identifies the window under the mouse cursor
-2. Brings the window to focus
-3. Tracks mouse movement to update window position or size
-4. Stops when modifiers are released or mouse button is released
+## Troubleshooting ⚠️
 
-## Compatibility
+### Common Issues
 
-- Works with most macOS applications
-- Automatically handles window boundaries and minimum sizes
-- Integrates seamlessly with existing Hammerspoon window management
-- Compatible with multi-monitor setups
+1. **"KineticLatch FAILED! Check accessibility permissions"**
+   - Open System Preferences → Security & Privacy → Privacy → Accessibility
+   - Add Hammerspoon to the list and enable it
+   - Restart Hammerspoon
 
-## Troubleshooting
+2. **Windows don't respond to kinetic manipulation**
+   - Run diagnostics: `Cmd+Shift+Alt+A`
+   - Check the Hammerspoon console for kinetic event messages
+   - Ensure accessibility permissions are granted
 
-**Alt-Drag not working:**
+3. **Kinetic latch feels sluggish**
+   - Disable debug mode: `spoon.KineticLatch:configure({debug = false})`
+   - Adjust sensitivity: `spoon.KineticLatch:configure({sensitivity = 1.5})`
 
-- Check if the system is enabled with `Cmd+Shift+Ctrl+Alt+A`
-- Restart Hammerspoon if needed
-- Verify accessibility permissions are granted to Hammerspoon
+### Debug Mode
 
-**Performance issues:**
+Enable mad scientist debug mode for detailed kinetic analysis:
 
-- Reduce sensitivity if dragging feels too fast
-- Check for conflicts with other event taps or mouse utilities
+```lua
+spoon.KineticLatch:configure({debug = true})
+```
 
-**Window not responding:**
+## The Mad Science Behind It 🧪
 
-- Some applications may prevent window manipulation
-- Try with different applications to verify functionality
-- Check Console.app for any error messages
+KineticLatch uses Hammerspoon's event tap system to intercept mouse events and apply kinetic transformations to window geometry in real-time. When you engage the kinetic latch (Alt+drag), the contraption:
 
-## Integration with Other Modules
+1. **Intercepts** mouse events before they reach applications
+2. **Calculates** kinetic deltas from the initial latch point
+3. **Applies** smooth geometric transformations to window frames
+4. **Disables** animations for responsive kinetic feedback
 
-The Alt-Drag system works alongside other Hammerspoon window management modules:
+The result? Buttery-smooth window manipulation that feels like telekinesis! ⚡
 
-- **WindowManager**: Provides layout and positioning functions
-- **WindowMenu**: Includes Alt-Drag status in window management menus
-- **DragonGrid**: Precision mouse positioning for detailed window work
+---
 
-## Inspiration
-
-This functionality is inspired by:
-
-- Linux window managers (like i3, bspwm, etc.)
-- [Windows utilities like "alt-drag"](https://stefansundin.github.io/altdrag/)
-- Raspbian desktop environment features
-
-The goal is to bring the convenience of Linux-style window management to macOS through Hammerspoon.
+*Part of the Madness Interactive project - Where AI meets window management chaos!* 🤖✨

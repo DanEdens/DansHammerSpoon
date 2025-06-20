@@ -66,7 +66,7 @@ hs.hotkey.bind(_hyper, "6", "Left Half Layout", function() WindowManager.applyLa
 hs.hotkey.bind(hammer, "7", "Toggle Right Layout", function() WindowManager.toggleRightLayout() end)
 hs.hotkey.bind(_hyper, "7", "Right Half Layout", function() WindowManager.applyLayout('rightHalf') end)
 hs.hotkey.bind(hammer, "8", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind(_hyper, "8", "Open System Preferences", function() AppManager.open_system_preferences() end)
+hs.hotkey.bind(_hyper, "8", "Open System Preferences", function() AppManager.open_system() end)
 hs.hotkey.bind(hammer, "9", "Move Window to Mouse", function() WindowManager.moveWindowMouseCenter() end)
 hs.hotkey.bind(_hyper, "9", "Open Selected File", function() FileManager.openSelectedFile() end)
 hs.hotkey.bind(hammer, "0", "Horizontal Shuffle", function() WindowManager.halfShuffle(4, 3) end)

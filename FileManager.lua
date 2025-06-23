@@ -303,6 +303,16 @@ function FileManager.showEditorMenu()
     log:d('Editor menu displayed successfully with', #choices, 'options')
 end
 
+function FileManager.showEditorMenuSafe()
+    log:i('Showing editor menu with error handling')
+    local success, error_msg = pcall(function()
+        FileManager.showEditorMenu()
+    end)
+    if not success then
+        log:e('Error calling FileManager.showEditorMenu:', error_msg)
+        hs.alert.show("Error opening editor menu: " .. tostring(error_msg))
+    end
+end
 function FileManager.openMostRecentImage()
     log:i('Attempting to open most recent image from Desktop')
     local desktopPath = hs.fs.pathToAbsolute(os.getenv("HOME") .. "/Desktop")

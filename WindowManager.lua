@@ -531,6 +531,268 @@ function WindowManager.saveCurrentLayout(layoutName)
     return #savedWindows
 end
 
+-- Smart Window Panic - Auto-tile all windows intelligently
+function WindowManager.windowPanic()
+    log.i('🚨 Window Panic! Auto-tiling all windows...')
+
+    -- Get all visible, standard windows
+    local allWindows = {}
+    for _, win in ipairs(hs.window.visibleWindows()) do
+        if win:isStandard() and not win:isMinimized() then
+            local app = win:application()
+            local appName = app and app:name() or "Unknown"
+
+            -- Assign priority based on app type and window characteristics
+            local priority = WindowManager.getWindowPriority(win, appName)
+
+            table.insert(allWindows, {
+                window = win,
+                appName = appName,
+                title = win:title() or "Untitled",
+                originalFrame = win:frame(),
+                priority = priority,
+                screen = win:screen()
+            })
+        end
+    end
+
+    if #allWindows == 0 then
+        hs.alert.show("No windows to arrange!")
+        return
+    end
+
+    log.d('Found windows to arrange:', #allWindows)
+
+    -- Save current positions before panic mode
+    WindowManager.saveAllWindowPositions()
+
+    -- Group windows by screen
+    local windowsByScreen = {}
+    for _, winInfo in ipairs(allWindows) do
+        local screenId = winInfo.screen:id()
+        if not windowsByScreen[screenId] then
+            windowsByScreen[screenId] = {
+                screen = winInfo.screen,
+                windows = {}
+            }
+        end
+        table.insert(windowsByScreen[screenId].windows, winInfo)
+    end
+
+    -- Arrange windows on each screen
+    local totalArranged = 0
+    for screenId, screenInfo in pairs(windowsByScreen) do
+        totalArranged = totalArranged + WindowManager.arrangeWindowsOnScreen(screenInfo.screen, screenInfo.windows)
+    end
+
+    hs.alert.show(string.format("🚨 Panic mode! Arranged %d windows across %d screens",
+        totalArranged, hs.fnutils.count(windowsByScreen)))
+
+    log.i('Window panic completed. Arranged windows:', totalArranged)
+end
+
+-- Determine window priority for smart arrangement
+function WindowManager.getWindowPriority(win, appName)
+    local frame = win:frame()
+    local area = frame.w * frame.h
+
+    -- High priority apps (need more space)
+    local highPriorityApps = {
+        ["Code"] = true,
+        ["Xcode"] = true,
+        ["IntelliJ IDEA"] = true,
+        ["Sublime Text"] = true,
+        ["Atom"] = true,
+        ["Visual Studio Code"] = true,
+        ["Terminal"] = true,
+        ["iTerm2"] = true,
+        ["Hyper"] = true,
+        ["Finder"] = true,
+        ["Safari"] = true,
+        ["Chrome"] = true,
+        ["Firefox"] = true,
+        ["Cursor"] = true,
+        ["Claude"] = true
+    }
+
+    -- Medium priority apps
+    local mediumPriorityApps = {
+        ["Slack"] = true,
+        ["Discord"] = true,
+        ["Messages"] = true,
+        ["Mail"] = true,
+        ["Calendar"] = true,
+        ["Notes"] = true,
+        ["Obsidian"] = true,
+        ["Notion"] = true
+    }
+
+    -- Calculate priority score (higher = more important)
+    local priority = 1 -- base priority
+
+    if highPriorityApps[appName] then
+        priority = priority + 3
+    elseif mediumPriorityApps[appName] then
+        priority = priority + 2
+    end
+
+    -- Larger windows get slight priority boost
+    if area > 800000 then -- roughly 1000x800 or larger
+        priority = priority + 1
+    end
+
+    -- Currently focused window gets priority
+    local focusedWin = hs.window.focusedWindow()
+    if focusedWin and win:id() == focusedWin:id() then
+        priority = priority + 2
+    end
+
+    return priority
+end
+
+-- Arrange windows on a specific screen
+function WindowManager.arrangeWindowsOnScreen(screen, windows)
+    if #windows == 0 then return 0 end
+
+    local screenFrame = screen:frame()
+    local margin = 10 -- margin around edges and between windows
+    local workArea = {
+        x = screenFrame.x + margin,
+        y = screenFrame.y + margin,
+        w = screenFrame.w - (margin * 2),
+        h = screenFrame.h - (margin * 2)
+    }
+
+    log.d('Arranging windows on screen:', screen:name(), 'Windows:', #windows)
+
+    -- Sort windows by priority (highest first)
+    table.sort(windows, function(a, b) return a.priority > b.priority end)
+
+    -- Choose arrangement strategy based on number of windows
+    local arrangement = WindowManager.calculateOptimalArrangement(#windows, workArea)
+
+    -- Apply the arrangement
+    for i, winInfo in ipairs(windows) do
+        if i <= #arrangement then
+            local targetFrame = arrangement[i]
+
+            -- Create geometry object
+            local newFrame = hs.geometry.rect(
+                workArea.x + targetFrame.x,
+                workArea.y + targetFrame.y,
+                targetFrame.w,
+                targetFrame.h
+            )
+
+            -- Apply the frame
+            local success = WindowManager.setFrameInScreenWithRetry(winInfo.window, newFrame)
+
+            if success then
+                log.d('Arranged window:', winInfo.appName, winInfo.title, 'at position', i)
+            else
+                log.w('Failed to arrange window:', winInfo.appName, winInfo.title)
+            end
+        end
+    end
+
+    return math.min(#windows, #arrangement)
+end
+
+-- Calculate optimal window arrangement based on count and screen space
+function WindowManager.calculateOptimalArrangement(windowCount, workArea)
+    local arrangements = {}
+
+    if windowCount == 1 then
+        -- Single window - use 80% of screen, centered
+        local w = workArea.w * 0.8
+        local h = workArea.h * 0.8
+        arrangements[1] = {
+            x = (workArea.w - w) / 2,
+            y = (workArea.h - h) / 2,
+            w = w,
+            h = h
+        }
+    elseif windowCount == 2 then
+        -- Two windows - split vertically
+        local w = (workArea.w - 10) / 2
+        local h = workArea.h
+        arrangements[1] = { x = 0, y = 0, w = w, h = h }
+        arrangements[2] = { x = w + 10, y = 0, w = w, h = h }
+    elseif windowCount == 3 then
+        -- Three windows - main window left, two stacked right
+        local mainW = workArea.w * 0.6
+        local sideW = workArea.w * 0.4 - 10
+        local sideH = (workArea.h - 10) / 2
+
+        arrangements[1] = { x = 0, y = 0, w = mainW, h = workArea.h }
+        arrangements[2] = { x = mainW + 10, y = 0, w = sideW, h = sideH }
+        arrangements[3] = { x = mainW + 10, y = sideH + 10, w = sideW, h = sideH }
+    elseif windowCount == 4 then
+        -- Four windows - 2x2 grid
+        local w = (workArea.w - 10) / 2
+        local h = (workArea.h - 10) / 2
+
+        arrangements[1] = { x = 0, y = 0, w = w, h = h }
+        arrangements[2] = { x = w + 10, y = 0, w = w, h = h }
+        arrangements[3] = { x = 0, y = h + 10, w = w, h = h }
+        arrangements[4] = { x = w + 10, y = h + 10, w = w, h = h }
+    elseif windowCount <= 6 then
+        -- Up to 6 windows - 2x3 grid
+        local w = (workArea.w - 20) / 3
+        local h = (workArea.h - 10) / 2
+
+        for i = 1, windowCount do
+            local row = math.floor((i - 1) / 3)
+            local col = (i - 1) % 3
+            arrangements[i] = {
+                x = col * (w + 10),
+                y = row * (h + 10),
+                w = w,
+                h = h
+            }
+        end
+    elseif windowCount <= 9 then
+        -- Up to 9 windows - 3x3 grid
+        local w = (workArea.w - 20) / 3
+        local h = (workArea.h - 20) / 3
+
+        for i = 1, windowCount do
+            local row = math.floor((i - 1) / 3)
+            local col = (i - 1) % 3
+            arrangements[i] = {
+                x = col * (w + 10),
+                y = row * (h + 10),
+                w = w,
+                h = h
+            }
+        end
+    else
+        -- More than 9 windows - 4xN grid
+        local cols = 4
+        local rows = math.ceil(windowCount / cols)
+        local w = (workArea.w - ((cols - 1) * 10)) / cols
+        local h = (workArea.h - ((rows - 1) * 10)) / rows
+
+        for i = 1, windowCount do
+            local row = math.floor((i - 1) / cols)
+            local col = (i - 1) % cols
+            arrangements[i] = {
+                x = col * (w + 10),
+                y = row * (h + 10),
+                w = w,
+                h = h
+            }
+        end
+    end
+
+    return arrangements
+end
+
+-- Restore from panic mode
+function WindowManager.restoreFromPanic()
+    log.i('Restoring windows from panic mode')
+    WindowManager.restoreAllWindowPositions()
+end
 function WindowManager.restoreLayout(layoutName)
     log.i('Restoring layout:', layoutName)
 

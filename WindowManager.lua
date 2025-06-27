@@ -374,8 +374,7 @@ end
 
 -- Helper function to set window frame with verification and retry
 function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
-    retryCount = retryCount or 5
-
+    retryCount = retryCount or 3
 
     -- Ensure animations are always disabled for reliable positioning
     hs.window.animationDuration = 0
@@ -387,10 +386,10 @@ function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
     -- Verify the frame was set correctly by comparing with a small tolerance
     local resultFrame = win:frame()
     local frameCorrect =
-        math.abs(resultFrame.x - newFrame.x) < 10 and
-        math.abs(resultFrame.y - newFrame.y) < 10 and
-        math.abs(resultFrame.w - newFrame.w) < 10 and
-        math.abs(resultFrame.h - newFrame.h) < 10
+        math.abs(resultFrame.x - newFrame.x) < 20 and
+        math.abs(resultFrame.y - newFrame.y) < 20 and
+        math.abs(resultFrame.w - newFrame.w) < 20 and
+        math.abs(resultFrame.h - newFrame.h) < 20
 
     -- If frame wasn't applied correctly and we have retries left, try alternative methods
     if not frameCorrect and retryCount > 0 then

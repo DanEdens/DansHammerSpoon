@@ -54,7 +54,7 @@ local fallback_projects_list = {
     { name = "Inventorium",                path = seatOfMadness .. "/projects/common/Inventorium" },
     { name = "Omnispindle",                path = seatOfMadness .. "/projects/python/Omnispindle" },
     { name = "Swarmonomicon",              path = seatOfMadness .. "/projects/common/Swarmonomicon" },
-    { name = "lab",                        path = seatOfTest },
+    { name = "Whispermind_Conduit",        path = seatOfMadness .. "/projects/common/Whispermind_Conduit" },
     { name = "regressiontestkit",          path = seatOfTest },
     -- RegressionTestKit ecosystem
     { name = "OculusTestKit",              path = seatOfTest .. "/OculusTestKit" },
@@ -346,6 +346,45 @@ function FileManager.openMostRecentImage()
     end
 end
 
+function FileManager.copyMostRecentImage()
+    log:i('Attempting to copy most recent image from Desktop to clipboard')
+    local desktopPath = hs.fs.pathToAbsolute(os.getenv("HOME") .. "/Desktop")
+    log:d('Desktop path: ' .. desktopPath)
+
+    -- Look for multiple image formats, not just PNG
+    local cmd = string.format(
+        "find '%s' -maxdepth 1 -type f \\( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.gif' -o -iname '*.bmp' -o -iname '*.tiff' \\) -exec ls -t {} + | head -n 1",
+        desktopPath)
+    log:d('Executing command: ' .. cmd)
+
+    local output, status, type, rc = hs.execute(cmd)
+
+    if status and output and output ~= "" then
+        -- Trim whitespace and newlines from the output
+        local filePath = output:match("^%s*(.-)%s*$")
+        if filePath and filePath ~= "" then
+            log:i('Copying image to clipboard: ' .. filePath)
+            lastSelected.file = { name = "recent_image_copied", path = filePath }
+
+            -- Load the image and copy to clipboard
+            local image = hs.image.imageFromPath(filePath)
+            if image then
+                hs.pasteboard.writeObjects(image)
+                log:i('Successfully copied image to clipboard')
+                hs.alert.show("Image copied to clipboard: " .. hs.fs.displayName(filePath))
+            else
+                log:e('Failed to load image from path: ' .. filePath)
+                hs.alert.show("Error: Could not load image file")
+            end
+        else
+            log:w('No valid file path found in command output')
+            hs.alert.show("No recent images found on Desktop")
+        end
+    else
+        log:w('Command failed or no images found. Status: ' .. tostring(status) .. ', RC: ' .. tostring(rc))
+        hs.alert.show("No recent images found on Desktop")
+    end
+end
 -- Save in global environment for module reuse
 _G.FileManager = FileManager
 return FileManager

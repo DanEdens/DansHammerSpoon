@@ -55,6 +55,7 @@ local fallback_projects_list = {
     { name = "Omnispindle",                path = seatOfMadness .. "/projects/python/Omnispindle" },
     { name = "Swarmonomicon",              path = seatOfMadness .. "/projects/common/Swarmonomicon" },
     { name = "Whispermind_Conduit",        path = seatOfMadness .. "/projects/common/Whispermind_Conduit" },
+    { name = "SwarmDesk",                  path = seatOfMadness .. "/projects/common/SwarmDesk" },
     { name = "regressiontestkit",          path = seatOfTest },
     -- RegressionTestKit ecosystem
     { name = "OculusTestKit",              path = seatOfTest .. "/OculusTestKit" },

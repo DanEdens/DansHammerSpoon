@@ -121,6 +121,8 @@ hs.hotkey.bind(hammer, "Tab", "Open Mission Control", function() AppManager.open
 hs.hotkey.bind(_hyper, "Tab", "Open Launchpad", function() AppManager.open_launchpad() end)
 hs.hotkey.bind(hammer, "t", "Open Barrier", function() AppManager.open_barrier() end)
 hs.hotkey.bind(hammer, "i", "Open Most Recent Image", function() FileManager.openMostRecentImage() end)
+hs.hotkey.bind(hammer, "i", "Copy Most Recent Image", function() FileManager.copyMostRecentImage() end)
+hs.hotkey.bind(_hyper, "i", "Open Most Recent Image", function() FileManager.openMostRecentImage() end)
 hs.hotkey.bind(hammer, "e", "Show File Menu", function() FileManager.showFileMenu() end)
 hs.hotkey.bind(_hyper, "e", "Show Editor Menu", function() FileManager.showEditorMenuSafe() end)
 hs.hotkey.bind(hammer, "x", "Toggle Dragon Grid", function() spoon.DragonGrid:toggleGridDisplay() end)

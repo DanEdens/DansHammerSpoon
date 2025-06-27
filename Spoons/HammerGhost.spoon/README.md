@@ -31,13 +31,13 @@ hs.loadSpoon("HammerGhost")
 hs.loadSpoon("HammerGhost")
 
 -- Bind hotkeys
-spoon.HammerGhost:bindHotkeys({
-    toggle = { {"cmd", "alt", "ctrl"}, "g" },
-    addAction = { {"cmd", "alt", "ctrl"}, "a" },
-    addSequence = { {"cmd", "alt", "ctrl"}, "s" },
-    addFolder = { {"cmd", "alt", "ctrl"}, "f" },
-    showActions = { {"cmd", "alt", "ctrl"}, "e" }
-})
+-- spoon.HammerGhost:bindHotkeys({
+--     toggle = { {"cmd", "alt", "ctrl"}, "g" },
+--     addAction = { {"cmd", "alt", "ctrl"}, "a" },
+--     addSequence = { {"cmd", "alt", "ctrl"}, "s" },
+--     addFolder = { {"cmd", "alt", "ctrl"}, "f" },
+--     showActions = { {"cmd", "alt", "ctrl"}, "e" }
+-- })
 
 -- Start the spoon
 spoon.HammerGhost:start()

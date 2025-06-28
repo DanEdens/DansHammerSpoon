@@ -1,0 +1,237 @@
+[
+  {
+    "Command": [],
+    "Constant": [],
+    "Constructor": [],
+    "Deprecated": [],
+    "Field": [],
+    "Function": [],
+    "Method": [
+      {
+        "def": "KineticLatch:configure(config) -> self",
+        "desc": "Configures the kinetic latching system",
+        "doc": "Configures the kinetic latching system\n\nParameters:\n * config - A table of configuration options\n\nReturns:\n * The KineticLatch object",
+        "name": "configure",
+        "signature": "KineticLatch:configure(config) -> self",
+        "stripped_doc": "Configures the kinetic latching system\n\nParameters:\n * config - A table of configuration options\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:diagnose() -> self",
+        "desc": "Runs diagnostic tests on the kinetic system",
+        "doc": "Runs diagnostic tests on the kinetic system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "diagnose",
+        "signature": "KineticLatch:diagnose() -> self",
+        "stripped_doc": "Runs diagnostic tests on the kinetic system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:getConfig() -> table",
+        "desc": "Gets the current configuration",
+        "doc": "Gets the current configuration\n\nParameters:\n * None\n\nReturns:\n * A table containing the current configuration",
+        "name": "getConfig",
+        "signature": "KineticLatch:getConfig() -> table",
+        "stripped_doc": "Gets the current configuration\n\nParameters:\n * None\n\nReturns:\n * A table containing the current configuration",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:getStatus() -> table",
+        "desc": "Gets the current status of the kinetic system",
+        "doc": "Gets the current status of the kinetic system\n\nParameters:\n * None\n\nReturns:\n * A table containing status information",
+        "name": "getStatus",
+        "signature": "KineticLatch:getStatus() -> table",
+        "stripped_doc": "Gets the current status of the kinetic system\n\nParameters:\n * None\n\nReturns:\n * A table containing status information",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:init() -> self",
+        "desc": "Initializes the KineticLatch Spoon",
+        "doc": "Initializes the KineticLatch Spoon\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "init",
+        "signature": "KineticLatch:init() -> self",
+        "stripped_doc": "Initializes the KineticLatch Spoon\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:isRunning() -> boolean",
+        "desc": "Checks if the kinetic latching system is currently active",
+        "doc": "Checks if the kinetic latching system is currently active\n\nParameters:\n * None\n\nReturns:\n * Boolean - true if running, false otherwise",
+        "name": "isRunning",
+        "signature": "KineticLatch:isRunning() -> boolean",
+        "stripped_doc": "Checks if the kinetic latching system is currently active\n\nParameters:\n * None\n\nReturns:\n * Boolean - true if running, false otherwise",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:showStatus() -> self",
+        "desc": "Shows a detailed status alert",
+        "doc": "Shows a detailed status alert\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "showStatus",
+        "signature": "KineticLatch:showStatus() -> self",
+        "stripped_doc": "Shows a detailed status alert\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:start() -> self",
+        "desc": "Starts the kinetic latching system",
+        "doc": "Starts the kinetic latching system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "start",
+        "signature": "KineticLatch:start() -> self",
+        "stripped_doc": "Starts the kinetic latching system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:stop() -> self",
+        "desc": "Stops the kinetic latching system",
+        "doc": "Stops the kinetic latching system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "stop",
+        "signature": "KineticLatch:stop() -> self",
+        "stripped_doc": "Stops the kinetic latching system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:toggle() -> self",
+        "desc": "Toggles the kinetic latching system on/off",
+        "doc": "Toggles the kinetic latching system on/off\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "toggle",
+        "signature": "KineticLatch:toggle() -> self",
+        "stripped_doc": "Toggles the kinetic latching system on/off\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      }
+    ],
+    "Variable": [
+      {
+        "def": "KineticLatch.config",
+        "desc": "Current configuration - starts with defaults",
+        "doc": "Variable\nCurrent configuration - starts with defaults",
+        "name": "config",
+        "signature": "KineticLatch.config",
+        "stripped_doc": "Current configuration - starts with defaults",
+        "type": "Variable"
+      },
+      {
+        "def": "KineticLatch.defaultConfig",
+        "desc": "Default configuration for the kinetic latching system",
+        "doc": "Variable\nDefault configuration for the kinetic latching system",
+        "name": "defaultConfig",
+        "signature": "KineticLatch.defaultConfig",
+        "stripped_doc": "Default configuration for the kinetic latching system",
+        "type": "Variable"
+      }
+    ],
+    "desc": "**The Mad Tinker's Window Manipulation Contraption** 🔧⚡",
+    "doc": "**The Mad Tinker's Window Manipulation Contraption** 🔧⚡\n\nA kinetic window latching system that allows you to grab and manipulate windows\nfrom anywhere on their surface using modifier keys - just like those fancy\nLinux window managers and Windows utilities, but with more MADNESS!\n\n**Features:**\n* Alt + Left-Click + Drag: Latch onto windows and drag them around\n* Alt + Right-Click + Drag: Resize windows from any point\n* Configurable modifier keys and sensitivity\n* Smooth, lag-free operation optimized for mad tinkering\n* Auto-focusing and kinetic feedback\n\n**Mad Science:** Uses Hammerspoon's event taps to intercept mouse events\nand apply kinetic transformations to window geometry in real-time!\n\nDownload: https://github.com/hammerspoon/Spoons/raw/master/Spoons/KineticLatch.spoon.zip",
+    "items": [
+      {
+        "def": "KineticLatch:configure(config) -> self",
+        "desc": "Configures the kinetic latching system",
+        "doc": "Configures the kinetic latching system\n\nParameters:\n * config - A table of configuration options\n\nReturns:\n * The KineticLatch object",
+        "name": "configure",
+        "signature": "KineticLatch:configure(config) -> self",
+        "stripped_doc": "Configures the kinetic latching system\n\nParameters:\n * config - A table of configuration options\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:diagnose() -> self",
+        "desc": "Runs diagnostic tests on the kinetic system",
+        "doc": "Runs diagnostic tests on the kinetic system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "diagnose",
+        "signature": "KineticLatch:diagnose() -> self",
+        "stripped_doc": "Runs diagnostic tests on the kinetic system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:getConfig() -> table",
+        "desc": "Gets the current configuration",
+        "doc": "Gets the current configuration\n\nParameters:\n * None\n\nReturns:\n * A table containing the current configuration",
+        "name": "getConfig",
+        "signature": "KineticLatch:getConfig() -> table",
+        "stripped_doc": "Gets the current configuration\n\nParameters:\n * None\n\nReturns:\n * A table containing the current configuration",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:getStatus() -> table",
+        "desc": "Gets the current status of the kinetic system",
+        "doc": "Gets the current status of the kinetic system\n\nParameters:\n * None\n\nReturns:\n * A table containing status information",
+        "name": "getStatus",
+        "signature": "KineticLatch:getStatus() -> table",
+        "stripped_doc": "Gets the current status of the kinetic system\n\nParameters:\n * None\n\nReturns:\n * A table containing status information",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:init() -> self",
+        "desc": "Initializes the KineticLatch Spoon",
+        "doc": "Initializes the KineticLatch Spoon\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "init",
+        "signature": "KineticLatch:init() -> self",
+        "stripped_doc": "Initializes the KineticLatch Spoon\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:isRunning() -> boolean",
+        "desc": "Checks if the kinetic latching system is currently active",
+        "doc": "Checks if the kinetic latching system is currently active\n\nParameters:\n * None\n\nReturns:\n * Boolean - true if running, false otherwise",
+        "name": "isRunning",
+        "signature": "KineticLatch:isRunning() -> boolean",
+        "stripped_doc": "Checks if the kinetic latching system is currently active\n\nParameters:\n * None\n\nReturns:\n * Boolean - true if running, false otherwise",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:showStatus() -> self",
+        "desc": "Shows a detailed status alert",
+        "doc": "Shows a detailed status alert\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "showStatus",
+        "signature": "KineticLatch:showStatus() -> self",
+        "stripped_doc": "Shows a detailed status alert\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:start() -> self",
+        "desc": "Starts the kinetic latching system",
+        "doc": "Starts the kinetic latching system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "start",
+        "signature": "KineticLatch:start() -> self",
+        "stripped_doc": "Starts the kinetic latching system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:stop() -> self",
+        "desc": "Stops the kinetic latching system",
+        "doc": "Stops the kinetic latching system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "stop",
+        "signature": "KineticLatch:stop() -> self",
+        "stripped_doc": "Stops the kinetic latching system\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch:toggle() -> self",
+        "desc": "Toggles the kinetic latching system on/off",
+        "doc": "Toggles the kinetic latching system on/off\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "name": "toggle",
+        "signature": "KineticLatch:toggle() -> self",
+        "stripped_doc": "Toggles the kinetic latching system on/off\n\nParameters:\n * None\n\nReturns:\n * The KineticLatch object",
+        "type": "Method"
+      },
+      {
+        "def": "KineticLatch.config",
+        "desc": "Current configuration - starts with defaults",
+        "doc": "Variable\nCurrent configuration - starts with defaults",
+        "name": "config",
+        "signature": "KineticLatch.config",
+        "stripped_doc": "Current configuration - starts with defaults",
+        "type": "Variable"
+      },
+      {
+        "def": "KineticLatch.defaultConfig",
+        "desc": "Default configuration for the kinetic latching system",
+        "doc": "Variable\nDefault configuration for the kinetic latching system",
+        "name": "defaultConfig",
+        "signature": "KineticLatch.defaultConfig",
+        "stripped_doc": "Default configuration for the kinetic latching system",
+        "type": "Variable"
+      }
+    ],
+    "name": "KineticLatch",
+    "submodules": [],
+    "type": "Module"
+  }
+] 

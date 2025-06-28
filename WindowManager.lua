@@ -34,7 +34,12 @@ local WindowManager = {
     sectionHeight = 0,
 
     -- Multi-window layout management
-    savedLayouts = {}
+    savedLayouts = {},
+
+    -- Toggle layout state tracking
+    rightLayoutState = { isSmall = true },
+    leftLayoutState = { isSmall = true },
+    fullLayoutState = { currentState = 0 } -- 0: fullScreen, 1: nearlyFull, 2: trueFull
 }
 
 -- Layouts
@@ -149,6 +154,30 @@ local standardLayouts = {
         y = function(max) return max.y + (max.h * 0.01) end,
         w = function(max) return max.w * 0.27 end,
         h = function(max) return max.h * 0.98 end
+    },
+    splitVertical = { -- Top half
+        x = function(max) return max.x end,
+        y = function(max) return max.y end,
+        w = function(max) return max.w end,
+        h = function(max) return max.h / 2 end
+    },
+    splitHorizontal = { -- Bottom half
+        x = function(max) return max.x end,
+        y = function(max) return max.y + (max.h / 2) end,
+        w = function(max) return max.w end,
+        h = function(max) return max.h / 2 end
+    },
+    centerScreen = { -- 80% centered
+        x = function(max) return max.x + (max.w * 0.1) end,
+        y = function(max) return max.y + (max.h * 0.1) end,
+        w = function(max) return max.w - (max.w * 0.2) end,
+        h = function(max) return max.h - (max.h * 0.2) end
+    },
+    bottomHalf = { -- Bottom half
+        x = function(max) return max.x end,
+        y = function(max) return max.y + (max.h / 2) end,
+        w = function(max) return max.w end,
+        h = function(max) return max.h / 2 end
     }
 }
 
@@ -299,9 +328,8 @@ function WindowManager.moveWindow(direction)
     local move = movements[direction]
     f.x = f.x + move.x
     f.y = f.y + move.y
-
     hs.window.animationDuration = 0.0
-    win:setFrame(f)
+    win:setFrame(f, 0.0)
     -- WindowManager.currentFrame = f
 end
 
@@ -314,7 +342,7 @@ function WindowManager.moveWindowMouseCenter()
     f.x = mouse.x - (f.w / 2)
     f.y = mouse.y - (f.h / 2)
     hs.window.animationDuration = 0.0
-    win:setFrame(f)
+    win:setFrame(f, 0.0)
     -- WindowManager.currentFrame = f
 end
 
@@ -327,7 +355,7 @@ function WindowManager.moveWindowMouseCorner()
     f.x = mouse.x
     f.y = mouse.y
     hs.window.animationDuration = 0.0
-    win:setFrame(f)
+    win:setFrame(f, 0.0)
     --  WindowManager.currentFrame = f
 end
 
@@ -346,14 +374,15 @@ end
 
 -- Helper function to set window frame with verification and retry
 function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
-    retryCount = retryCount or 3
+    retryCount = retryCount or 5
+
 
     -- Ensure animations are always disabled for reliable positioning
     hs.window.animationDuration = 0
 
     -- Try to set the frame
-    win:setFrame(newFrame)
-    hs.timer.usleep(50000)
+    win:setFrame(newFrame, 0)
+    hs.timer.usleep(300000)
 
     -- Verify the frame was set correctly by comparing with a small tolerance
     local resultFrame = win:frame()
@@ -371,21 +400,11 @@ function WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount)
         win:setFrameWithWorkarounds(newFrame)
 
         -- Add a small delay
-        hs.timer.usleep(50000)
-
-        -- Try direct coordinate setting as a last resort
-        if retryCount == 1 then
-            win:setTopLeft(newFrame.topleft)
-            hs.timer.usleep(10000)
-            win:setSize(newFrame.size)
-        end
+        hs.timer.usleep(300000)
 
         -- Recursive call with one fewer retry
         return WindowManager.setFrameInScreenWithRetry(win, newFrame, retryCount - 1)
     end
-
-    -- Keep animations disabled for consistent window management
-    hs.window.animationDuration = 0
 
     return frameCorrect
 end
@@ -432,6 +451,42 @@ function WindowManager.resetShuffleCounters()
     WindowManager.currentFrame = nil
     WindowManager.sectionWidth = 0
     WindowManager.sectionHeight = 0
+end
+-- Toggle layout functions
+function WindowManager.toggleRightLayout()
+    WindowManager.rightLayoutState.isSmall = not WindowManager.rightLayoutState.isSmall
+    if WindowManager.rightLayoutState.isSmall then
+        WindowManager.applyLayout('rightSmall')
+        log:d("Right Small Layout", __FILE__, 485)
+    else
+        WindowManager.applyLayout('rightHalf')
+        log:d("Right Half Layout", __FILE__, 488)
+    end
+end
+
+function WindowManager.toggleLeftLayout()
+    WindowManager.leftLayoutState.isSmall = not WindowManager.leftLayoutState.isSmall
+    if WindowManager.leftLayoutState.isSmall then
+        WindowManager.applyLayout('leftSmall')
+        log:d("Left Small Layout", __FILE__, 495)
+    else
+        WindowManager.applyLayout('leftHalf')
+        log:d("Left Half Layout", __FILE__, 498)
+    end
+end
+
+function WindowManager.toggleFullLayout()
+    WindowManager.fullLayoutState.currentState = (WindowManager.fullLayoutState.currentState + 1) % 3
+    if WindowManager.fullLayoutState.currentState == 0 then
+        WindowManager.applyLayout('fullScreen')
+        log:d("Full Screen Layout", __FILE__, 505)
+    elseif WindowManager.fullLayoutState.currentState == 1 then
+        WindowManager.applyLayout('nearlyFull')
+        log:d("Nearly Full Layout", __FILE__, 508)
+    else
+        WindowManager.applyLayout('trueFull')
+        log:d("True Full Layout", __FILE__, 511)
+    end
 end
 -- Multi-window layout management
 function WindowManager.saveCurrentLayout(layoutName)

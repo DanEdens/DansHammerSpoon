@@ -29,7 +29,7 @@ case "$DEVICE_TYPE" in
         fi
         ;;
     "google")
-        /opt/homebrew/bin/scrcpy --stay-awake --always-on-top -S >> "$LOG_FILE" 2>&1 &
+        /opt/homebrew/bin/scrcpy --stay-awake --window-title=scrcpy --always-on-top -S >> "$LOG_FILE" 2>&1 &
         ;;
     *)
         log "Unknown device type: $DEVICE_TYPE"

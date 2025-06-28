@@ -4,12 +4,14 @@ local loadConfig = {} -- Create module table
 
 -- Define default Spoons which will be loaded
 local hspoon_list = {
+    -- "OmniLadle", -- MCP client spoon for centralized project management
     "AClock",
     "EmmyLua",
     "ClipShow",
     "ClipboardTool",
     "DragonGrid",
     "Layouts",
+    "KineticLatch", -- The Mad Tinker's Window Manipulation Contraption! 🔧⚡
     -- Disabled/Optional Spoons (uncomment to enable)
     -- "BingDaily",
     -- "CircleClock",

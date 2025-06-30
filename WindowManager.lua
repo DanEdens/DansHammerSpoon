@@ -232,18 +232,19 @@ function WindowManager.halfShuffle(numRows, numCols)
     local colCounter = WindowManager.colCounter
     local rowCounter = WindowManager.rowCounter
 
-    local x = max.x + (colCounter * sectionWidth)
-    local y = max.y + (rowCounter * sectionHeight)
+    -- Reverse the direction: start from bottom-right and go in reverse
+    local x = max.x + ((numCols - 1 - colCounter) * sectionWidth)
+    local y = max.y + ((numRows - 1 - rowCounter) * sectionHeight)
 
     -- Create a geometry object for the new frame
     local newFrame = hs.geometry.rect(x, y, sectionWidth, sectionHeight)
-    log.i('Half shuffle w/ position: ', rowCounter, colCounter)
+    log.i('Half shuffle w/ position (reversed): ', rowCounter, colCounter)
 
     -- Apply the frame using the robust helper
     WindowManager.setFrameInScreenWithRetry(win, newFrame)
     WindowManager.currentFrame = newFrame
 
-    -- Update counters
+    -- Update counters in reverse direction
     WindowManager.rowCounter = (WindowManager.rowCounter + 1) % numRows
     if WindowManager.rowCounter == 0 then
         WindowManager.colCounter = (WindowManager.colCounter + 1) % numCols

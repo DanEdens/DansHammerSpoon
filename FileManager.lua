@@ -136,7 +136,8 @@ local editorList = {
     { name = "Visual Studio Code",        command = "code" },
     { name = "cursor",                    command = "cursor" },
     { name = "nvim",                      command = "nvim" },
-    { name = "PyCharm Community Edition", command = "pycharm" }
+    { name = "PyCharm Community Edition", command = "pycharm" },
+    { name = "Void",                      command = "void" }
 }
 
 -- Helper Functions

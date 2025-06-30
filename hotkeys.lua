@@ -213,7 +213,7 @@ hs.hotkey.bind(hammer, "8", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "8", "Open System Preferences", function() AppManager.open_system() end)
 hs.hotkey.bind(hammer, "9", "Move Window to Mouse", function() WindowManager.moveWindowMouseCenter() end)
 hs.hotkey.bind(_hyper, "9", "Open Selected File", function() FileManager.openSelectedFile() end)
-hs.hotkey.bind(hammer, "0", "Horizontal Shuffle", function() WindowManager.halfShuffle(4, 3) end)
+hs.hotkey.bind(hammer, "0", "Horizontal Shuffle", function() WindowManager.halfShuffle(12, 8) end)
 hs.hotkey.bind(_hyper, "0", "Vertical Shuffle", function() WindowManager.halfShuffle(12, 3) end)
 hs.hotkey.bind(hammer, "left", "Move Window Left", function() WindowManager.moveWindow("left") end)
 hs.hotkey.bind(_hyper, "left", "Move to Previous Screen", function() WindowManager.moveToScreen("previous", "right") end)
@@ -285,7 +285,7 @@ hs.hotkey.bind(_hyper, "m", "HammerGhost Editor", function() spoon.HammerGhost:s
 
 -- Additional application and system shortcuts
 -- hs.hotkey.bind(hammer, "k", function() AppManager.lock_screen() end)
--- hs.hotkey.bind(_hyper, "k", function() AppManager.sleep_display() end)
+-- hs.hotkey.bind(_hyper, "esc", function() AppManager.sleep_display() end)
 
 -- Project Management
 hs.hotkey.bind(hammer, "j", "Toggle Project Manager", function() ProjectManager.toggleProjectManager() end)
@@ -328,9 +328,9 @@ end
 -- hs.hotkey.bind(hammer, "u", "Save Current Layout", function() saveLayoutWithDialog() end)
 
 -- hs.hotkey.bind(hammer, "i", "Restore Layout", function() restoreLayoutChooser() end)
+-- hs.hotkey.bind(_hyper, "y", "Delete Layout", function() deleteLayoutChooser() end)
 
 -- Delete layout keybinding
-hs.hotkey.bind(_hyper, "y", "Delete Layout", function() deleteLayoutChooser() end)
 
 -- Function to save current window layout with user input
 function saveLayoutWithDialog()

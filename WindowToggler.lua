@@ -317,7 +317,8 @@ function WindowToggler.restoreToLocation1()
             log:i('Restored location 1 for window:', windowId)
             hs.alert.show("Restored " .. appName .. " to Location 1")
         else
-            hs.alert.show("No saved Location 1 for this window")
+            WindowManager.toggleFullLayout()
+            hs.alert.show("No saved Location 1 for this window, using full shuffle")
         end
     end)
 end
@@ -333,7 +334,9 @@ function WindowToggler.restoreToLocation2()
             log:i('Restored location 2 for window:', windowId)
             hs.alert.show("Restored " .. appName .. " to Location 2")
         else
-            hs.alert.show("No saved Location 2 for this window")
+            -- replace with cycle full layout
+            WindowManager.halfShuffle(12, 8)
+            hs.alert.show("No saved Location 2 for this window, using half shuffle")
         end
     end)
 end

@@ -370,6 +370,105 @@ function WindowToggler.clearSavedLocations(clearAll)
     end
 end
 
+-- Save all current window positions as Layout 1
+function WindowToggler.saveAllAsLayout1()
+    local allWindows = hs.window.allWindows()
+    local savedCount = 0
+
+    for _, win in ipairs(allWindows) do
+        if win:isVisible() and win:isStandard() then
+            local windowId = getWindowIdentifier(win)
+            if windowId then
+                local currentFrame = win:frame()
+                WindowToggler.location1[windowId] = currentFrame
+                savedCount = savedCount + 1
+            end
+        end
+    end
+
+    saveLocations() -- Persist to file
+    log:i('Saved all window positions as Layout 1, count:', savedCount)
+    hs.alert.show(string.format("Saved %d windows as Layout 1", savedCount))
+end
+
+-- Save all current window positions as Layout 2
+function WindowToggler.saveAllAsLayout2()
+    local allWindows = hs.window.allWindows()
+    local savedCount = 0
+
+    for _, win in ipairs(allWindows) do
+        if win:isVisible() and win:isStandard() then
+            local windowId = getWindowIdentifier(win)
+            if windowId then
+                local currentFrame = win:frame()
+                WindowToggler.location2[windowId] = currentFrame
+                savedCount = savedCount + 1
+            end
+        end
+    end
+
+    saveLocations() -- Persist to file
+    log:i('Saved all window positions as Layout 2, count:', savedCount)
+    hs.alert.show(string.format("Saved %d windows as Layout 2", savedCount))
+end
+
+-- Snap all windows to Layout 1 positions
+function WindowToggler.snapAllToLayout1()
+    local allWindows = hs.window.allWindows()
+    local restoredCount = 0
+    local missingCount = 0
+
+    for _, win in ipairs(allWindows) do
+        if win:isVisible() and win:isStandard() then
+            local windowId = getWindowIdentifier(win)
+            if windowId and WindowToggler.location1[windowId] then
+                WindowManager.setFrameInScreenWithRetry(win, WindowToggler.location1[windowId])
+                restoredCount = restoredCount + 1
+            else
+                missingCount = missingCount + 1
+            end
+        end
+    end
+
+    log:i('Snapped all windows to Layout 1 - restored:', restoredCount, 'missing:', missingCount)
+
+    if restoredCount > 0 and missingCount > 0 then
+        hs.alert.show(string.format("Layout 1: Restored %d windows, %d not saved", restoredCount, missingCount))
+    elseif restoredCount > 0 then
+        hs.alert.show(string.format("Layout 1: Restored %d windows", restoredCount))
+    else
+        hs.alert.show("Layout 1: No saved window positions found")
+    end
+end
+
+-- Snap all windows to Layout 2 positions
+function WindowToggler.snapAllToLayout2()
+    local allWindows = hs.window.allWindows()
+    local restoredCount = 0
+    local missingCount = 0
+
+    for _, win in ipairs(allWindows) do
+        if win:isVisible() and win:isStandard() then
+            local windowId = getWindowIdentifier(win)
+            if windowId and WindowToggler.location2[windowId] then
+                WindowManager.setFrameInScreenWithRetry(win, WindowToggler.location2[windowId])
+                restoredCount = restoredCount + 1
+            else
+                missingCount = missingCount + 1
+            end
+        end
+    end
+
+    log:i('Snapped all windows to Layout 2 - restored:', restoredCount, 'missing:', missingCount)
+
+    if restoredCount > 0 and missingCount > 0 then
+        hs.alert.show(string.format("Layout 2: Restored %d windows, %d not saved", restoredCount, missingCount))
+    elseif restoredCount > 0 then
+        hs.alert.show(string.format("Layout 2: Restored %d windows", restoredCount))
+    else
+        hs.alert.show("Layout 2: No saved window positions found")
+    end
+end
 -- List all saved window titles and locations
 function WindowToggler.listSavedWindows()
     local result = "Saved window positions:\n\n"

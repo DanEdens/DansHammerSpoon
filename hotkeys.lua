@@ -48,147 +48,6 @@ local FullLayoutState = {
     currentState = 0 -- 0: fullScreen, 1: nearlyFull, 2: trueFull
 }
 
--- ====================================
--- CAPS LOCK AS HYPER KEY SETUP 🔧⚡
--- ====================================
--- Create a modal for Caps Lock (F18) - The Mad Tinker's fourth dimension of hotkeys!
--- local capsModal = hs.hotkey.modal.new({}, 'F17')
-
--- -- Enter Caps Mode when F18 (remapped Caps Lock) is pressed
--- function enterCapsMode()
---     capsModal.triggered = false
---     capsModal:enter()
---     log:d('Entered Caps Lock Hyper Mode - The fourth dimension awaits!', __FILE__, 50)
--- end
-
--- -- Exit Caps Mode when F18 is released
--- -- If no other keys were pressed, send ESCAPE (handy for vim users!)
--- function exitCapsMode()
---     capsModal:exit()
---     if not capsModal.triggered then
---         hs.eventtap.keyStroke({}, 'ESCAPE')
---         log:d('Caps Lock released alone - sending ESCAPE', __FILE__, 58)
---     else
---         log:d('Exited Caps Lock Hyper Mode', __FILE__, 60)
---     end
--- end
-
--- -- Bind F18 (remapped Caps Lock) to enter/exit Caps Mode
--- local f18Hotkey = hs.hotkey.bind({}, 'F18', enterCapsMode, exitCapsMode)
-
--- -- Helper function to bind Caps Lock hotkeys
--- local function bindCapsKey(key, description, func)
---     capsModal:bind({}, key, description, function()
---         capsModal.triggered = true
---         func()
---     end)
--- end
-
--- ====================================
--- CAPS LOCK HOTKEY BINDINGS 🚀
--- ====================================
--- The Mad Tinker's Fourth Dimension of Hotkeys!
-
--- -- Quick App Launchers (Caps + Letter)
--- bindCapsKey("c", "Open Calculator", function()
---     hs.application.launchOrFocus("Calculator")
---     hs.alert.show("📊 Calculator", 1)
--- end)
-
--- bindCapsKey("v", "Open VS Code", function()
---     hs.application.launchOrFocus("Visual Studio Code")
---     hs.alert.show("💻 VS Code", 1)
--- end)
-
--- bindCapsKey("n", "Open Notes", function()
---     hs.application.launchOrFocus("Notes")
---     hs.alert.show("📝 Notes", 1)
--- end)
-
--- bindCapsKey("r", "Open Activity Monitor", function()
---     hs.application.launchOrFocus("Activity Monitor")
---     hs.alert.show("📈 Activity Monitor", 1)
--- end)
-
--- -- System Controls (Caps + Function Keys)
--- bindCapsKey("F1", "Show Desktop", function()
---     hs.spaces.toggleShowDesktop()
---     hs.alert.show("🖥️ Desktop", 1)
--- end)
-
--- bindCapsKey("F2", "Mission Control", function()
---     hs.spaces.toggleMissionControl()
---     hs.alert.show("🚀 Mission Control", 1)
--- end)
-
--- bindCapsKey("F3", "Launchpad", function()
---     hs.application.launchOrFocus("Launchpad")
---     hs.alert.show("🎯 Launchpad", 1)
--- end)
-
--- -- Window Management (Caps + Arrow Keys)
--- bindCapsKey("left", "Move Window Left Quarter", function()
---     WindowManager.applyLayout("leftQuarter")
---     hs.alert.show("⬅️ Left Quarter", 1)
--- end)
-
--- bindCapsKey("right", "Move Window Right Quarter", function()
---     WindowManager.applyLayout("rightQuarter")
---     hs.alert.show("➡️ Right Quarter", 1)
--- end)
-
--- bindCapsKey("up", "Move Window Top Half", function()
---     WindowManager.applyLayout("topHalf")
---     hs.alert.show("⬆️ Top Half", 1)
--- end)
-
--- bindCapsKey("down", "Move Window Bottom Third", function()
---     WindowManager.applyLayout("bottomThird")
---     hs.alert.show("⬇️ Bottom Third", 1)
--- end)
-
--- -- Utility Functions (Caps + Numbers)
--- bindCapsKey("1", "Toggle WiFi", function()
---     -- This would need a WiFi toggle function
---     hs.alert.show("📶 WiFi Toggle", 1)
---     log:i('WiFi toggle requested via Caps Lock', __FILE__, 125)
--- end)
-
--- bindCapsKey("2", "Toggle Bluetooth", function()
---     -- This would need a Bluetooth toggle function
---     hs.alert.show("🔵 Bluetooth Toggle", 1)
---     log:i('Bluetooth toggle requested via Caps Lock', __FILE__, 130)
--- end)
-
--- bindCapsKey("3", "Toggle Do Not Disturb", function()
---     AppManager.toggle_do_not_disturb()
---     hs.alert.show("🔕 Do Not Disturb", 1)
--- end)
-
--- -- Mad Tinker Special Functions (Caps + Special Keys)
--- bindCapsKey("space", "Show All Hotkeys", function()
---     -- Show a comprehensive hotkey list including Caps Lock hotkeys
---     HotkeyManager.showAllHotkeys()
---     hs.alert.show("🔧 All Hotkeys", 2)
--- end)
-
--- bindCapsKey("tab", "Cycle Through Apps", function()
---     hs.application.launchOrFocus("Mission Control")
---     hs.alert.show("🔄 App Cycle", 1)
--- end)
-
--- bindCapsKey("escape", "Lock Screen", function()
---     hs.caffeinate.lockScreen()
---     hs.alert.show("🔒 Screen Locked", 1)
--- end)
-
--- -- Fun Mad Tinker Features
--- bindCapsKey("m", "Toggle Madness Mode", function()
---     -- This could toggle some special visual effects or modes
---     hs.alert.show("🎪 MADNESS MODE ENGAGED! 🔧⚡", 3)
---     log:i('MADNESS MODE TOGGLED!', __FILE__, 155)
--- end)
-
 log:d('Caps Lock Hyper Mode initialized - Fourth dimension ready!', __FILE__, 158)
 -- Keybindings
 hs.hotkey.bind(hammer, "Space", "Show Hammer Hotkeys", function() showHammerList() end)
@@ -213,8 +72,8 @@ hs.hotkey.bind(hammer, "8", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "8", "Open System Preferences", function() AppManager.open_system() end)
 hs.hotkey.bind(hammer, "9", "Move Window to Mouse", function() WindowManager.moveWindowMouseCenter() end)
 hs.hotkey.bind(_hyper, "9", "Open Selected File", function() FileManager.openSelectedFile() end)
-hs.hotkey.bind(hammer, "0", "Horizontal Shuffle", function() WindowManager.halfShuffle(12, 8) end)
-hs.hotkey.bind(_hyper, "0", "Vertical Shuffle", function() WindowManager.halfShuffle(12, 3) end)
+hs.hotkey.bind(hammer, "0", "Horizontal Shuffle", function() WindowManager.halfShuffle(4, 4) end)
+hs.hotkey.bind(_hyper, "0", "Vertical Shuffle", function() WindowManager.halfShuffle(10, 3) end)
 hs.hotkey.bind(hammer, "left", "Move Window Left", function() WindowManager.moveWindow("left") end)
 hs.hotkey.bind(_hyper, "left", "Move to Previous Screen", function() WindowManager.moveToScreen("previous", "right") end)
 hs.hotkey.bind(hammer, "right", "Move Window Right", function() WindowManager.moveWindow("right") end)
@@ -242,11 +101,11 @@ hs.hotkey.bind(hammer, "F8", "Temporary Function", function() tempFunction() end
 hs.hotkey.bind(_hyper, "F8", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F9", "Show Window Config Info", function() WindowToggler.showConfigurationInfo() end)
 hs.hotkey.bind(_hyper, "F9", "Refresh Window Config", function() WindowToggler.refreshConfiguration() end)
--- hs.hotkey.bind(hammer, "F10", "Save Window to Location 1", function() WindowToggler.saveToLocation1() end)
--- hs.hotkey.bind(_hyper, "F10", "Restore Window to Location 1", function() WindowToggler.restoreToLocation1() end)
--- hs.hotkey.bind(hammer, "F11", "Save Window to Location 2", function() WindowToggler.saveToLocation2() end)
--- hs.hotkey.bind(_hyper, "F11", "Restore Window to Location 2", function() WindowToggler.restoreToLocation2() end)
--- hs.hotkey.bind(hammer, "F12", Cant use this key
+hs.hotkey.bind(hammer, "F10", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "F10", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F11", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "F11", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F12", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "F12", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "p", "Open PyCharm", function() AppManager.open_pycharm() end)
 hs.hotkey.bind(_hyper, "p", "Open Cursor", function() AppManager.open_cursor() end)
@@ -272,38 +131,22 @@ hs.hotkey.bind(hammer, "x", "Toggle Dragon Grid", function() spoon.DragonGrid:to
 hs.hotkey.bind(_hyper, "x", "Dragon Grid Settings", function() spoon.DragonGrid:showSettingsMenu() end)
 hs.hotkey.bind(hammer, "f", "Open Scrcpy", function() AppManager.open_scrcpy() end)
 -- hs.hotkey.bind(_hyper, "m", function() hs.execute("open -a '" .. FileManager.getEditor() .. "' ~/.zshrc") end)
-
--- Help/Documentation
-
--- Add additional hotkeys for unused keys
 -- hs.hotkey.bind(hammer, "y", "Open Countdown Timer", function() AppManager.open_countdown_timer() end)
 -- hs.hotkey.bind(_hyper, "y", "Toggle Do Not Disturb", function() AppManager.toggle_do_not_disturb() end)
-
--- HammerGhost Hotkeys
 hs.hotkey.bind(hammer, "m", "Toggle HammerGhost", function() spoon.HammerGhost:toggle() end)
 hs.hotkey.bind(_hyper, "m", "HammerGhost Editor", function() spoon.HammerGhost:showActionEditor() end)
-
--- Additional application and system shortcuts
 -- hs.hotkey.bind(hammer, "k", function() AppManager.lock_screen() end)
 -- hs.hotkey.bind(_hyper, "esc", function() AppManager.sleep_display() end)
-
--- Project Management
 hs.hotkey.bind(hammer, "j", "Toggle Project Manager", function() ProjectManager.toggleProjectManager() end)
 hs.hotkey.bind(_hyper, "j", "Show Active Project Info", function() ProjectManager.showActiveProjectInfo() end)
 hs.hotkey.bind(hammer, "k", "Reset Project Manager UI", function() ProjectManager.resetUI() end)
 hs.hotkey.bind(_hyper, "k", "Hide Project Manager UI", function() ProjectManager.hideUI() end)
-
--- Clipboard and productivity tools
 -- hs.hotkey.bind(hammer, "c", function() FileManager.showClipboardManager() end)
 -- hs.hotkey.bind(_hyper, "c", function() FileManager.clearClipboard() end)
-
--- Window Location Management (using available letter keys)
 hs.hotkey.bind(hammer, "o", "Restore Window to Location 1", function() WindowToggler.restoreToLocation1() end)
 hs.hotkey.bind(_hyper, "o", "Save Window to Location 1", function() WindowToggler.saveToLocation1() end)
 hs.hotkey.bind(hammer, "n", "Restore Window to Location 2", function() WindowToggler.restoreToLocation2() end)
 hs.hotkey.bind(_hyper, "n", "Save Window to Location 2", function() WindowToggler.saveToLocation2() end)
-
--- Add window toggle hotkeys
 hs.hotkey.bind(hammer, "w", "Toggle Between Location 1 and 2", function() WindowToggler.toggleWindowPosition() end)
 hs.hotkey.bind(_hyper, "w", "Window Locations Menu", function() WindowToggler.showLocationsMenu() end)
 hs.hotkey.bind(hammer, "q", "Clear Saved Window Positions", function() WindowToggler.clearSavedPositions() end)

@@ -34,7 +34,7 @@ end
 dofile(hs.configdir .. "/hotkeys.lua")
 
 -- Load the HammerGhost spoon
--- hs.loadSpoon("HammerGhost")
+hs.loadSpoon("HammerGhost")
 
 -- Initialize the HammerGhost spoon (no window will be created automatically)
 local hammerghost = spoon.HammerGhost:init()

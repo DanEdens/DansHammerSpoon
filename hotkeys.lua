@@ -52,6 +52,7 @@ log:d('Caps Lock Hyper Mode initialized - Fourth dimension ready!', __FILE__, 15
 -- Keybindings
 hs.hotkey.bind(hammer, "Space", "Show Hammer Hotkeys", function() showHammerList() end)
 hs.hotkey.bind(_hyper, "Space", "Show Hyper Hotkeys", function() showHyperList() end)
+hs.hotkey.bind(_meta, "Space", "Toggle Hotkey Display Mode", function() toggleHotkeyDisplayMode() end)
 hs.hotkey.bind(hammer, "1", "Move Top-Left Corner", function() WindowManager.applyLayout("topLeft") end)
 hs.hotkey.bind(_hyper, "1", "Move Bottom-Left Corner", function() WindowManager.applyLayout("bottomLeft") end)
 hs.hotkey.bind(hammer, "2", "Move Top-Right Corner", function() WindowManager.applyLayout("topRight") end)

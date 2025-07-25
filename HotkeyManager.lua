@@ -38,6 +38,9 @@ HotkeyManager.config = {
     fontSize = 14,         -- Font size for the hotkey display
     fadeInDuration = 0.3,  -- Duration of the fade in animation
     fadeOutDuration = 0.3, -- Duration of the fade out animation
+    
+    -- Display mode: "chooser" for searchable menu, "alert" for spread-out display
+    displayMode = "chooser",
 
     -- Alert settings
     alertDuration = 7,                            -- Duration in seconds to show the hotkey alert
@@ -168,7 +171,7 @@ function HotkeyManager.registerBinding(modifiers, key, callback, description)
     return true
 end
 
--- Show hotkey list for a specific modifier type in a persistent window
+-- Show hotkey list for a specific modifier type with searchable chooser or alert
 function HotkeyManager.showHotkeyList(modType)
     if not HotkeyManager.bindings[modType] then
         log:e("Unknown modifier type:" .. modType, __FILE__, 173)
@@ -182,6 +185,130 @@ function HotkeyManager.showHotkeyList(modType)
         return
     end
 
+    if HotkeyManager.config.displayMode == "alert" then
+        HotkeyManager.showHotkeyListAlert(modType)
+    else
+        HotkeyManager.showHotkeyListChooser(modType)
+    end
+end
+
+-- Show hotkey list in searchable chooser format
+function HotkeyManager.showHotkeyListChooser(modType)
+    local bindings = HotkeyManager.bindings[modType]
+    
+    -- Group bindings by category
+    local categories = {}
+
+    -- First pass: categorize bindings
+    for _, binding in ipairs(bindings) do
+        if not binding.isTemp then
+            local category = "Other"
+
+            -- Determine category based on description
+            if binding.description:match("[Ww]indow") or binding.description:match("[Ll]ayout") or
+                binding.description:match("[Ss]creen") or binding.description:match("[Ss]huffle") or
+                binding.description:match("[Mm]ove") or binding.description:match("[Pp]osition") then
+                category = "Window Management"
+            elseif binding.description:match("[Oo]pen") or binding.description:match("[Ll]aunch") or
+                binding.description:match("App") then
+                category = "Applications"
+            elseif binding.description:match("[Ff]ile") or binding.description:match("[Ff]older") or
+                binding.description:match("[Ii]mage") or binding.description:match("[Mm]enu") then
+                category = "Files"
+            elseif binding.description:match("[Ss]how") or binding.description:match("[Tt]oggle") or
+                binding.description:match("[Ll]ist") or binding.description:match("[Hh]otkey") then
+                category = "UI & Display"
+            elseif binding.description:match("[Ff]unction") or binding.description:match("[Rr]eload") or
+                binding.description:match("[Cc]onsole") then
+                category = "System"
+            end
+
+            if not categories[category] then
+                categories[category] = {}
+            end
+
+            table.insert(categories[category], binding)
+        end
+    end
+
+    -- Sort each category's bindings by key
+    for _, catBindings in pairs(categories) do
+        table.sort(catBindings, function(a, b)
+            return a.key < b.key
+        end)
+    end
+
+    -- Create chooser choices with formatted display
+    local choices = {}
+    
+    -- Title
+    local titleText = modType == HotkeyManager.MODIFIERS.HAMMER and "Hammer Mode Hotkeys" or
+        modType == HotkeyManager.MODIFIERS.HYPER and "Hyper Mode Hotkeys" or "Other Hotkeys"
+    
+    -- Order of categories
+    local categoryOrder = { "Window Management", "Applications", "Files", "UI & Display", "System" }
+
+    -- Add categories in preferred order
+    for _, catName in ipairs(categoryOrder) do
+        if categories[catName] and #categories[catName] > 0 then
+            -- Add category header
+            table.insert(choices, {
+                text = "— " .. catName .. " —",
+                subText = "────────────────────────────────────────",
+                disabled = true
+            })
+
+            -- Add hotkeys in this category with spacing
+            for _, binding in ipairs(categories[catName]) do
+                table.insert(choices, {
+                    text = string.format("%-8s — %-30s", binding.key, binding.description),
+                    subText = catName,
+                    key = binding.key,
+                    description = binding.description,
+                    category = catName
+                })
+            end
+        end
+    end
+
+    -- Handle "Other" category last
+    if categories["Other"] and #categories["Other"] > 0 then
+        table.insert(choices, {
+            text = "— Other —",
+            subText = "────────────────────────────────────────",
+            disabled = true
+        })
+
+        for _, binding in ipairs(categories["Other"]) do
+            table.insert(choices, {
+                text = string.format("%-8s — %-30s", binding.key, binding.description),
+                subText = "Other",
+                key = binding.key,
+                description = binding.description,
+                category = "Other"
+            })
+        end
+    end
+
+    -- Create and show chooser
+    local chooser = hs.chooser.new(function(choice)
+        if choice and not choice.disabled then
+            hs.alert.show("Hotkey: " .. choice.key .. " — " .. choice.description, 2)
+        end
+    end)
+
+    chooser:placeholderText("Search " .. titleText:lower() .. "...")
+    chooser:choices(choices)
+    chooser:searchSubText(true)
+    chooser:rows(15)
+    chooser:width(25)
+    chooser:show()
+end
+
+-- Show hotkey list in original alert format (spread out display)
+function HotkeyManager.showHotkeyListAlert(modType)
+    local bindings = HotkeyManager.bindings[modType]
+    
     -- Group bindings by category
     local categories = {}
 
@@ -297,10 +424,6 @@ function HotkeyManager.showHotkeyList(modType)
     end
 
     -- Show alert with a large size and longer duration
-    local screenRect = hs.screen.mainScreen():frame()
-    local alertSize = { w = HotkeyManager.config.width, h = HotkeyManager.config.height }
-
-    -- Create alert with settings for wider display
     hs.alert.closeAll()
     hs.alert.show(
         displayText,
@@ -340,6 +463,18 @@ end
 function HotkeyManager.showOtherList()
     HotkeyManager.showHotkeyList(HotkeyManager.MODIFIERS.OTHER)
 end
+
+-- Toggle display mode between chooser and alert
+function HotkeyManager.toggleDisplayMode()
+    if HotkeyManager.config.displayMode == "chooser" then
+        HotkeyManager.config.displayMode = "alert"
+        hs.alert.show("Hotkey display mode: Alert (spread-out)", 2)
+    else
+        HotkeyManager.config.displayMode = "chooser"
+        hs.alert.show("Hotkey display mode: Chooser (searchable)", 2)
+    end
+    log:i("Display mode changed to: " .. HotkeyManager.config.displayMode)
+end
 -- Wrap the original hotkey.bind to automatically register the binding
 local originalBind = hs.hotkey.bind
 hs.hotkey.bind = function(mods, key, message, pressedfn, releasedfn, repeatfn)
@@ -373,6 +508,7 @@ function HotkeyManager.init()
     _G.showHammerList = HotkeyManager.showHammerList
     _G.showHyperList = HotkeyManager.showHyperList
     _G.showOtherList = HotkeyManager.showOtherList
+    _G.toggleHotkeyDisplayMode = HotkeyManager.toggleDisplayMode
 
     return HotkeyManager
 end
@@ -398,6 +534,12 @@ function HotkeyManager.configureDisplay(options)
                     HotkeyManager.config[key] = value
                 else
                     log:w("Invalid value for font, must be a string")
+                end
+            elseif key == "displayMode" then
+                if value == "chooser" or value == "alert" then
+                    HotkeyManager.config[key] = value
+                else
+                    log:w("Invalid displayMode, must be 'chooser' or 'alert'")
                 end
             elseif key == "backgroundColor" or key == "textColor" then
                 if type(value) == "table" and #value >= 3 then

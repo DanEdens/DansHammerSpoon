@@ -819,6 +819,24 @@ function AppManager.open_medis()
     AppManager.launchOrFocusWithWindowSelection("Medis")
 end
 
+function AppManager.openProjectByIndex(index)
+    local projects = FileManager.getProjectsList()
+    if index > #projects then
+        log:w("No project found at index: " .. index, __FILE__)
+        hs.alert.show("No project at index " .. index)
+        return
+    end
+
+    local project = projects[index]
+    if project and project.path then
+        log:i("Opening project by index " .. index .. ": " .. project.name, __FILE__)
+        hs.execute("open -a 'GitHub Desktop' " .. project.path)
+        hs.execute("open -a 'cursor' " .. project.path)
+    else
+        log:w("Project at index " .. index .. " has no path.", __FILE__)
+    end
+end
+
 -- Save in global environment for module reuse
 _G.AppManager = AppManager
 return AppManager

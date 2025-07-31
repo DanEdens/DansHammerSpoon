@@ -161,6 +161,17 @@ hs.hotkey.bind(_meta, "a", "KineticLatch Diagnostics", function() spoon.KineticL
 
 -- Application-specific hotkeys
 
+-- Dynamic hotkeys for top 9 projects
+for i = 1, 9 do
+    local projects = FileManager.getProjectsList()
+    if i <= #projects then
+        local projectName = projects[i].name
+        hs.hotkey.bind(_meta, tostring(i), "Open " .. projectName, function()
+            AppManager.openProjectByIndex(i)
+        end)
+    end
+end
+
 -- Add a definition for tempFunction at the end of the file
 function tempFunction()
     log:i('Temporary function called')

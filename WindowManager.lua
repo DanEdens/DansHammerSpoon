@@ -440,7 +440,7 @@ function WindowManager.restoreAllWindowPositions()
 end
 
 function WindowManager.resetShuffleCounters()
-    log.i('Resetting shuffle counters')
+    hs.alert.show("Shuffle counters reset")
     WindowManager.rowCounter = 0
     WindowManager.colCounter = 0
     WindowManager.counter = 0
@@ -903,6 +903,46 @@ function WindowManager.deleteLayout(layoutName)
         return false
     end
 end
+
+WindowManager.windowAlphas = {}
+
+function WindowManager:setAlpha(level, win)
+    win = win or hs.window.focusedWindow()
+    if not win then
+        log:w("No focused window found to set alpha", __FILE__)
+        return
+    end
+
+    level = math.max(0, math.min(1, level)) -- Clamp between 0 and 1
+
+    win:setAlpha(level)
+    self.windowAlphas[win:id()] = level
+    log:i(string.format("Window '%s' alpha set to %.2f", win:title(), level), __FILE__)
+end
+
+function WindowManager:changeAlpha(direction, amount)
+    local win = hs.window.focusedWindow()
+    if not win then
+        log:w("No focused window found to change alpha", __FILE__)
+        return
+    end
+
+    amount = amount or 0.1
+    local currentAlpha = self.windowAlphas[win:id()] or 1.0 -- Default to 1.0 if not tracked
+
+    local newAlpha
+    if direction == "increase" then
+        newAlpha = math.min(1.0, currentAlpha + amount)
+    elseif direction == "decrease" then
+        newAlpha = math.max(0.0, currentAlpha - amount)
+    else
+        log:w("Invalid direction for changeAlpha: " .. tostring(direction), __FILE__)
+        return
+    end
+
+    self:setAlpha(newAlpha, win)
+end
+
 -- Save in global environment for module reuse
 _G.WindowManager = WindowManager
 return WindowManager

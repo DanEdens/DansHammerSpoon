@@ -550,6 +550,11 @@ function WindowMenu.showStatus()
         status = status .. "Active Window: " .. appName .. "\n"
         status = status .. "Position: " .. math.floor(frame.x) .. "," .. math.floor(frame.y) .. "\n"
         status = status .. "Size: " .. math.floor(frame.w) .. "×" .. math.floor(frame.h) .. "\n\n"
+        status = status .. "Window ID: " .. win:id() .. "\n\n"
+        status = status .. "Window Title: " .. win:title() .. "\n\n"
+        status = status .. "Window Subrole: " .. win:subrole() .. "\n\n"
+        status = status .. "Window Role: " .. win:role() .. "\n\n"
+        status = status .. "Window Visible: " .. (win:isVisible() and "Yes" or "No") .. "\n\n"
     else
         status = status .. "No active window\n\n"
     end

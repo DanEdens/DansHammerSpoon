@@ -172,6 +172,20 @@ for i = 1, 9 do
     end
 end
 
+hs.hotkey.bind(_meta, "0", "Show Top Projects", function()
+    local projects = FileManager.getProjectsList()
+    if #projects == 0 then
+        hs.alert.show("No projects found.")
+        return
+    end
+
+    local message = "Top Projects:\n\n"
+    for i = 1, math.min(9, #projects) do
+        message = message .. i .. ". " .. projects[i].name .. "\n"
+    end
+    hs.alert.show(message, 10)
+end)
+
 -- Add a definition for tempFunction at the end of the file
 function tempFunction()
     log:i('Temporary function called')

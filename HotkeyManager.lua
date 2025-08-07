@@ -160,7 +160,8 @@ function HotkeyManager.registerBinding(modifiers, key, callback, description)
     table.insert(HotkeyManager.bindings[modType], {
         key = key,
         description = description,
-        isTemp = isTempFunction
+        isTemp = isTempFunction,
+        callback = callback
     })
 
     -- Sort bindings by key
@@ -240,6 +241,8 @@ function HotkeyManager.showHotkeyListChooser(modType)
 
     -- Create chooser choices with formatted display
     local choices = {}
+    local callbacks = {} -- Store callbacks locally
+    local callbackIndex = 1
     
     -- Title
     local titleText = modType == HotkeyManager.MODIFIERS.HAMMER and "Hammer Mode Hotkeys" or
@@ -265,8 +268,11 @@ function HotkeyManager.showHotkeyListChooser(modType)
                     subText = catName,
                     key = binding.key,
                     description = binding.description,
-                    category = catName
+                    category = catName,
+                    callbackIndex = callbackIndex
                 })
+                callbacks[callbackIndex] = binding.callback
+                callbackIndex = callbackIndex + 1
             end
         end
     end
@@ -285,15 +291,20 @@ function HotkeyManager.showHotkeyListChooser(modType)
                 subText = "Other",
                 key = binding.key,
                 description = binding.description,
-                category = "Other"
+                category = "Other",
+                callbackIndex = callbackIndex
             })
+            callbacks[callbackIndex] = binding.callback
+            callbackIndex = callbackIndex + 1
         end
     end
 
     -- Create and show chooser
     local chooser = hs.chooser.new(function(choice)
-        if choice and not choice.disabled then
-            hs.alert.show("Hotkey: " .. choice.key .. " — " .. choice.description, 2)
+        if choice and not choice.disabled and choice.callbackIndex and callbacks[choice.callbackIndex] then
+            callbacks[choice.callbackIndex]()
+        elseif choice and not choice.disabled then
+            hs.alert.show("No callback associated with: " .. choice.key, 2)
         end
     end)
 

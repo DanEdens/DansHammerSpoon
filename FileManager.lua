@@ -53,6 +53,7 @@ local fallback_projects_list = {
     { name = "Todomill_projectorium",      path = seatOfMadness .. "/projects/common/Omnispindle/Todomill_projectorium" },
     { name = "Inventorium",                path = seatOfMadness .. "/projects/common/Inventorium" },
     { name = "Omnispindle",                path = seatOfMadness .. "/projects/common/Omnispindle" },
+    { name = "Omnispindle-cli-bridge",     path = seatOfMadness .. "/projects/common/Omnispindle-cli-bridge" },
     { name = "Swarmonomicon",              path = seatOfMadness .. "/projects/common/Swarmonomicon" },
     { name = "Whispermind_Conduit",        path = seatOfMadness .. "/projects/common/Whispermind_Conduit" },
     { name = "SwarmDesk",                  path = seatOfMadness .. "/projects/common/SwarmDesk" },

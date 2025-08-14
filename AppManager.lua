@@ -179,9 +179,11 @@ function AppManager.launchOrFocusWithWindowSelection(appName)
 end
 
 -- Special function for GitHub Desktop that always shows the selection menu
-function AppManager.launchGitHubWithProjectSelection()
+function AppManager.launchGitHubWithProjectSelection(app)
     local appName = "GitHub Desktop"
-    local app = hs.application.find(appName)
+    if not app then
+        app = hs.application.find(appName)
+    end
 
     if not app then
         -- If GitHub Desktop isn't running, launch it with the selection menu
@@ -690,6 +692,10 @@ end
 
 function AppManager.open_anythingllm()
     AppManager.launchOrFocusWithWindowSelection("AnythingLLM")
+end
+
+function AppManager.open_lmstudio()
+    AppManager.launchOrFocusWithWindowSelection("LM Studio")
 end
 
 function AppManager.open_mongodb()

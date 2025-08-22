@@ -31,7 +31,7 @@ HotkeyManager.displayWindows = {
 -- Default configuration
 HotkeyManager.config = {
     -- Display settings
-    width = 800,           -- Width of the hotkey display
+    width = 1200,           -- Width of the hotkey display
     height = 600,          -- Height of the hotkey display
     cornerRadius = 10,     -- Corner radius for the hotkey display
     font = "Menlo",        -- Font for the hotkey display
@@ -312,7 +312,7 @@ function HotkeyManager.showHotkeyListChooser(modType)
     chooser:choices(choices)
     chooser:searchSubText(true)
     chooser:rows(15)
-    chooser:width(25)
+    chooser:width(250)
     chooser:show()
 end
 

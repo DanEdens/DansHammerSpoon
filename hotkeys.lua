@@ -50,19 +50,24 @@ local FullLayoutState = {
 
 log:d('Keyboard initializing - Beep boop!', __FILE__, 158)
 
+-- hotkeys to add
+-- open steam > tmodloader
+-- make deploy
+-- type coommand for me: mcp recomnnect todo_server
+
 -- Keybindings - Top Row
 hs.hotkey.bind(hammer, "F1", "Toggle Console", function() hs.toggleConsole() end)
 hs.hotkey.bind(_hyper, "F1", "LM Studio", function() AppManager.open_lmstudio() end)
-hs.hotkey.bind("cmd", "F1", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind(hammer, "F2", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind("cmd", "F1", "Temporary Function", function() tempFunction() end) -- Open Finder?
+hs.hotkey.bind(hammer, "F2", "Temporary Function", function() tempFunction() end) 
 hs.hotkey.bind(_hyper, "F2", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind("cmd", "F2", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F3", "Toggle USB Logging", function() DeviceManager.toggleUSBLogging() end)
 hs.hotkey.bind(_hyper, "F3", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind("cmd", "F3", "Open GitHub", function() AppManager.open_github() end)
+hs.hotkey.bind("cmd", "F3", "Open GitHub", function() AppManager.open_github() end) -- chnange to opening tmodlauncher
 hs.hotkey.bind(hammer, "F4", "Show Layouts Menu", function() spoon.Layouts:chooseLayout() end)
 hs.hotkey.bind(_hyper, "F4", "Save Layout", function() saveLayoutWithDialog() end)
-hs.hotkey.bind("cmd", "F4", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind("cmd", "F4", "Temporary Function", function() tempFunction() end) -- open stream library
 hs.hotkey.bind(hammer, "F5", "Reload Hammerspoon", function() hs.reload() end)
 hs.hotkey.bind(_hyper, "F5", "Open Hammerspoon Preferences", function() hs.openPreferences() end)
 hs.hotkey.bind("cmd", "F5", "Temporary Function", function() tempFunction() end)
@@ -71,21 +76,22 @@ hs.hotkey.bind(_hyper, "F6", "Save All Window Positions", function() WindowManag
 hs.hotkey.bind("cmd", "F6", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F7", "Restore Window Position", function() WindowManager.restoreWindowPosition() end)
 hs.hotkey.bind(_hyper, "F7", "Restore All Window Positions", function() WindowManager.restoreAllWindowPositions() end)
-hs.hotkey.bind("cmd", "F8", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind("cmd", "F7", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F8", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "F8", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind("cmd", "F9", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind(hammer, "F9", "Show Window Config Info", function() WindowToggler.showConfigurationInfo() end)
+hs.hotkey.bind("cmd", "F8", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "F9", "Show Window Config Info", function() WindowToggler.showConfigurationInfo() end) -- aadd more useful info
 hs.hotkey.bind(_hyper, "F9", "Refresh Window Config", function() WindowToggler.refreshConfiguration() end)
-hs.hotkey.bind("cmd", "F10", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind("cmd", "F9", "Temporary Function", function() tempFunction() end) 
 hs.hotkey.bind(hammer, "F10", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "F10", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind("cmd", "F11", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind("cmd", "F10", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F11", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "F11", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind("cmd", "F12", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind("cmd", "F11", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F12", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "F12", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind("cmd", "F12", "Temporary Function", function() tempFunction() end)
 
 -- Keybindings - Number Row
 hs.hotkey.bind(hammer, "`", "Open Cursor with GitHub", function() AppManager.open_cursor_with_github() end)
@@ -111,7 +117,7 @@ hs.hotkey.bind(_hyper, "9", "Open Selected File", function() FileManager.openSel
 hs.hotkey.bind(hammer, "0", "Horizontal Shuffle", function() WindowManager.halfShuffle(4, 4) end)
 hs.hotkey.bind(_hyper, "0", "Vertical Shuffle", function() WindowManager.halfShuffle(1, 4) end)
 -- add - and = and backspace
-hs.hotkey.bind(hammer, "-", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "-", "Temporary Function", function() tempFunction() end) -- (n and o jump to and save all current) buttons 
 hs.hotkey.bind(_hyper, "-", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "=", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "=", "Temporary Function", function() tempFunction() end)
@@ -133,6 +139,7 @@ hs.hotkey.bind(hammer, "t", "Open Barrier", function() AppManager.open_barrier()
 hs.hotkey.bind(_hyper, "t", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "y", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "y", "Temporary Function", function() tempFunction() end)
+
 hs.hotkey.bind(hammer, "u", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "u", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "i", "Copy Most Recent Image", function() FileManager.copyMostRecentImage() end)

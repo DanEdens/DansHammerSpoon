@@ -843,6 +843,28 @@ function AppManager.openProjectByIndex(index)
     end
 end
 
+function AppManager.open_steam_tmodloader()
+    hs.execute("open steam://run/1281930")
+end
+
+function AppManager.open_tmodlauncher()
+    hs.execute("open -a 'tModLoader' || open steam://run/1281930")
+end
+
+function AppManager.open_steam_library()
+    hs.execute("open steam://open/games")
+end
+
+function AppManager.run_make_deploy()
+    local currentPath = hs.execute("pwd"):gsub("\n", "")
+    hs.execute("cd " .. currentPath .. " && make deploy")
+    hs.alert.show("Running make deploy...")
+end
+
+function AppManager.type_mcp_reconnect()
+    hs.eventtap.keyStrokes("mcp reconnect todo_server")
+end
+
 -- Save in global environment for module reuse
 _G.AppManager = AppManager
 return AppManager

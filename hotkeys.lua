@@ -50,24 +50,20 @@ local FullLayoutState = {
 
 log:d('Keyboard initializing - Beep boop!', __FILE__, 158)
 
--- hotkeys to add
--- open steam > tmodloader
--- make deploy
--- type coommand for me: mcp recomnnect todo_server
 
 -- Keybindings - Top Row
 hs.hotkey.bind(hammer, "F1", "Toggle Console", function() hs.toggleConsole() end)
 hs.hotkey.bind(_hyper, "F1", "LM Studio", function() AppManager.open_lmstudio() end)
-hs.hotkey.bind("cmd", "F1", "Temporary Function", function() tempFunction() end) -- Open Finder?
+hs.hotkey.bind("cmd", "F1", "Open Finder", function() AppManager.open_finder() end)
 hs.hotkey.bind(hammer, "F2", "Temporary Function", function() tempFunction() end) 
 hs.hotkey.bind(_hyper, "F2", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind("cmd", "F2", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F3", "Toggle USB Logging", function() DeviceManager.toggleUSBLogging() end)
 hs.hotkey.bind(_hyper, "F3", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind("cmd", "F3", "Open GitHub", function() AppManager.open_github() end) -- chnange to opening tmodlauncher
+hs.hotkey.bind("cmd", "F3", "Open tModLauncher", function() AppManager.open_tmodlauncher() end)
 hs.hotkey.bind(hammer, "F4", "Show Layouts Menu", function() spoon.Layouts:chooseLayout() end)
 hs.hotkey.bind(_hyper, "F4", "Save Layout", function() saveLayoutWithDialog() end)
-hs.hotkey.bind("cmd", "F4", "Temporary Function", function() tempFunction() end) -- open stream library
+hs.hotkey.bind("cmd", "F4", "Open Steam Library", function() AppManager.open_steam_library() end)
 hs.hotkey.bind(hammer, "F5", "Reload Hammerspoon", function() hs.reload() end)
 hs.hotkey.bind(_hyper, "F5", "Open Hammerspoon Preferences", function() hs.openPreferences() end)
 hs.hotkey.bind("cmd", "F5", "Temporary Function", function() tempFunction() end)
@@ -117,9 +113,9 @@ hs.hotkey.bind(_hyper, "9", "Open Selected File", function() FileManager.openSel
 hs.hotkey.bind(hammer, "0", "Horizontal Shuffle", function() WindowManager.halfShuffle(4, 4) end)
 hs.hotkey.bind(_hyper, "0", "Vertical Shuffle", function() WindowManager.halfShuffle(1, 4) end)
 -- add - and = and backspace
-hs.hotkey.bind(hammer, "-", "Temporary Function", function() tempFunction() end) -- (n and o jump to and save all current) buttons 
-hs.hotkey.bind(_hyper, "-", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind(hammer, "=", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(hammer, "-", "Run Make Deploy", function() AppManager.run_make_deploy() end)
+hs.hotkey.bind(_hyper, "-", "Type MCP Reconnect", function() AppManager.type_mcp_reconnect() end)
+hs.hotkey.bind(hammer, "=", "Open Steam tModLoader", function() AppManager.open_steam_tmodloader() end)
 hs.hotkey.bind(_hyper, "=", "Temporary Function", function() tempFunction() end)
 -- hs.hotkey.bind(hammer, "delete", "Temporary Function", function() tempFunction() end) (cant bind while modifier is down)
 -- hs.hotkey.bind(_hyper, "delete", "Temporary Function", function() tempFunction() end)
@@ -144,7 +140,7 @@ hs.hotkey.bind(hammer, "u", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "u", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "i", "Copy Most Recent Image", function() FileManager.copyMostRecentImage() end)
 hs.hotkey.bind(_hyper, "i", "Open Most Recent Image", function() FileManager.openMostRecentImage() end)
-hs.hotkey.bind(hammer, "o", "Restore Window to Location 1", function() WindowToggler.restoreToLocation1() end)
+hs.hotkey.bind(hammer, "o", "Restore All Window Positions", function() WindowManager.restoreAllWindowPositions() end)
 hs.hotkey.bind(_hyper, "o", "Save Window to Location 1", function() WindowToggler.saveToLocation1() end)
 hs.hotkey.bind(hammer, "p", "Open PyCharm", function() AppManager.open_pycharm() end)
 hs.hotkey.bind(_hyper, "p", "Open Cursor", function() AppManager.open_cursor() end)
@@ -191,7 +187,7 @@ hs.hotkey.bind(hammer, "v", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(_hyper, "v", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "b", "Open Chrome", function() AppManager.open_chrome() end)
 hs.hotkey.bind(_hyper, "b", "Open Arc Browser", function() AppManager.open_arc() end)
-hs.hotkey.bind(hammer, "n", "Restore Window to Location 2", function() WindowToggler.restoreToLocation2() end)
+hs.hotkey.bind(hammer, "n", "Save All Window Positions", function() WindowManager.saveAllWindowPositions() end)
 hs.hotkey.bind(_hyper, "n", "Save Window to Location 2", function() WindowToggler.saveToLocation2() end)
 hs.hotkey.bind(hammer, "m", "Toggle HammerGhost", function() spoon.HammerGhost:toggle() end)
 hs.hotkey.bind(_hyper, "m", "HammerGhost Editor", function() spoon.HammerGhost:showActionEditor() end)

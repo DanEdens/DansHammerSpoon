@@ -55,7 +55,7 @@ hs.hotkey.bind(hammer, "F1", "Toggle Console", function() hs.toggleConsole() end
 hs.hotkey.bind(_hyper, "F1", "LM Studio", function() AppManager.open_lmstudio() end)
 hs.hotkey.bind("cmd", "F1", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F2", "Temporary Function", function() tempFunction() end)
-hs.hotkey.bind(_hyper, "F2", "Temporary Function", function() tempFunction() end)
+hs.hotkey.bind(_hyper, "F2", "Windsurf", function() AppManager.open_windsurf() end)
 hs.hotkey.bind("cmd", "F2", "Temporary Function", function() tempFunction() end)
 hs.hotkey.bind(hammer, "F3", "Toggle USB Logging", function() DeviceManager.toggleUSBLogging() end)
 hs.hotkey.bind(_hyper, "F3", "Temporary Function", function() tempFunction() end)

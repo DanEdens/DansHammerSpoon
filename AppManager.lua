@@ -1,5 +1,9 @@
+-- TODO - 5f3f9bdb-9112-492a-aed6-24cd63c21452 - add a madness interactive header to the top of the file
+
+
 -- AppManager.lua - Application management utilities
 -- Using singleton pattern to avoid multiple initializations
+-- =================================
 
 local HyperLogger = require('HyperLogger')
 local log = HyperLogger.new()
@@ -22,7 +26,7 @@ local enableMultiWindowSelector = true
 local enableMenuSeparators = false
 
 -- Application Management Functions
-function AppManager.launchOrFocusWithWindowSelection(appName)
+function AppManager.madFocus(appName)
     if not enableMultiWindowSelector then
         hs.application.launchOrFocus(appName)
         return
@@ -675,55 +679,65 @@ function AppManager.open_github()
 end
 
 function AppManager.open_slack()
-    AppManager.launchOrFocusWithWindowSelection("Slack")
+    AppManager.madFocus("Slack")
 end
 
 function AppManager.open_arc()
-    AppManager.launchOrFocusWithWindowSelection("Arc")
+    AppManager.madFocus("Arc")
+end
+
+function AppManager.open_zen()
+    AppManager.madFocus("Zen")
 end
 
 function AppManager.open_chrome()
-    AppManager.launchOrFocusWithWindowSelection("Google Chrome")
+    AppManager.madFocus("Google Chrome")
 end
 
 function AppManager.open_pycharm()
-    AppManager.launchOrFocusWithWindowSelection("PyCharm Community Edition")
+    AppManager.madFocus("PyCharm Community Edition")
 end
 
 function AppManager.open_anythingllm()
-    AppManager.launchOrFocusWithWindowSelection("AnythingLLM")
+    AppManager.madFocus("AnythingLLM")
 end
 
 function AppManager.open_lmstudio()
-    AppManager.launchOrFocusWithWindowSelection("LM Studio")
+    AppManager.madFocus("LM Studio")
 end
 
 function AppManager.open_mongodb()
-    AppManager.launchOrFocusWithWindowSelection("MongoDB Compass")
+    AppManager.madFocus("MongoDB Compass")
 end
 
 function AppManager.open_logi()
-    AppManager.launchOrFocusWithWindowSelection("logioptionsplus")
+    AppManager.madFocus("logioptionsplus")
 end
 
 function AppManager.open_system()
-    AppManager.launchOrFocusWithWindowSelection("System Preferences")
+    AppManager.madFocus("System Preferences")
 end
 
 function AppManager.open_vscode()
-    AppManager.launchOrFocusWithWindowSelection("Visual Studio Code")
+    AppManager.madFocus("Visual Studio Code")
 end
 
 function AppManager.open_cursor()
-    AppManager.launchOrFocusWithWindowSelection("cursor")
+    AppManager.madFocus("cursor")
 end
+
+
 
 function AppManager.open_cursor_with_github()
     AppManager.launchCursorWithGitHubDesktop()
 end
 
 function AppManager.open_barrier()
-    AppManager.launchOrFocusWithWindowSelection("Barrier")
+    AppManager.madFocus("Barrier")
+end
+
+function AppManager.open_windsurf()
+    AppManager.madFocus("Windsurf")
 end
 
 -- scrcpy - Special handling for command-line tools
@@ -806,23 +820,23 @@ function AppManager.open_scrcpy()
 end
 
 function AppManager.open_mission_control()
-    AppManager.launchOrFocusWithWindowSelection("Mission Control.app")
+    AppManager.madFocus("Mission Control.app")
 end
 
 function AppManager.open_launchpad()
-    AppManager.launchOrFocusWithWindowSelection("Launchpad")
+    AppManager.madFocus("Launchpad")
 end
 
 function AppManager.open_terminal()
-    AppManager.launchOrFocusWithWindowSelection("Warp")
+    AppManager.madFocus("Warp")
 end
 
 function AppManager.open_finder()
-    AppManager.launchOrFocusWithWindowSelection("Finder")
+    AppManager.madFocus("Finder")
 end
 -- Medis db viewer
 function AppManager.open_medis()
-    AppManager.launchOrFocusWithWindowSelection("Medis")
+    AppManager.madFocus("Medis")
 end
 
 function AppManager.openProjectByIndex(index)

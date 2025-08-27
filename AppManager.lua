@@ -678,6 +678,10 @@ function AppManager.open_github()
     hs.execute("open -a '" .. githubAppName .. "' " .. seatOfMadness)
 end
 
+function AppManager.open_cursor_with_github()
+    AppManager.launchCursorWithGitHubDesktop()
+end
+
 function AppManager.open_slack()
     AppManager.madFocus("Slack")
 end
@@ -726,11 +730,6 @@ function AppManager.open_cursor()
     AppManager.madFocus("cursor")
 end
 
-
-
-function AppManager.open_cursor_with_github()
-    AppManager.launchCursorWithGitHubDesktop()
-end
 
 function AppManager.open_barrier()
     AppManager.madFocus("Barrier")

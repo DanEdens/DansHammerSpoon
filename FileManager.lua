@@ -30,18 +30,18 @@ local lastSelected = {
 }
 -- File Lists
 local fileList = {
-    { name = "init.lua",       path = "~/.hammerspoon/init.lua" },
-    { name = "global hotkeys", path = "~/.hammerspoon/hotkeys.lua" },
-    { name = "zshenv",         path = "~/.zshenv" },
+    { name = "Main init",       path = "~/.hammerspoon/init.lua" },
+    { name = "Global Hotkeys", path = "~/.hammerspoon/hotkeys.lua" },
     { name = "File Manager",   path = "~/.hammerspoon/FileManager.lua" },
+    { name = "zshenv",         path = "~/.zshenv" },
     { name = "zshrc",          path = "~/.zshrc" },
     { name = "bash_aliases",   path = "~/.bash_aliases" },
-    { name = "goosehints",     path = "~/.config/goose/.goosehints" },
+
     { name = "tasks",          path = "~/lab/regressiontestkit/tasks.py" },
     { name = "ssh config",     path = "~/.ssh/config" },
     -- { name = "RTK_rules",      path = "~/lab/regressiontestkit/regressiontest/.cursorrules" },
     { name = "mad_rules",      path = seatOfMadness .. "/.cursor/rules" },
-    { name = "swarmonomicon",  path = seatOfMadness .. "/projects/common/swarmonomicon/.cursorrules" },
+
 }
 
 -- Fallback projects list (used when OmniLadle is not available)
@@ -59,6 +59,7 @@ local fallback_projects_list = {
     { name = "SwarmDesk",                  path = seatOfMadness .. "/projects/common/SwarmDesk" },
     { name = "regressiontestkit",          path = seatOfTest },
     -- RegressionTestKit ecosystem
+    { name = "IntergrationsQAtesting",     path = seatOfTest .. "/IntergrationsQAtesting" },
     { name = "OculusTestKit",              path = seatOfTest .. "/OculusTestKit" },
     { name = "phoenix",                    path = seatOfTest .. "/phoenix" },
     { name = "rust_ingest",                path = seatOfTest .. "/rust_ingest" },
